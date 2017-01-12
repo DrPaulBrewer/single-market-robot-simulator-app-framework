@@ -226,7 +226,7 @@ export class App {
     
     init(){
         $('.postrun').prop('disabled',true);
-        let editorElement = $('#editor');
+        let editorElement = document.getElementById('editor');
         let editorOptions = {
             schema: this.configSchema,
             startval: this.startVal

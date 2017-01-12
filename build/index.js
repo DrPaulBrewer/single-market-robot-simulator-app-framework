@@ -257,7 +257,7 @@ var App = exports.App = function () {
             var _this5 = this;
 
             $('.postrun').prop('disabled', true);
-            var editorElement = $('#editor');
+            var editorElement = document.getElementById('editor');
             var editorOptions = {
                 schema: this.configSchema,
                 startval: this.startVal
