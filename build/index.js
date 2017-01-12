@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.app = undefined;
+exports.App = undefined;
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
 
@@ -45,9 +45,9 @@ function adjustBook(sim) {
     return sim;
 }
 
-var app = exports.app = function () {
-    function app(options) {
-        _classCallCheck(this, app);
+var App = exports.App = function () {
+    function App(options) {
+        _classCallCheck(this, App);
 
         this.SMRS = options.SMRS;
         this.DB = options.DB;
@@ -65,7 +65,7 @@ var app = exports.app = function () {
         this.visual = 0;
     }
 
-    _createClass(app, [{
+    _createClass(App, [{
         key: "allSim",
         value: function allSim(config) {
             var _this = this;
@@ -472,5 +472,5 @@ var app = exports.app = function () {
         }
     }]);
 
-    return app;
+    return App;
 }();

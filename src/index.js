@@ -25,7 +25,7 @@ function adjustBook(sim){
 }
 
 
-export class app {
+export class App {
     constructor(options){
 	this.SMRS = options.SMRS;
 	this.DB = options.DB;
