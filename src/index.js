@@ -44,11 +44,12 @@ export class App {
     }
 
     allSim(config){
+	const { SMRS } = this;
         return (config
                 .configurations
                 .map(commonFrom(config))
                 .map(adjustBook)
-                .map((s)=>(new this.SMRS.Simulation(s)))
+                .map((s)=>(new SMRS.Simulation(s)))
                );
     }
 
@@ -69,12 +70,13 @@ export class App {
     }    
 
     guessTime(){
-        const l = this.periodTimers.length;
+	const { periodsEditor, periodTimers } = this;
+        const l = periodTimers.length;
         let guess = 0;
         if (l>2){ 
-            guess = ((this.periodsEditor.getValue())*(this.periodTimers[l-1]-this.periodTimers[1])/(l-2))+this.periodTimers[1];
+            guess = ((periodsEditor.getValue())*(periodTimers[l-1]-periodTimers[1])/(l-2))+periodTimers[1];
         } else if (l===2){
-            guess = (this.periodsEditor.getValue())*this.periodTimers[1];
+            guess = (periodsEditor.getValue())*periodTimers[1];
         }
         if (guess){
             const seconds = Math.round(guess/1000.0);
@@ -102,7 +104,7 @@ export class App {
         (Promise.all(
             this.allSim(scenario2p).map((s)=>(s.run({update: markperiod})))
         ).then(()=>{
-            console.log("simulation period timers", this.periodTimers);
+            console.log("simulation period timers", periodTimers);
             this.guessTime();
         })
          .catch((e)=>(console.log(e)))
@@ -148,6 +150,8 @@ export class App {
 
     runSimulation(simConfig, slot){
         // set up and run new simulation
+
+	const that = this;
         
         function onPeriod(sim){
             if (sim.period<sim.config.periods){
@@ -170,7 +174,7 @@ export class App {
                     '</option>'
                 ].join('');
             }
-            const visuals = this.getVisuals(simConfig);
+            const visuals = that.getVisuals(simConfig);
             if (Array.isArray(visuals)){
                 const vizchoices = visuals.map(toSelectBox).join("");
                 $('#vizselect').html(vizchoices);
