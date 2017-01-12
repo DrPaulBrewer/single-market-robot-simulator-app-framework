@@ -68,10 +68,10 @@ var App = exports.App = function () {
     _createClass(App, [{
         key: "allSim",
         value: function allSim(config) {
-            var _this = this;
+            var SMRS = this.SMRS;
 
             return config.configurations.map(commonFrom(config)).map(adjustBook).map(function (s) {
-                return new _this.SMRS.Simulation(s);
+                return new SMRS.Simulation(s);
             });
         }
     }, {
@@ -86,24 +86,27 @@ var App = exports.App = function () {
     }, {
         key: "showParameters",
         value: function showParameters(conf) {
-            var _this2 = this;
+            var _this = this;
 
             $('.paramPlot').html("");
             conf.configurations.map(commonFrom(conf)).map(function (config) {
-                return new _this2.SMRS.Simulation(config);
+                return new _this.SMRS.Simulation(config);
             }).forEach(function (sim, slot) {
-                return _this2.plotParameters(sim, slot);
+                return _this.plotParameters(sim, slot);
             });
         }
     }, {
         key: "guessTime",
         value: function guessTime() {
-            var l = this.periodTimers.length;
+            var periodsEditor = this.periodsEditor;
+            var periodTimers = this.periodTimers;
+
+            var l = periodTimers.length;
             var guess = 0;
             if (l > 2) {
-                guess = this.periodsEditor.getValue() * (this.periodTimers[l - 1] - this.periodTimers[1]) / (l - 2) + this.periodTimers[1];
+                guess = periodsEditor.getValue() * (periodTimers[l - 1] - periodTimers[1]) / (l - 2) + periodTimers[1];
             } else if (l === 2) {
-                guess = this.periodsEditor.getValue() * this.periodTimers[1];
+                guess = periodsEditor.getValue() * periodTimers[1];
             }
             if (guess) {
                 var seconds = Math.round(guess / 1000.0);
@@ -116,7 +119,7 @@ var App = exports.App = function () {
     }, {
         key: "timeit",
         value: function timeit(scenario) {
-            var _this3 = this;
+            var _this2 = this;
 
             var t0 = Date.now();
             var periodTimers = this.periodTimers;
@@ -133,8 +136,8 @@ var App = exports.App = function () {
             Promise.all(this.allSim(scenario2p).map(function (s) {
                 return s.run({ update: markperiod });
             })).then(function () {
-                console.log("simulation period timers", _this3.periodTimers);
-                _this3.guessTime();
+                console.log("simulation period timers", periodTimers);
+                _this2.guessTime();
             }).catch(function (e) {
                 return console.log(e);
             });
@@ -155,14 +158,14 @@ var App = exports.App = function () {
     }, {
         key: "renderConfigSelector",
         value: function renderConfigSelector() {
-            var _this4 = this;
+            var _this3 = this;
 
             $("#selector > option").remove();
             this.savedConfigs.forEach(function (c, n) {
                 return $("#selector").append('<option value="' + n + '">' + c.title + '</option>');
             });
             $('#selector').on('change', function (evt) {
-                return _this4.choose(evt.target.selectedIndex);
+                return _this3.choose(evt.target.selectedIndex);
             });
         }
     }, {
@@ -188,6 +191,8 @@ var App = exports.App = function () {
         value: function runSimulation(simConfig, slot) {
             // set up and run new simulation
 
+            var that = this;
+
             function onPeriod(sim) {
                 if (sim.period < sim.config.periods) {
                     $('#resultPlot' + slot).html("<h1>" + Math.round(100 * sim.period / sim.config.periods) + "% complete</h1>");
@@ -201,7 +206,7 @@ var App = exports.App = function () {
                 function toSelectBox(v, i) {
                     return ['<option value="', i, '"', i === this.visual ? ' selected="selected" ' : '', '>', v.meta.title || v.meta.f, '</option>'].join('');
                 }
-                var visuals = this.getVisuals(simConfig);
+                var visuals = that.getVisuals(simConfig);
                 if (Array.isArray(visuals)) {
                     var vizchoices = visuals.map(toSelectBox).join("");
                     $('#vizselect').html(vizchoices);
@@ -254,7 +259,7 @@ var App = exports.App = function () {
     }, {
         key: "init",
         value: function init() {
-            var _this5 = this;
+            var _this4 = this;
 
             $('.postrun').prop('disabled', true);
             var editorElement = document.getElementById('editor');
@@ -268,13 +273,13 @@ var App = exports.App = function () {
             });
             this.DB.promiseList(this.saveList).then(function (configs) {
                 if (Array.isArray(configs) && configs.length) {
-                    _this5.savedConfigs = configs;
-                    _this5.renderConfigSelector();
-                    _this5.choose(0);
+                    _this4.savedConfigs = configs;
+                    _this4.renderConfigSelector();
+                    _this4.choose(0);
                 }
             }).catch(function (e) {
                 console.log("Error accessing simulation configuration database:" + e);
-                _this5.DB = null;
+                _this4.DB = null;
             });
         }
     }, {
@@ -359,7 +364,7 @@ var App = exports.App = function () {
     }, {
         key: "run",
         value: function run() {
-            var _this6 = this;
+            var _this5 = this;
 
             $('#runError').html("");
             $('.postrun').removeClass("disabled");
@@ -369,9 +374,9 @@ var App = exports.App = function () {
             $('.resultPlot').html("");
             $('#runButton .glyphicon').addClass("spinning");
             setTimeout(function () {
-                var config = _this6.editor.getValue();
-                _this6.sims = config.configurations.map(commonFrom(config)).map(function (s, i) {
-                    return _this6.runSimulation(s, i);
+                var config = _this5.editor.getValue();
+                _this5.sims = config.configurations.map(commonFrom(config)).map(function (s, i) {
+                    return _this5.runSimulation(s, i);
                 });
             }, 200);
         }
@@ -399,25 +404,25 @@ var App = exports.App = function () {
     }, {
         key: "setVisualNumber",
         value: function setVisualNumber(n) {
-            var _this7 = this;
+            var _this6 = this;
 
             this.visual = n;
             this.sims.forEach(function (s, j) {
-                return _this7.showSimulation(s, j);
+                return _this6.showSimulation(s, j);
             });
         }
     }, {
         key: "downloadData",
         value: function downloadData() {
-            var _this8 = this;
+            var _this7 = this;
 
             $('#downloadButton').prop('disabled', true);
             $('#downloadButton').addClass("disabled");
             $('#downloadButton .glyphicon').addClass("spinning");
             setTimeout(function () {
                 (0, _singleMarketRobotSimulatorSavezip2.default)({
-                    config: _this8.editor.getValue(),
-                    sims: _this8.sims,
+                    config: _this7.editor.getValue(),
+                    sims: _this7.sims,
                     download: true
                 }).then(function () {
                     $('#downloadButton .spinning').removeClass("spinning");
@@ -429,17 +434,17 @@ var App = exports.App = function () {
     }, {
         key: "uploadData",
         value: function uploadData() {
-            var _this9 = this;
+            var _this8 = this;
 
             $('#uploadButton').prop('disabled', true);
             $('#uploadButton').addClass('disabled');
             $('#uploadButton .glyphicon').addClass("spinning");
             setTimeout(function () {
                 (0, _singleMarketRobotSimulatorSavezip2.default)({
-                    config: _this9.editor.getValue(),
-                    sims: _this9.sims,
+                    config: _this8.editor.getValue(),
+                    sims: _this8.sims,
                     download: false }).then(function (zipBlob) {
-                    _this9.DB.promiseUpload(zipBlob).then(function () {
+                    _this8.DB.promiseUpload(zipBlob).then(function () {
                         $('#uploadButton .spinning').removeClass("spinning");
                         $('#uploadButton').removeClass("disabled");
                         $('#uploadButton').prop('disabled', false);
