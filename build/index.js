@@ -204,7 +204,7 @@ var App = exports.App = function () {
 
             function onDone(sim) {
                 function toSelectBox(v, i) {
-                    return ['<option value="', i, '"', i === this.visual ? ' selected="selected" ' : '', '>', v.meta.title || v.meta.f, '</option>'].join('');
+                    return ['<option value="', i, '"', i === that.visual ? ' selected="selected" ' : '', '>', v.meta.title || v.meta.f, '</option>'].join('');
                 }
                 var visuals = that.getVisuals(simConfig);
                 if (Array.isArray(visuals)) {

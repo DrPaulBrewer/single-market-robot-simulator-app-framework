@@ -168,7 +168,7 @@ export class App {
                     '<option value="',
                     i,
                     '"',
-                    ((i===this.visual)? ' selected="selected" ': ''),
+                    ((i===that.visual)? ' selected="selected" ': ''),
                     '>',
                      (v.meta.title || v.meta.f),
                     '</option>'
