@@ -272,6 +272,9 @@ var App = exports.App = function () {
                     _this5.renderConfigSelector();
                     _this5.choose(0);
                 }
+            }).catch(function (e) {
+                console.log("Error accessing simulation configuration database:" + e);
+                _this5.DB = null;
             });
         }
     }, {

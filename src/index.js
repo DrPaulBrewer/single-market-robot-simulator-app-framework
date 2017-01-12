@@ -27,20 +27,20 @@ function adjustBook(sim){
 
 export class App {
     constructor(options){
-	this.SMRS = options.SMRS;
-	this.DB = options.DB;
-	this.Visuals = options.Visuals;
-	this.editorConfigSchema = options.editorConfigSchema;
-	this.editorStartValue = options.editorStartValue;
-	this.saveList = this.DB.openList(options.saveList);
-	this.trashList = this.DB.openList(options.trashList);
-	this.editor = 0;
-	this.periodsEditor = 0;
-	this.periodTimers  = [];
-	this.savedConfigs = [];
-	this.chosenScenarioIndex = 0;
-	this.sims = [];
-	this.visual = 0;
+        this.SMRS = options.SMRS;
+        this.DB = options.DB;
+        this.Visuals = options.Visuals;
+        this.editorConfigSchema = options.editorConfigSchema;
+        this.editorStartValue = options.editorStartValue;
+        this.saveList = this.DB.openList(options.saveList);
+        this.trashList = this.DB.openList(options.trashList);
+        this.editor = 0;
+        this.periodsEditor = 0;
+        this.periodTimers  = [];
+        this.savedConfigs = [];
+        this.chosenScenarioIndex = 0;
+        this.sims = [];
+        this.visual = 0;
     }
 
     allSim(config){
@@ -87,7 +87,7 @@ export class App {
     
     timeit(scenario){
         const t0 = Date.now();
-	const periodTimers = this.periodTimers;
+        const periodTimers = this.periodTimers;
         periodTimers.length = 0;
         function markperiod(sim){
             const elapsed = Date.now()-t0;
@@ -148,7 +148,7 @@ export class App {
 
     runSimulation(simConfig, slot){
         // set up and run new simulation
-	
+        
         function onPeriod(sim){
             if (sim.period<sim.config.periods){
                 $('#resultPlot'+slot).html("<h1>"+Math.round(100*sim.period/sim.config.periods)+"% complete</h1>");
@@ -235,14 +235,19 @@ export class App {
         this.editor.on('change', function(){
             $('#runError').html("Click >Run to run the simulation and see the new results");
         });
-        this.DB.promiseList(this.saveList)
-            .then((configs)=>{
-                if (Array.isArray(configs) && (configs.length)){
-                    this.savedConfigs = configs;
-                    this.renderConfigSelector();
-                    this.choose(0);
-                }
-            });
+        (this.DB.promiseList(this.saveList)
+         .then((configs)=>{
+             if (Array.isArray(configs) && (configs.length)){
+                 this.savedConfigs = configs;
+                 this.renderConfigSelector();
+                 this.choose(0);
+             }
+         })
+         .catch((e)=>{
+             console.log("Error accessing simulation configuration database:"+e);
+             this.DB = null;
+         })
+             );
     }
 
     estimateTime(){
@@ -250,8 +255,8 @@ export class App {
     }
 
     refresh(){
-	const periodsEditor = this.periodsEditor;
-	const editor = this.editor;
+        const periodsEditor = this.periodsEditor;
+        const editor = this.editor;
         if (periodsEditor){
             $('input.periods').val(periodsEditor.getValue());
             $('span.periods').text(periodsEditor.getValue());
@@ -312,7 +317,7 @@ export class App {
 
     moveToTrash(){
         console.log("move-to-trash");
-	const {savedConfigs, renderConfigSelector, choose, chosenScenarioIndex, saveList, trashList } = this;
+        const {savedConfigs, renderConfigSelector, choose, chosenScenarioIndex, saveList, trashList } = this;
         (this.DB.promiseMoveItem(savedConfigs[chosenScenarioIndex], saveList, trashList)
          .then(function(){
              savedConfigs.splice(chosenScenarioIndex,1);
@@ -344,7 +349,7 @@ export class App {
     }
 
     save(){
-	const that = this;
+        const that = this;
         function doSave(){
             (that.DB.promiseSaveItem(that.editor.getValue(), that.saveList)
              .then(()=>(window.location.reload()))
@@ -410,7 +415,7 @@ export class App {
 
     renderTrash(){
         $('#trashList').html("");
-	const that = this;
+        const that = this;
         (that.DB.promiseListRange(that.trashList,0,20)
          .then((items)=>{
              items.forEach((item)=>{
