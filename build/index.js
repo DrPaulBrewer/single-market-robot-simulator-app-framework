@@ -213,7 +213,7 @@ var App = exports.App = function () {
                 } else {
                     console.log("invalid visuals", visuals);
                 }
-                this.showSimulation(sim, slot);
+                that.showSimulation(sim, slot);
                 $('.spinning').removeClass('spinning');
                 $('.postrun').removeClass('disabled');
                 $('.postrun').prop('disabled', false);
