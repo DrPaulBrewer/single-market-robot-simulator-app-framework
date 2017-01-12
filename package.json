@@ -1,6 +1,6 @@
 {
   "name": "single-market-robot-simulator-app-framework",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "specialized reusable app framework for creating robot trading webapps",
   "main": "build/index.js",
   "jsnext:main": "src/index.js",
@@ -14,10 +14,10 @@
     "cover": "node_modules/.bin/istanbul cover node_modules/.bin/_mocha -- -u exports --compilers js:babel-register --timeout 60000",
     "go": "npm run clean && npm run lint && npm run lint-test && npm run test && npm run build"
   },
-    "repository": {
-	"type": "git",
-	"url": "git+https://github.com/drpaulbrewer/single-market-robot-simulator-app-framework"
-    },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/drpaulbrewer/single-market-robot-simulator-app-framework"
+  },
   "author": "drpaulbrewer@eaftc.com",
   "license": "MIT",
   "devDependencies": {
