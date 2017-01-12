@@ -228,8 +228,8 @@ export class App {
         $('.postrun').prop('disabled',true);
         let editorElement = document.getElementById('editor');
         let editorOptions = {
-            schema: this.configSchema,
-            startval: this.startVal
+            schema: this.editorConfigSchema,
+            startval: this.editorStartValue
         };
         this.editor = new window.JSONEditor(editorElement, editorOptions);
         this.editor.on('change', function(){
