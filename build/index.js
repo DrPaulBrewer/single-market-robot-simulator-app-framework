@@ -124,17 +124,18 @@ var App = exports.App = function () {
             var t0 = Date.now();
             var periodTimers = this.periodTimers;
             periodTimers.length = 0;
-            function markperiod(sim) {
-                var elapsed = Date.now() - t0;
-                periodTimers[sim.period] = elapsed;
-                // hack to end simulations if over 5 sec
-                if (elapsed > 5000) sim.config.periods = 0;
-                return sim;
-            }
             var scenario2p = (0, _clone2.default)(scenario);
             scenario2p.common.periods = 5;
             Promise.all(this.allSim(scenario2p).map(function (s) {
-                return s.run({ update: markperiod });
+                return s.run({
+                    update: function update(sim) {
+                        var elapsed = Date.now() - t0;
+                        periodTimers[sim.period] = elapsed;
+                        // hack to end simulations if over 5 sec
+                        if (elapsed > 5000) sim.config.periods = 0;
+                        return sim;
+                    }
+                });
             })).then(function () {
                 console.log("simulation period timers", periodTimers);
                 _this2.guessTime();
@@ -345,18 +346,18 @@ var App = exports.App = function () {
     }, {
         key: "moveToTrash",
         value: function moveToTrash() {
+            var _this5 = this;
+
             console.log("move-to-trash");
             var savedConfigs = this.savedConfigs;
-            var renderConfigSelector = this.renderConfigSelector;
-            var choose = this.choose;
             var chosenScenarioIndex = this.chosenScenarioIndex;
             var saveList = this.saveList;
             var trashList = this.trashList;
 
             this.DB.promiseMoveItem(savedConfigs[chosenScenarioIndex], saveList, trashList).then(function () {
                 savedConfigs.splice(chosenScenarioIndex, 1);
-                renderConfigSelector();
-                choose(0);
+                _this5.renderConfigSelector();
+                _this5.choose(0);
             }).catch(function (e) {
                 console.log(e);
             });
@@ -364,7 +365,7 @@ var App = exports.App = function () {
     }, {
         key: "run",
         value: function run() {
-            var _this5 = this;
+            var _this6 = this;
 
             $('#runError').html("");
             $('.postrun').removeClass("disabled");
@@ -374,9 +375,9 @@ var App = exports.App = function () {
             $('.resultPlot').html("");
             $('#runButton .glyphicon').addClass("spinning");
             setTimeout(function () {
-                var config = _this5.editor.getValue();
-                _this5.sims = config.configurations.map(commonFrom(config)).map(function (s, i) {
-                    return _this5.runSimulation(s, i);
+                var config = _this6.editor.getValue();
+                _this6.sims = config.configurations.map(commonFrom(config)).map(function (s, i) {
+                    return _this6.runSimulation(s, i);
                 });
             }, 200);
         }
@@ -404,25 +405,25 @@ var App = exports.App = function () {
     }, {
         key: "setVisualNumber",
         value: function setVisualNumber(n) {
-            var _this6 = this;
+            var _this7 = this;
 
             this.visual = n;
             this.sims.forEach(function (s, j) {
-                return _this6.showSimulation(s, j);
+                return _this7.showSimulation(s, j);
             });
         }
     }, {
         key: "downloadData",
         value: function downloadData() {
-            var _this7 = this;
+            var _this8 = this;
 
             $('#downloadButton').prop('disabled', true);
             $('#downloadButton').addClass("disabled");
             $('#downloadButton .glyphicon').addClass("spinning");
             setTimeout(function () {
                 (0, _singleMarketRobotSimulatorSavezip2.default)({
-                    config: _this7.editor.getValue(),
-                    sims: _this7.sims,
+                    config: _this8.editor.getValue(),
+                    sims: _this8.sims,
                     download: true
                 }).then(function () {
                     $('#downloadButton .spinning').removeClass("spinning");
@@ -434,17 +435,17 @@ var App = exports.App = function () {
     }, {
         key: "uploadData",
         value: function uploadData() {
-            var _this8 = this;
+            var _this9 = this;
 
             $('#uploadButton').prop('disabled', true);
             $('#uploadButton').addClass('disabled');
             $('#uploadButton .glyphicon').addClass("spinning");
             setTimeout(function () {
                 (0, _singleMarketRobotSimulatorSavezip2.default)({
-                    config: _this8.editor.getValue(),
-                    sims: _this8.sims,
+                    config: _this9.editor.getValue(),
+                    sims: _this9.sims,
                     download: false }).then(function (zipBlob) {
-                    _this8.DB.promiseUpload(zipBlob).then(function () {
+                    _this9.DB.promiseUpload(zipBlob).then(function () {
                         $('#uploadButton .spinning').removeClass("spinning");
                         $('#uploadButton').removeClass("disabled");
                         $('#uploadButton').prop('disabled', false);
@@ -457,6 +458,8 @@ var App = exports.App = function () {
     }, {
         key: "renderTrash",
         value: function renderTrash() {
+            var _this10 = this;
+
             $('#trashList').html("");
             var that = this;
             that.DB.promiseListRange(that.trashList, 0, 20).then(function (items) {
@@ -465,7 +468,7 @@ var App = exports.App = function () {
                 });
                 $('pre.trash-item').click(function () {
                     try {
-                        var restoredScenario = JSON.parse($(this).text());
+                        var restoredScenario = JSON.parse($(_this10).text());
                         if ((typeof restoredScenario === "undefined" ? "undefined" : _typeof(restoredScenario)) === 'object' && typeof restoredScenario.title === 'string' && _typeof(restoredScenario.common) === 'object' && Array.isArray(restoredScenario.configurations)) {
                             that.editor.setValue(restoredScenario);
                             $('#editLink').click();

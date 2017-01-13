@@ -44,7 +44,7 @@ export class App {
     }
 
     allSim(config){
-	const { SMRS } = this;
+        const { SMRS } = this;
         return (config
                 .configurations
                 .map(commonFrom(config))
@@ -70,7 +70,7 @@ export class App {
     }    
 
     guessTime(){
-	const { periodsEditor, periodTimers } = this;
+        const { periodsEditor, periodTimers } = this;
         const l = periodTimers.length;
         let guess = 0;
         if (l>2){ 
@@ -91,26 +91,36 @@ export class App {
         const t0 = Date.now();
         const periodTimers = this.periodTimers;
         periodTimers.length = 0;
-        function markperiod(sim){
-            const elapsed = Date.now()-t0;
-            periodTimers[sim.period] = elapsed;
-            // hack to end simulations if over 5 sec
-            if (elapsed>5000)
-                sim.config.periods = 0;
-            return sim;
-        }
         const scenario2p = clone(scenario);
         scenario2p.common.periods=5;
         (Promise.all(
-            this.allSim(scenario2p).map((s)=>(s.run({update: markperiod})))
-        ).then(()=>{
-            console.log("simulation period timers", periodTimers);
-            this.guessTime();
-        })
+            (this
+             .allSim(scenario2p)
+             .map(
+                 (s)=>(s.run({
+                     update:(sim)=>{
+                         const elapsed = Date.now()-t0;
+                         periodTimers[sim.period] = elapsed;
+                         // hack to end simulations if over 5 sec
+                         if (elapsed>5000)
+                             sim.config.periods = 0;
+                         return sim;
+                         
+                     }
+                 })
+                      )
+             )
+            )
+        ).then(
+            ()=>{
+                console.log("simulation period timers", periodTimers);
+                this.guessTime();
+            }
+        )
          .catch((e)=>(console.log(e)))
              );
     }
-
+    
     choose(n){
         this.chosenScenarioIndex = Math.max(0, Math.min(Math.floor(n),this.savedConfigs.length-1));
         const choice = this.savedConfigs[this.chosenScenarioIndex];
@@ -151,7 +161,7 @@ export class App {
     runSimulation(simConfig, slot){
         // set up and run new simulation
 
-	const that = this;
+        const that = this;
         
         function onPeriod(sim){
             if (sim.period<sim.config.periods){
@@ -196,7 +206,7 @@ export class App {
         (mysim
          .run({update: onPeriod})
          .then(onDone)
-         .catch(function(e){ console.log(e); })
+         .catch((e)=>{ console.log(e); })
         );
         if (mysim.config.periods>500){
             delete mysim.logs.buyorder;
@@ -212,7 +222,7 @@ export class App {
         const config = this.editor.getValue();
         if (xfactor){
             config.title += ' x'+xfactor;
-            config.configurations.forEach(function(sim){
+            config.configurations.forEach((sim)=>{
                 sim.buyerValues = how(sim.buyerValues, xfactor);
                 sim.sellerCosts = how(sim.sellerCosts, xfactor);
                 if (sim.numberOfBuyers>1) 
@@ -236,7 +246,7 @@ export class App {
             startval: this.editorStartValue
         };
         this.editor = new window.JSONEditor(editorElement, editorOptions);
-        this.editor.on('change', function(){
+        this.editor.on('change', ()=>{
             $('#runError').html("Click >Run to run the simulation and see the new results");
         });
         (this.DB.promiseList(this.saveList)
@@ -274,7 +284,7 @@ export class App {
                 "<tr>"+(current
                         .configurations
                         .map(
-                            function(config,j){
+                            (config,j)=>{
                                 const data = [j,config.numberOfBuyers,config.numberOfSellers];
                                 return "<td>"+data.join("</td><td>")+"</td>";
                             })
@@ -286,7 +296,7 @@ export class App {
 
     interpolate(){
         this.expand(
-            function(a,n){
+            (a,n)=>{
                 const result = [];
                 for(let i=0,l=a.length;i<(l-1);++i){
                     for(let j=0;j<n;++j){
@@ -303,7 +313,7 @@ export class App {
 
     duplicate(){
         this.expand(
-            function(a,n){
+            (a,n)=>{
                 const result = [];
                 for(let i=0,l=a.length;i<l;++i){
                     for(let j=0;j<n;++j){
@@ -321,14 +331,14 @@ export class App {
 
     moveToTrash(){
         console.log("move-to-trash");
-        const {savedConfigs, renderConfigSelector, choose, chosenScenarioIndex, saveList, trashList } = this;
+        const {savedConfigs, chosenScenarioIndex, saveList, trashList } = this;
         (this.DB.promiseMoveItem(savedConfigs[chosenScenarioIndex], saveList, trashList)
-         .then(function(){
+         .then(()=>{
              savedConfigs.splice(chosenScenarioIndex,1);
-             renderConfigSelector();
-             choose(0);
+             this.renderConfigSelector();
+             this.choose(0);
          })
-         .catch(function(e){
+         .catch((e)=>{
              console.log(e);
          })
              );
@@ -387,7 +397,7 @@ export class App {
                 config: this.editor.getValue(),
                 sims: this.sims,
                 download: true
-            }).then(function(){
+            }).then(()=>{
                 $('#downloadButton .spinning').removeClass("spinning");
                 $('#downloadButton').removeClass("disabled");
                 $('#downloadButton').prop('disabled',false);
@@ -406,7 +416,7 @@ export class App {
                 download: false})
                 .then((zipBlob)=>{
                     (this.DB.promiseUpload(zipBlob)
-                     .then(function(){
+                     .then(()=>{
                          $('#uploadButton .spinning').removeClass("spinning");
                          $('#uploadButton').removeClass("disabled");
                          $('#uploadButton').prop('disabled',false);
@@ -425,7 +435,7 @@ export class App {
              items.forEach((item)=>{
                  $('#trashList').append('<pre class="pre-scrollable trash-item">'+JSON.stringify(item,null,2)+'</pre>');
              });
-             $('pre.trash-item').click(function(){
+             $('pre.trash-item').click(()=>{
                  try {
                      const restoredScenario = JSON.parse($(this).text());
                      if ( (typeof(restoredScenario)==='object') && 
