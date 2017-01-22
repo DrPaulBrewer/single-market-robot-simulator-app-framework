@@ -151,9 +151,31 @@ export class App {
         return visuals;
     }
 
+    adjustTitle(plotParams, modifier){
+        const layout = plotParams[1];
+        if (layout){
+            if (layout.title){
+                if (modifier.prepend)
+                    layout.title = modifier.prepend + layout.title;
+                if (modifier.append)
+                    layout.title += modifier.append;
+            }
+            if (modifier.replace)
+                layout.title = modifier.replace;
+        }
+    }
+
     showSimulation(simConfig, slot){
         let visuals = this.getVisuals(simConfig);
         let plotParams = visuals[this.visual%visuals.length](simConfig);
+        this.adjustTitle(
+            plotParams,
+            {
+                prepend: simConfig.titlePrepend,
+                append: simConfig.titleAppend,
+                replace: simConfig.titleReplace
+            }
+        );          
         plotParams.unshift('resultPlot'+slot);
         Plotly.newPlot(...plotParams);
     }

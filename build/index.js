@@ -178,12 +178,29 @@ var App = exports.App = function () {
             return visuals;
         }
     }, {
+        key: "adjustTitle",
+        value: function adjustTitle(plotParams, modifier) {
+            var layout = plotParams[1];
+            if (layout) {
+                if (layout.title) {
+                    if (modifier.prepend) layout.title = modifier.prepend + layout.title;
+                    if (modifier.append) layout.title += modifier.append;
+                }
+                if (modifier.replace) layout.title = modifier.replace;
+            }
+        }
+    }, {
         key: "showSimulation",
         value: function showSimulation(simConfig, slot) {
             var _Plotly2;
 
             var visuals = this.getVisuals(simConfig);
             var plotParams = visuals[this.visual % visuals.length](simConfig);
+            this.adjustTitle(plotParams, {
+                prepend: simConfig.titlePrepend,
+                append: simConfig.titleAppend,
+                replace: simConfig.titleReplace
+            });
             plotParams.unshift('resultPlot' + slot);
             (_Plotly2 = Plotly).newPlot.apply(_Plotly2, _toConsumableArray(plotParams));
         }
