@@ -196,10 +196,11 @@ var App = exports.App = function () {
 
             var visuals = this.getVisuals(simConfig);
             var plotParams = visuals[this.visual % visuals.length](simConfig);
+            var config = simConfig.config;
             this.adjustTitle(plotParams, {
-                prepend: simConfig.titlePrepend,
-                append: simConfig.titleAppend,
-                replace: simConfig.titleReplace
+                prepend: config.titlePrepend,
+                append: config.titleAppend,
+                replace: config.titleReplace
             });
             plotParams.unshift('resultPlot' + slot);
             (_Plotly2 = Plotly).newPlot.apply(_Plotly2, _toConsumableArray(plotParams));
