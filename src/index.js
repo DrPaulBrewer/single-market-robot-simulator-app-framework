@@ -166,14 +166,15 @@ export class App {
     }
 
     showSimulation(simConfig, slot){
-        let visuals = this.getVisuals(simConfig);
-        let plotParams = visuals[this.visual%visuals.length](simConfig);
+        const visuals = this.getVisuals(simConfig);
+        const plotParams = visuals[this.visual%visuals.length](simConfig);
+	const config = simConfig.config;
         this.adjustTitle(
             plotParams,
             {
-                prepend: simConfig.titlePrepend,
-                append: simConfig.titleAppend,
-                replace: simConfig.titleReplace
+                prepend: config.titlePrepend,
+                append:  config.titleAppend,
+                replace: config.titleReplace
             }
         );          
         plotParams.unshift('resultPlot'+slot);
