@@ -183,10 +183,10 @@ var App = exports.App = function () {
             var layout = plotParams[1];
             if (layout) {
                 if (layout.title) {
-                    if (modifier.prepend) layout.title = modifier.prepend + layout.title;
-                    if (modifier.append) layout.title += modifier.append;
+                    if (modifier.prepend && modifier.prepend.length > 0) layout.title = modifier.prepend + layout.title;
+                    if (modifier.append && modifier.append.length > 0) layout.title += modifier.append;
                 }
-                if (modifier.replace) layout.title = modifier.replace;
+                if (modifier.replace && modifier.replace.length > 0) layout.title = modifier.replace;
             }
         }
     }, {
