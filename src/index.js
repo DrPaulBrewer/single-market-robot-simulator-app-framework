@@ -155,12 +155,12 @@ export class App {
         const layout = plotParams[1];
         if (layout){
             if (layout.title){
-                if (modifier.prepend)
+                if (modifier.prepend && (modifier.prepend.length>0))
                     layout.title = modifier.prepend + layout.title;
-                if (modifier.append)
+                if (modifier.append && (modifier.append.length>0))
                     layout.title += modifier.append;
             }
-            if (modifier.replace)
+            if (modifier.replace && (modifier.replace.length>0))
                 layout.title = modifier.replace;
         }
     }
