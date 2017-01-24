@@ -7,7 +7,12 @@ exports.App = undefined;
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /* Copyright 2016 Paul Brewer, Economic and Financial Technology Consulting LLC */
+/* This file is open source software.  The MIT License applies to this software. */
+
+/* global Plotly:true, window:true, $:true */
+
+/* eslint no-console: "off" */
 
 var _clone = require("clone");
 
@@ -19,14 +24,9 @@ var _singleMarketRobotSimulatorSavezip2 = _interopRequireDefault(_singleMarketRo
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } } /* Copyright 2016 Paul Brewer, Economic and Financial Technology Consulting LLC */
-/* This file is open source software.  The MIT License applies to this software. */
-
-/* global Plotly:true, window:true, $:true */
-
-/* eslint no-console: "off" */
 
 // private
 
@@ -35,14 +35,6 @@ function commonFrom(config) {
         var result = Object.assign({}, (0, _clone2.default)(c), (0, _clone2.default)(config.common));
         return result;
     };
-}
-
-function adjustBook(sim) {
-    sim.bookfixed = 1;
-    sim.booklimit = Math.max.apply(Math, _toConsumableArray([sim.buySellBookLimit, sim.buyerImprovementRule, sim.sellerImprovementRule].filter(function (x) {
-        return typeof x === 'number';
-    }))) || 10;
-    return sim;
 }
 
 var App = exports.App = function () {
@@ -70,7 +62,7 @@ var App = exports.App = function () {
         value: function allSim(config) {
             var SMRS = this.SMRS;
 
-            return config.configurations.map(commonFrom(config)).map(adjustBook).map(function (s) {
+            return config.configurations.map(commonFrom(config)).map(function (s) {
                 return new SMRS.Simulation(s);
             });
         }
@@ -237,8 +229,6 @@ var App = exports.App = function () {
                 $('.postrun').removeClass('disabled');
                 $('.postrun').prop('disabled', false);
             }
-
-            adjustBook(simConfig);
 
             var mysim = new this.SMRS.Simulation(simConfig);
 
