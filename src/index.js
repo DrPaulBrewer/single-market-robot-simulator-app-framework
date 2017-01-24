@@ -17,13 +17,6 @@ function commonFrom(config){
     };
 }
 
-function adjustBook(sim){
-    sim.bookfixed=1;
-    sim.booklimit = Math.max(...([sim.buySellBookLimit, sim.buyerImprovementRule, sim.sellerImprovementRule]
-                                 .filter((x)=>(typeof(x) === 'number')))) || 10;
-    return sim;
-}
-
 
 export class App {
     constructor(options){
@@ -48,7 +41,6 @@ export class App {
         return (config
                 .configurations
                 .map(commonFrom(config))
-                .map(adjustBook)
                 .map((s)=>(new SMRS.Simulation(s)))
                );
     }
@@ -219,8 +211,6 @@ export class App {
             $('.postrun').removeClass('disabled');
             $('.postrun').prop('disabled',false);
         } 
-
-        adjustBook(simConfig);
 
         let mysim = new this.SMRS.Simulation(simConfig);
 
