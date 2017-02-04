@@ -48,14 +48,14 @@ export class App {
     }
 
     plotParameters(sim, slot){
-	const app = this;
+        const app = this;
         const plotlyParams = app.Visuals.params(sim);
         plotlyParams.unshift("paramPlot"+slot);
         Plotly.newPlot(...plotlyParams);
     }
 
     showParameters(conf){
-	const app = this;
+        const app = this;
         $('.paramPlot').html("");
         (conf
          .configurations
@@ -84,7 +84,7 @@ export class App {
     }
     
     timeit(scenario){
-	const app = this;
+        const app = this;
         const t0 = Date.now();
         const periodTimers = app.periodTimers;
         periodTimers.length = 0;
@@ -119,7 +119,7 @@ export class App {
     }
     
     choose(n){
-	const app = this;
+        const app = this;
         app.chosenScenarioIndex = Math.max(0, Math.min(Math.floor(n),app.savedConfigs.length-1));
         const choice = app.savedConfigs[app.chosenScenarioIndex];
         if (choice){
@@ -132,14 +132,14 @@ export class App {
     }   
 
     renderConfigSelector(){
-	const app = this;
+        const app = this;
         $("#selector > option").remove();
         app.savedConfigs.forEach((c,n)=> ($("#selector").append('<option value="'+n+'">'+c.title+'</option>')));
         $('#selector').on('change', (evt)=>this.choose(evt.target.selectedIndex));
     }
 
     getVisuals(simConfig){
-	const app = this;
+        const app = this;
         let visuals = [];
         const cfg = simConfig.config || simConfig;
         if (cfg.periods<=50)
@@ -166,7 +166,7 @@ export class App {
     }
 
     showSimulation(simConfig, slot){
-	const app = this;
+        const app = this;
         const visuals = app.getVisuals(simConfig);
         const plotParams = visuals[app.visual%visuals.length](simConfig);
         const config = simConfig.config;
@@ -240,7 +240,7 @@ export class App {
     }
 
     expand(how){
-	const app = this;
+        const app = this;
         const xfactor = +$('#xfactor').val();
         const config = app.editor.getValue();
         if (xfactor){
@@ -262,17 +262,16 @@ export class App {
     /* public: app functions for outside code below this line */
     
     init(){
-	const app = this;
-        app.behavior.forEach(
-            (jqSelector, appMethod, eventName)=>{
-                if (typeof(app[appMethod])!=='function')
-                    throw new Error("Error initializing app behavior - method "+appMethod+" specified in event map for selector "+jqSelector+"does not exist");
-                let selection = $(jqSelector);
-                if (selection.length===0)
-                    throw new Error("Error initializing app behavior - selector "+jqSelector+" not found in app's web page");
-                selection.on(eventName || 'click', ((evt)=>app[appMethod](evt && evt.target && evt.target.value)));
-            }
-        );
+        const app = this;
+        app.behavior.forEach((v)=>{
+            let [jqSelector, appMethod, eventName] = v;
+            if (typeof(app[appMethod])!=='function')
+                throw new Error("Error initializing app behavior - method "+appMethod+" specified in event map for selector "+jqSelector+" does not exist");
+            let selection = $(jqSelector);
+            if (selection.length===0)
+                throw new Error("Error initializing app behavior - selector "+jqSelector+" not found in app's web page");
+            selection.on(eventName || 'click', ((evt)=>app[appMethod](evt && evt.target && evt.target.value)));
+        });
         $('.postrun').prop('disabled',true);
         let editorElement = document.getElementById('editor');
         let editorOptions = {
@@ -299,12 +298,12 @@ export class App {
     }
 
     estimateTime(){
-	const app = this;
+        const app = this;
         app.timeit(app.editor.getValue());
     }
 
     refresh(){
-	const app = this;
+        const app = this;
         const periodsEditor = app.periodsEditor;
         const editor = app.editor;
         if (periodsEditor){
@@ -331,7 +330,7 @@ export class App {
     }
 
     interpolate(){
-	const app = this;
+        const app = this;
         app.expand(
             (a,n)=>{
                 const result = [];
@@ -349,7 +348,7 @@ export class App {
     }
 
     duplicate(){
-	const app = this;
+        const app = this;
         app.expand(
             (a,n)=>{
                 const result = [];
@@ -364,12 +363,12 @@ export class App {
     }
 
     undo(){
-	const app = this;
+        const app = this;
         app.choose(app.chosenScenarioIndex);
     }
 
     moveToTrash(){
-	const app = this;
+        const app = this;
         const {savedConfigs, chosenScenarioIndex, saveList, trashList } = app;
         (app.DB.promiseMoveItem(savedConfigs[chosenScenarioIndex], saveList, trashList)
          .then(()=>{
@@ -384,7 +383,7 @@ export class App {
     }
 
     run(){
-	const app = this;
+        const app = this;
         $('#runError').html("");
         $('.postrun').removeClass("disabled");
         $('.postrun').addClass("disabled");
@@ -419,19 +418,19 @@ export class App {
     }
 
     setPeriods(n){
-	const app = this;
+        const app = this;
         app.periodsEditor.setValue(Math.floor(n));
         app.refresh();
     }
 
     setVisualNumber(n){
-	const app = this;
+        const app = this;
         app.visual = n;
         app.sims.forEach((s,j)=>app.showSimulation(s,j));
     }
     
     downloadData(){
-	const app = this;
+        const app = this;
         $('#downloadButton').prop('disabled',true);
         $('#downloadButton').addClass("disabled");
         $('#downloadButton .glyphicon').addClass("spinning");
@@ -449,7 +448,7 @@ export class App {
     }
 
     uploadData(){
-	const app = this;
+        const app = this;
         $('#uploadButton').prop('disabled',true);
         $('#uploadButton').addClass('disabled');
         $('#uploadButton .glyphicon').addClass("spinning");
@@ -472,7 +471,7 @@ export class App {
     }
 
     renderTrash(){
-	const app = this;
+        const app = this;
         $('#trashList').html("");
         (app.DB.promiseListRange(app.trashList,0,20)
          .then((items)=>{
