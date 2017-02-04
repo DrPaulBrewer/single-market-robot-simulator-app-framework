@@ -5,7 +5,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.App = undefined;
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /* Copyright 2016 Paul Brewer, Economic and Financial Technology Consulting LLC */
 /* This file is open source software.  The MIT License applies to this software. */
@@ -13,6 +13,7 @@ var _createClass = function () { function defineProperties(target, props) { for 
 /* global Plotly:true, window:true, $:true */
 
 /* eslint no-console: "off" */
+/* eslint consistent-this: ["error", "app", "that"] */
 
 var _clone = require("clone");
 
@@ -48,6 +49,7 @@ var App = exports.App = function () {
         this.editorStartValue = options.editorStartValue;
         this.saveList = this.DB.openList(options.saveList);
         this.trashList = this.DB.openList(options.trashList);
+        this.behavior = options.behavior;
         this.editor = 0;
         this.periodsEditor = 0;
         this.periodTimers = [];
@@ -71,27 +73,27 @@ var App = exports.App = function () {
         value: function plotParameters(sim, slot) {
             var _Plotly;
 
-            var plotlyParams = this.Visuals.params(sim);
+            var app = this;
+            var plotlyParams = app.Visuals.params(sim);
             plotlyParams.unshift("paramPlot" + slot);
             (_Plotly = Plotly).newPlot.apply(_Plotly, _toConsumableArray(plotlyParams));
         }
     }, {
         key: "showParameters",
         value: function showParameters(conf) {
-            var _this = this;
-
+            var app = this;
             $('.paramPlot').html("");
             conf.configurations.map(commonFrom(conf)).map(function (config) {
-                return new _this.SMRS.Simulation(config);
+                return new app.SMRS.Simulation(config);
             }).forEach(function (sim, slot) {
-                return _this.plotParameters(sim, slot);
+                return app.plotParameters(sim, slot);
             });
         }
     }, {
         key: "guessTime",
         value: function guessTime() {
-            var periodsEditor = this.periodsEditor;
-            var periodTimers = this.periodTimers;
+            var periodsEditor = this.periodsEditor,
+                periodTimers = this.periodTimers;
 
             var l = periodTimers.length;
             var guess = 0;
@@ -111,14 +113,13 @@ var App = exports.App = function () {
     }, {
         key: "timeit",
         value: function timeit(scenario) {
-            var _this2 = this;
-
+            var app = this;
             var t0 = Date.now();
-            var periodTimers = this.periodTimers;
+            var periodTimers = app.periodTimers;
             periodTimers.length = 0;
             var scenario2p = (0, _clone2.default)(scenario);
             scenario2p.common.periods = 5;
-            Promise.all(this.allSim(scenario2p).map(function (s) {
+            Promise.all(app.allSim(scenario2p).map(function (s) {
                 return s.run({
                     update: function update(sim) {
                         var elapsed = Date.now() - t0;
@@ -130,7 +131,7 @@ var App = exports.App = function () {
                 });
             })).then(function () {
                 console.log("simulation period timers", periodTimers);
-                _this2.guessTime();
+                app.guessTime();
             }).catch(function (e) {
                 return console.log(e);
             });
@@ -138,35 +139,38 @@ var App = exports.App = function () {
     }, {
         key: "choose",
         value: function choose(n) {
-            this.chosenScenarioIndex = Math.max(0, Math.min(Math.floor(n), this.savedConfigs.length - 1));
-            var choice = this.savedConfigs[this.chosenScenarioIndex];
+            var app = this;
+            app.chosenScenarioIndex = Math.max(0, Math.min(Math.floor(n), app.savedConfigs.length - 1));
+            var choice = app.savedConfigs[app.chosenScenarioIndex];
             if (choice) {
-                this.editor.setValue((0, _clone2.default)(choice));
+                app.editor.setValue((0, _clone2.default)(choice));
                 // initialize periodsEditor only after a scenario is chosen
-                this.periodsEditor = this.editor.getEditor('root.common.periods');
-                this.timeit((0, _clone2.default)(choice)); // time a separate clone
-                this.refresh();
+                app.periodsEditor = app.editor.getEditor('root.common.periods');
+                app.timeit((0, _clone2.default)(choice)); // time a separate clone
+                app.refresh();
             }
         }
     }, {
         key: "renderConfigSelector",
         value: function renderConfigSelector() {
-            var _this3 = this;
+            var _this = this;
 
+            var app = this;
             $("#selector > option").remove();
-            this.savedConfigs.forEach(function (c, n) {
+            app.savedConfigs.forEach(function (c, n) {
                 return $("#selector").append('<option value="' + n + '">' + c.title + '</option>');
             });
             $('#selector').on('change', function (evt) {
-                return _this3.choose(evt.target.selectedIndex);
+                return _this.choose(evt.target.selectedIndex);
             });
         }
     }, {
         key: "getVisuals",
         value: function getVisuals(simConfig) {
+            var app = this;
             var visuals = [];
             var cfg = simConfig.config || simConfig;
-            if (cfg.periods <= 50) visuals = this.Visuals.small;else if (cfg.periods <= 500) visuals = this.Visuals.medium;else visuals = this.Visuals.large;
+            if (cfg.periods <= 50) visuals = app.Visuals.small;else if (cfg.periods <= 500) visuals = app.Visuals.medium;else visuals = app.Visuals.large;
             return visuals;
         }
     }, {
@@ -186,10 +190,11 @@ var App = exports.App = function () {
         value: function showSimulation(simConfig, slot) {
             var _Plotly2;
 
-            var visuals = this.getVisuals(simConfig);
-            var plotParams = visuals[this.visual % visuals.length](simConfig);
+            var app = this;
+            var visuals = app.getVisuals(simConfig);
+            var plotParams = visuals[app.visual % visuals.length](simConfig);
             var config = simConfig.config;
-            this.adjustTitle(plotParams, {
+            app.adjustTitle(plotParams, {
                 prepend: config.titlePrepend,
                 append: config.titleAppend,
                 replace: config.titleReplace
@@ -202,7 +207,7 @@ var App = exports.App = function () {
         value: function runSimulation(simConfig, slot) {
             // set up and run new simulation
 
-            var that = this;
+            var app = this;
 
             function onPeriod(sim) {
                 if (sim.period < sim.config.periods) {
@@ -215,24 +220,24 @@ var App = exports.App = function () {
 
             function onDone(sim) {
                 function toSelectBox(v, i) {
-                    return ['<option value="', i, '"', i === that.visual ? ' selected="selected" ' : '', '>', v.meta.title || v.meta.f, '</option>'].join('');
+                    return ['<option value="', i, '"', i === app.visual ? ' selected="selected" ' : '', '>', v.meta.title || v.meta.f, '</option>'].join('');
                 }
-                var visuals = that.getVisuals(simConfig);
+                var visuals = app.getVisuals(simConfig);
                 if (Array.isArray(visuals)) {
                     var vizchoices = visuals.map(toSelectBox).join("");
                     $('#vizselect').html(vizchoices);
                 } else {
                     console.log("invalid visuals", visuals);
                 }
-                that.showSimulation(sim, slot);
+                app.showSimulation(sim, slot);
                 $('.spinning').removeClass('spinning');
                 $('.postrun').removeClass('disabled');
                 $('.postrun').prop('disabled', false);
             }
 
-            var mysim = new this.SMRS.Simulation(simConfig);
+            var mysim = new app.SMRS.Simulation(simConfig);
 
-            this.plotParameters(mysim, slot);
+            app.plotParameters(mysim, slot);
 
             mysim.run({ update: onPeriod }).then(onDone).catch(function (e) {
                 console.log(e);
@@ -247,8 +252,9 @@ var App = exports.App = function () {
     }, {
         key: "expand",
         value: function expand(how) {
+            var app = this;
             var xfactor = +$('#xfactor').val();
-            var config = this.editor.getValue();
+            var config = app.editor.getValue();
             if (xfactor) {
                 config.title += ' x' + xfactor;
                 config.configurations.forEach(function (sim) {
@@ -257,9 +263,9 @@ var App = exports.App = function () {
                     if (sim.numberOfBuyers > 1) sim.numberOfBuyers *= xfactor;
                     if (sim.numberOfSellers > 1) sim.numberOfSellers *= xfactor;
                 });
-                this.editor.setValue(config);
-                this.timeit((0, _clone2.default)(config));
-                this.refresh();
+                app.editor.setValue(config);
+                app.timeit((0, _clone2.default)(config));
+                app.refresh();
             }
         }
 
@@ -268,59 +274,69 @@ var App = exports.App = function () {
     }, {
         key: "init",
         value: function init() {
-            var _this4 = this;
-
+            var app = this;
+            app.behavior.forEach(function (jqSelector, appMethod, eventName) {
+                if (typeof app[appMethod] !== 'function') throw new Error("Error initializing app behavior - method " + appMethod + " specified in event map for selector " + jqSelector + "does not exist");
+                var selection = $(jqSelector);
+                if (selection.length === 0) throw new Error("Error initializing app behavior - selector " + jqSelector + " not found in app's web page");
+                selection.on(eventName || 'click', function (evt) {
+                    return app[appMethod](evt && evt.target && evt.target.value);
+                });
+            });
             $('.postrun').prop('disabled', true);
             var editorElement = document.getElementById('editor');
             var editorOptions = {
-                schema: this.editorConfigSchema,
-                startval: this.editorStartValue
+                schema: app.editorConfigSchema,
+                startval: app.editorStartValue
             };
-            this.editor = new window.JSONEditor(editorElement, editorOptions);
-            this.editor.on('change', function () {
+            app.editor = new window.JSONEditor(editorElement, editorOptions);
+            app.editor.on('change', function () {
                 $('#runError').html("Click >Run to run the simulation and see the new results");
             });
-            this.DB.promiseList(this.saveList).then(function (configs) {
+            app.DB.promiseList(app.saveList).then(function (configs) {
                 if (Array.isArray(configs) && configs.length) {
-                    _this4.savedConfigs = configs;
-                    _this4.renderConfigSelector();
-                    _this4.choose(0);
+                    app.savedConfigs = configs;
+                    app.renderConfigSelector();
+                    app.choose(0);
                 }
             }).catch(function (e) {
                 console.log("Error accessing simulation configuration database:" + e);
-                _this4.DB = null;
+                app.DB = null;
             });
         }
     }, {
         key: "estimateTime",
         value: function estimateTime() {
-            this.timeit(this.editor.getValue());
+            var app = this;
+            app.timeit(app.editor.getValue());
         }
     }, {
         key: "refresh",
         value: function refresh() {
-            var periodsEditor = this.periodsEditor;
-            var editor = this.editor;
+            var app = this;
+            var periodsEditor = app.periodsEditor;
+            var editor = app.editor;
             if (periodsEditor) {
                 $('input.periods').val(periodsEditor.getValue());
                 $('span.periods').text(periodsEditor.getValue());
-                this.guessTime();
+                app.guessTime();
             }
             if (editor) {
                 var current = editor.getValue();
-                this.showParameters(current);
+                app.showParameters(current);
                 $('.configTitle').text(current.title);
                 $('#xsimbs').html("<tr>" + current.configurations.map(function (config, j) {
                     var data = [j, config.numberOfBuyers, config.numberOfSellers];
                     return "<td>" + data.join("</td><td>") + "</td>";
                 }).join('</tr><tr>') + "</tr>");
-                this.plotParameters(new this.SMRS.Simulation(commonFrom(current)(current.configurations[0])), "ScaleUp");
+                app.plotParameters(new app.SMRS.Simulation(commonFrom(current)(current.configurations[0])), "ScaleUp");
             }
         }
     }, {
         key: "interpolate",
         value: function interpolate() {
-            this.expand(function (a, n) {
+            var app = this;
+            app.expand(function (a, n) {
                 var result = [];
                 for (var i = 0, l = a.length; i < l - 1; ++i) {
                     for (var j = 0; j < n; ++j) {
@@ -336,7 +352,8 @@ var App = exports.App = function () {
     }, {
         key: "duplicate",
         value: function duplicate() {
-            this.expand(function (a, n) {
+            var app = this;
+            app.expand(function (a, n) {
                 var result = [];
                 for (var i = 0, l = a.length; i < l; ++i) {
                     for (var j = 0; j < n; ++j) {
@@ -349,23 +366,22 @@ var App = exports.App = function () {
     }, {
         key: "undo",
         value: function undo() {
-            this.choose(this.chosenScenarioIndex);
+            var app = this;
+            app.choose(app.chosenScenarioIndex);
         }
     }, {
         key: "moveToTrash",
         value: function moveToTrash() {
-            var _this5 = this;
+            var app = this;
+            var savedConfigs = app.savedConfigs,
+                chosenScenarioIndex = app.chosenScenarioIndex,
+                saveList = app.saveList,
+                trashList = app.trashList;
 
-            console.log("move-to-trash");
-            var savedConfigs = this.savedConfigs;
-            var chosenScenarioIndex = this.chosenScenarioIndex;
-            var saveList = this.saveList;
-            var trashList = this.trashList;
-
-            this.DB.promiseMoveItem(savedConfigs[chosenScenarioIndex], saveList, trashList).then(function () {
+            app.DB.promiseMoveItem(savedConfigs[chosenScenarioIndex], saveList, trashList).then(function () {
                 savedConfigs.splice(chosenScenarioIndex, 1);
-                _this5.renderConfigSelector();
-                _this5.choose(0);
+                app.renderConfigSelector();
+                app.choose(0);
             }).catch(function (e) {
                 console.log(e);
             });
@@ -373,8 +389,7 @@ var App = exports.App = function () {
     }, {
         key: "run",
         value: function run() {
-            var _this6 = this;
-
+            var app = this;
             $('#runError').html("");
             $('.postrun').removeClass("disabled");
             $('.postrun').addClass("disabled");
@@ -383,23 +398,23 @@ var App = exports.App = function () {
             $('.resultPlot').html("");
             $('#runButton .glyphicon').addClass("spinning");
             setTimeout(function () {
-                var config = _this6.editor.getValue();
-                _this6.sims = config.configurations.map(commonFrom(config)).map(function (s, i) {
-                    return _this6.runSimulation(s, i);
+                var config = app.editor.getValue();
+                app.sims = config.configurations.map(commonFrom(config)).map(function (s, i) {
+                    return app.runSimulation(s, i);
                 });
             }, 200);
         }
     }, {
         key: "save",
         value: function save() {
-            var that = this;
+            var app = this;
             function doSave() {
-                that.DB.promiseSaveItem(that.editor.getValue(), that.saveList).then(function () {
+                app.DB.promiseSaveItem(app.editor.getValue(), app.saveList).then(function () {
                     return window.location.reload();
                 });
             }
-            if (that.savedConfigs.length && that.savedConfigs[that.chosenScenarioIndex] && that.editor.getValue().title === that.savedConfigs[that.chosenScenarioIndex].title) {
-                that.DB.promiseRemoveItem(that.savedConfigs[that.chosenScenarioIndex], that.saveList).then(doSave);
+            if (app.savedConfigs.length && app.savedConfigs[app.chosenScenarioIndex] && app.editor.getValue().title === app.savedConfigs[app.chosenScenarioIndex].title) {
+                app.DB.promiseRemoveItem(app.savedConfigs[app.chosenScenarioIndex], app.saveList).then(doSave);
             } else {
                 doSave();
             }
@@ -407,31 +422,30 @@ var App = exports.App = function () {
     }, {
         key: "setPeriods",
         value: function setPeriods(n) {
-            this.periodsEditor.setValue(Math.floor(n));
-            this.refresh();
+            var app = this;
+            app.periodsEditor.setValue(Math.floor(n));
+            app.refresh();
         }
     }, {
         key: "setVisualNumber",
         value: function setVisualNumber(n) {
-            var _this7 = this;
-
-            this.visual = n;
-            this.sims.forEach(function (s, j) {
-                return _this7.showSimulation(s, j);
+            var app = this;
+            app.visual = n;
+            app.sims.forEach(function (s, j) {
+                return app.showSimulation(s, j);
             });
         }
     }, {
         key: "downloadData",
         value: function downloadData() {
-            var _this8 = this;
-
+            var app = this;
             $('#downloadButton').prop('disabled', true);
             $('#downloadButton').addClass("disabled");
             $('#downloadButton .glyphicon').addClass("spinning");
             setTimeout(function () {
                 (0, _singleMarketRobotSimulatorSavezip2.default)({
-                    config: _this8.editor.getValue(),
-                    sims: _this8.sims,
+                    config: app.editor.getValue(),
+                    sims: app.sims,
                     download: true
                 }).then(function () {
                     $('#downloadButton .spinning').removeClass("spinning");
@@ -443,17 +457,16 @@ var App = exports.App = function () {
     }, {
         key: "uploadData",
         value: function uploadData() {
-            var _this9 = this;
-
+            var app = this;
             $('#uploadButton').prop('disabled', true);
             $('#uploadButton').addClass('disabled');
             $('#uploadButton .glyphicon').addClass("spinning");
             setTimeout(function () {
                 (0, _singleMarketRobotSimulatorSavezip2.default)({
-                    config: _this9.editor.getValue(),
-                    sims: _this9.sims,
+                    config: app.editor.getValue(),
+                    sims: app.sims,
                     download: false }).then(function (zipBlob) {
-                    _this9.DB.promiseUpload(zipBlob).then(function () {
+                    app.DB.promiseUpload(zipBlob).then(function () {
                         $('#uploadButton .spinning').removeClass("spinning");
                         $('#uploadButton').removeClass("disabled");
                         $('#uploadButton').prop('disabled', false);
@@ -466,19 +479,19 @@ var App = exports.App = function () {
     }, {
         key: "renderTrash",
         value: function renderTrash() {
-            var _this10 = this;
+            var _this2 = this;
 
+            var app = this;
             $('#trashList').html("");
-            var that = this;
-            that.DB.promiseListRange(that.trashList, 0, 20).then(function (items) {
+            app.DB.promiseListRange(app.trashList, 0, 20).then(function (items) {
                 items.forEach(function (item) {
                     $('#trashList').append('<pre class="pre-scrollable trash-item">' + JSON.stringify(item, null, 2) + '</pre>');
                 });
                 $('pre.trash-item').click(function () {
                     try {
-                        var restoredScenario = JSON.parse($(_this10).text());
+                        var restoredScenario = JSON.parse($(_this2).text());
                         if ((typeof restoredScenario === "undefined" ? "undefined" : _typeof(restoredScenario)) === 'object' && typeof restoredScenario.title === 'string' && _typeof(restoredScenario.common) === 'object' && Array.isArray(restoredScenario.configurations)) {
-                            that.editor.setValue(restoredScenario);
+                            app.editor.setValue(restoredScenario);
                             $('#editLink').click();
                         } else {
                             console.log("trashed item is not a valid scenario");

@@ -4,6 +4,7 @@
 /* global Plotly:true, window:true, $:true */
 
 /* eslint no-console: "off" */
+/* eslint consistent-this: ["error", "app", "that"] */
 
 import clone from "clone";
 import saveZip from "single-market-robot-simulator-savezip";
@@ -27,6 +28,7 @@ export class App {
         this.editorStartValue = options.editorStartValue;
         this.saveList = this.DB.openList(options.saveList);
         this.trashList = this.DB.openList(options.trashList);
+        this.behavior = options.behavior;
         this.editor = 0;
         this.periodsEditor = 0;
         this.periodTimers  = [];
@@ -46,18 +48,20 @@ export class App {
     }
 
     plotParameters(sim, slot){
-        const plotlyParams = this.Visuals.params(sim);
+	const app = this;
+        const plotlyParams = app.Visuals.params(sim);
         plotlyParams.unshift("paramPlot"+slot);
         Plotly.newPlot(...plotlyParams);
     }
 
     showParameters(conf){
+	const app = this;
         $('.paramPlot').html("");
         (conf
          .configurations
          .map(commonFrom(conf))
-         .map((config)=>(new this.SMRS.Simulation(config)))
-         .forEach((sim,slot)=>(this.plotParameters(sim,slot)))
+         .map((config)=>(new app.SMRS.Simulation(config)))
+         .forEach((sim,slot)=>(app.plotParameters(sim,slot)))
         );
     }    
 
@@ -80,13 +84,14 @@ export class App {
     }
     
     timeit(scenario){
+	const app = this;
         const t0 = Date.now();
-        const periodTimers = this.periodTimers;
+        const periodTimers = app.periodTimers;
         periodTimers.length = 0;
         const scenario2p = clone(scenario);
         scenario2p.common.periods=5;
         (Promise.all(
-            (this
+            (app
              .allSim(scenario2p)
              .map(
                  (s)=>(s.run({
@@ -106,7 +111,7 @@ export class App {
         ).then(
             ()=>{
                 console.log("simulation period timers", periodTimers);
-                this.guessTime();
+                app.guessTime();
             }
         )
          .catch((e)=>(console.log(e)))
@@ -114,32 +119,35 @@ export class App {
     }
     
     choose(n){
-        this.chosenScenarioIndex = Math.max(0, Math.min(Math.floor(n),this.savedConfigs.length-1));
-        const choice = this.savedConfigs[this.chosenScenarioIndex];
+	const app = this;
+        app.chosenScenarioIndex = Math.max(0, Math.min(Math.floor(n),app.savedConfigs.length-1));
+        const choice = app.savedConfigs[app.chosenScenarioIndex];
         if (choice){
-            this.editor.setValue(clone(choice));
+            app.editor.setValue(clone(choice));
             // initialize periodsEditor only after a scenario is chosen
-            this.periodsEditor = this.editor.getEditor('root.common.periods');
-            this.timeit(clone(choice)); // time a separate clone
-            this.refresh();
+            app.periodsEditor = app.editor.getEditor('root.common.periods');
+            app.timeit(clone(choice)); // time a separate clone
+            app.refresh();
         }
     }   
 
     renderConfigSelector(){
+	const app = this;
         $("#selector > option").remove();
-        this.savedConfigs.forEach((c,n)=> ($("#selector").append('<option value="'+n+'">'+c.title+'</option>')));
+        app.savedConfigs.forEach((c,n)=> ($("#selector").append('<option value="'+n+'">'+c.title+'</option>')));
         $('#selector').on('change', (evt)=>this.choose(evt.target.selectedIndex));
     }
 
     getVisuals(simConfig){
+	const app = this;
         let visuals = [];
         const cfg = simConfig.config || simConfig;
         if (cfg.periods<=50)
-            visuals = this.Visuals.small;
+            visuals = app.Visuals.small;
         else if (cfg.periods<=500)
-            visuals = this.Visuals.medium;
+            visuals = app.Visuals.medium;
         else
-            visuals = this.Visuals.large;
+            visuals = app.Visuals.large;
         return visuals;
     }
 
@@ -158,10 +166,11 @@ export class App {
     }
 
     showSimulation(simConfig, slot){
-        const visuals = this.getVisuals(simConfig);
-        const plotParams = visuals[this.visual%visuals.length](simConfig);
-	const config = simConfig.config;
-        this.adjustTitle(
+	const app = this;
+        const visuals = app.getVisuals(simConfig);
+        const plotParams = visuals[app.visual%visuals.length](simConfig);
+        const config = simConfig.config;
+        app.adjustTitle(
             plotParams,
             {
                 prepend: config.titlePrepend,
@@ -176,7 +185,7 @@ export class App {
     runSimulation(simConfig, slot){
         // set up and run new simulation
 
-        const that = this;
+        const app = this;
         
         function onPeriod(sim){
             if (sim.period<sim.config.periods){
@@ -193,28 +202,28 @@ export class App {
                     '<option value="',
                     i,
                     '"',
-                    ((i===that.visual)? ' selected="selected" ': ''),
+                    ((i===app.visual)? ' selected="selected" ': ''),
                     '>',
                      (v.meta.title || v.meta.f),
                     '</option>'
                 ].join('');
             }
-            const visuals = that.getVisuals(simConfig);
+            const visuals = app.getVisuals(simConfig);
             if (Array.isArray(visuals)){
                 const vizchoices = visuals.map(toSelectBox).join("");
                 $('#vizselect').html(vizchoices);
             } else {
                 console.log("invalid visuals", visuals);
             }
-            that.showSimulation(sim, slot);
+            app.showSimulation(sim, slot);
             $('.spinning').removeClass('spinning');
             $('.postrun').removeClass('disabled');
             $('.postrun').prop('disabled',false);
         } 
 
-        let mysim = new this.SMRS.Simulation(simConfig);
+        let mysim = new app.SMRS.Simulation(simConfig);
 
-        this.plotParameters(mysim, slot);
+        app.plotParameters(mysim, slot);
 
         (mysim
          .run({update: onPeriod})
@@ -231,8 +240,9 @@ export class App {
     }
 
     expand(how){
+	const app = this;
         const xfactor = +$('#xfactor').val();
-        const config = this.editor.getValue();
+        const config = app.editor.getValue();
         if (xfactor){
             config.title += ' x'+xfactor;
             config.configurations.forEach((sim)=>{
@@ -243,55 +253,68 @@ export class App {
                 if (sim.numberOfSellers>1)
                     sim.numberOfSellers *= xfactor;
             });
-            this.editor.setValue(config);
-            this.timeit(clone(config));
-            this.refresh();
+            app.editor.setValue(config);
+            app.timeit(clone(config));
+            app.refresh();
         }
     }
 
     /* public: app functions for outside code below this line */
     
     init(){
+	const app = this;
+        app.behavior.forEach(
+            (jqSelector, appMethod, eventName)=>{
+                if (typeof(app[appMethod])!=='function')
+                    throw new Error("Error initializing app behavior - method "+appMethod+" specified in event map for selector "+jqSelector+"does not exist");
+                let selection = $(jqSelector);
+                if (selection.length===0)
+                    throw new Error("Error initializing app behavior - selector "+jqSelector+" not found in app's web page");
+                selection.on(eventName || 'click', ((evt)=>app[appMethod](evt && evt.target && evt.target.value)));
+            }
+        );
         $('.postrun').prop('disabled',true);
         let editorElement = document.getElementById('editor');
         let editorOptions = {
-            schema: this.editorConfigSchema,
-            startval: this.editorStartValue
+            schema: app.editorConfigSchema,
+            startval: app.editorStartValue
         };
-        this.editor = new window.JSONEditor(editorElement, editorOptions);
-        this.editor.on('change', ()=>{
+        app.editor = new window.JSONEditor(editorElement, editorOptions);
+        app.editor.on('change', ()=>{
             $('#runError').html("Click >Run to run the simulation and see the new results");
         });
-        (this.DB.promiseList(this.saveList)
+        (app.DB.promiseList(app.saveList)
          .then((configs)=>{
              if (Array.isArray(configs) && (configs.length)){
-                 this.savedConfigs = configs;
-                 this.renderConfigSelector();
-                 this.choose(0);
+                 app.savedConfigs = configs;
+                 app.renderConfigSelector();
+                 app.choose(0);
              }
          })
          .catch((e)=>{
              console.log("Error accessing simulation configuration database:"+e);
-             this.DB = null;
+             app.DB = null;
          })
              );
     }
 
     estimateTime(){
-        this.timeit(this.editor.getValue());
+	const app = this;
+        app.timeit(app.editor.getValue());
     }
 
     refresh(){
-        const periodsEditor = this.periodsEditor;
-        const editor = this.editor;
+	const app = this;
+        const periodsEditor = app.periodsEditor;
+        const editor = app.editor;
         if (periodsEditor){
             $('input.periods').val(periodsEditor.getValue());
             $('span.periods').text(periodsEditor.getValue());
-            this.guessTime();
+            app.guessTime();
         }
         if (editor){
             const current = editor.getValue();
-            this.showParameters(current);
+            app.showParameters(current);
             $('.configTitle').text(current.title);
             $('#xsimbs').html(
                 "<tr>"+(current
@@ -303,12 +326,13 @@ export class App {
                             })
                         .join('</tr><tr>')
                        )+"</tr>");
-            this.plotParameters(new this.SMRS.Simulation((commonFrom(current)(current.configurations[0]))), "ScaleUp");
+            app.plotParameters(new app.SMRS.Simulation((commonFrom(current)(current.configurations[0]))), "ScaleUp");
         }
     }
 
     interpolate(){
-        this.expand(
+	const app = this;
+        app.expand(
             (a,n)=>{
                 const result = [];
                 for(let i=0,l=a.length;i<(l-1);++i){
@@ -325,7 +349,8 @@ export class App {
     }
 
     duplicate(){
-        this.expand(
+	const app = this;
+        app.expand(
             (a,n)=>{
                 const result = [];
                 for(let i=0,l=a.length;i<l;++i){
@@ -339,17 +364,18 @@ export class App {
     }
 
     undo(){
-        this.choose(this.chosenScenarioIndex);
+	const app = this;
+        app.choose(app.chosenScenarioIndex);
     }
 
     moveToTrash(){
-        console.log("move-to-trash");
-        const {savedConfigs, chosenScenarioIndex, saveList, trashList } = this;
-        (this.DB.promiseMoveItem(savedConfigs[chosenScenarioIndex], saveList, trashList)
+	const app = this;
+        const {savedConfigs, chosenScenarioIndex, saveList, trashList } = app;
+        (app.DB.promiseMoveItem(savedConfigs[chosenScenarioIndex], saveList, trashList)
          .then(()=>{
              savedConfigs.splice(chosenScenarioIndex,1);
-             this.renderConfigSelector();
-             this.choose(0);
+             app.renderConfigSelector();
+             app.choose(0);
          })
          .catch((e)=>{
              console.log(e);
@@ -358,6 +384,7 @@ export class App {
     }
 
     run(){
+	const app = this;
         $('#runError').html("");
         $('.postrun').removeClass("disabled");
         $('.postrun').addClass("disabled");
@@ -366,24 +393,24 @@ export class App {
         $('.resultPlot').html("");
         $('#runButton .glyphicon').addClass("spinning");
         setTimeout(()=>{
-            let config = this.editor.getValue();
-            this.sims = (config
+            let config = app.editor.getValue();
+            app.sims = (config
                          .configurations
                          .map(commonFrom(config))
-                         .map((s,i)=>this.runSimulation(s,i))
+                         .map((s,i)=>app.runSimulation(s,i))
                         );
         }, 200);
     }
 
     save(){
-        const that = this;
+        const app = this;
         function doSave(){
-            (that.DB.promiseSaveItem(that.editor.getValue(), that.saveList)
+            (app.DB.promiseSaveItem(app.editor.getValue(), app.saveList)
              .then(()=>(window.location.reload()))
             );
         }   
-        if (that.savedConfigs.length && (that.savedConfigs[that.chosenScenarioIndex]) && (that.editor.getValue().title===that.savedConfigs[that.chosenScenarioIndex].title)){
-            (that.DB.promiseRemoveItem(that.savedConfigs[that.chosenScenarioIndex], that.saveList)
+        if (app.savedConfigs.length && (app.savedConfigs[app.chosenScenarioIndex]) && (app.editor.getValue().title===app.savedConfigs[app.chosenScenarioIndex].title)){
+            (app.DB.promiseRemoveItem(app.savedConfigs[app.chosenScenarioIndex], app.saveList)
              .then(doSave)
             );
         } else {
@@ -392,23 +419,26 @@ export class App {
     }
 
     setPeriods(n){
-        this.periodsEditor.setValue(Math.floor(n));
-        this.refresh();
+	const app = this;
+        app.periodsEditor.setValue(Math.floor(n));
+        app.refresh();
     }
 
     setVisualNumber(n){
-        this.visual = n;
-        this.sims.forEach((s,j)=>this.showSimulation(s,j));
+	const app = this;
+        app.visual = n;
+        app.sims.forEach((s,j)=>app.showSimulation(s,j));
     }
     
     downloadData(){
+	const app = this;
         $('#downloadButton').prop('disabled',true);
         $('#downloadButton').addClass("disabled");
         $('#downloadButton .glyphicon').addClass("spinning");
         setTimeout(()=>{
             saveZip({
-                config: this.editor.getValue(),
-                sims: this.sims,
+                config: app.editor.getValue(),
+                sims: app.sims,
                 download: true
             }).then(()=>{
                 $('#downloadButton .spinning').removeClass("spinning");
@@ -419,16 +449,17 @@ export class App {
     }
 
     uploadData(){
+	const app = this;
         $('#uploadButton').prop('disabled',true);
         $('#uploadButton').addClass('disabled');
         $('#uploadButton .glyphicon').addClass("spinning");
         setTimeout(()=>{
             saveZip({
-                config: this.editor.getValue(), 
-                sims: this.sims, 
+                config: app.editor.getValue(), 
+                sims: app.sims, 
                 download: false})
                 .then((zipBlob)=>{
-                    (this.DB.promiseUpload(zipBlob)
+                    (app.DB.promiseUpload(zipBlob)
                      .then(()=>{
                          $('#uploadButton .spinning').removeClass("spinning");
                          $('#uploadButton').removeClass("disabled");
@@ -441,9 +472,9 @@ export class App {
     }
 
     renderTrash(){
+	const app = this;
         $('#trashList').html("");
-        const that = this;
-        (that.DB.promiseListRange(that.trashList,0,20)
+        (app.DB.promiseListRange(app.trashList,0,20)
          .then((items)=>{
              items.forEach((item)=>{
                  $('#trashList').append('<pre class="pre-scrollable trash-item">'+JSON.stringify(item,null,2)+'</pre>');
@@ -456,7 +487,7 @@ export class App {
                           (typeof(restoredScenario.common)==='object') && 
                           (Array.isArray(restoredScenario.configurations))
                         ){                        
-                         that.editor.setValue(restoredScenario);
+                         app.editor.setValue(restoredScenario);
                          $('#editLink').click();
                      } else {
                          console.log("trashed item is not a valid scenario");
