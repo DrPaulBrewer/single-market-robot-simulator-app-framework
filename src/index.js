@@ -478,7 +478,10 @@ export class App {
              items.forEach((item)=>{
                  $('#trashList').append('<pre class="pre-scrollable trash-item">'+JSON.stringify(item,null,2)+'</pre>');
              });
-             $('pre.trash-item').click(()=>{
+             $('pre.trash-item').click(function(){
+
+		 // this click function needs to be a full function with its own "this", not an anonymous ()=>{block}
+		 
                  try {
                      const restoredScenario = JSON.parse($(this).text());
                      if ( (typeof(restoredScenario)==='object') && 
