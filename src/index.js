@@ -480,8 +480,8 @@ export class App {
              });
              $('pre.trash-item').click(function(){
 
-		 // this click function needs to be a full function with its own "this", not an anonymous ()=>{block}
-		 
+                 // this click function needs to be a full function with its own "this", not an anonymous ()=>{block}
+                 
                  try {
                      const restoredScenario = JSON.parse($(this).text());
                      if ( (typeof(restoredScenario)==='object') && 
