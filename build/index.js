@@ -254,7 +254,7 @@ var App = exports.App = function () {
                 $('.postrun').prop('disabled', false);
             }
 
-            var mysim = new app.SMRS.Simulation(simConfig);
+            var mysim = simConfig; // this line used to call new Simulation based on simConfig... but that is done in .simulations already 
 
             app.plotParameters(mysim, slot);
 
