@@ -224,7 +224,7 @@ var App = exports.App = function () {
     }, {
         key: "runSimulation",
         value: function runSimulation(simConfig, slot) {
-            // set up and run new simulation
+            // set up and run simulation
 
             var app = this;
 

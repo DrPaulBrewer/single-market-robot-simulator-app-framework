@@ -199,7 +199,7 @@ export class App {
     }
 
     runSimulation(simConfig, slot){
-        // set up and run new simulation
+        // set up and run simulation
 
         const app = this;
         
