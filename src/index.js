@@ -11,9 +11,9 @@ import saveZip from "single-market-robot-simulator-savezip";
 
 // private
 
-function commonFrom(config){
+function commonFrom(obj){
     return function(c){
-        const result =  Object.assign({},clone(c),clone(config.common));
+        const result =  Object.assign({},clone(c),clone(obj.common));
         return result;
     };
 }
@@ -39,13 +39,13 @@ export class App {
         this.visual = 0;
     }
 
-    simulations(config){
+    simulations(cfg){
         const { SMRS } = this;
-        if (!config) return [];
-	if (!(Array.isArray(config.configurations))) return [];
-        return (config
+        if (!cfg) return [];
+	if (!(Array.isArray(cfg.configurations))) return [];
+        return (cfg
                 .configurations
-                .map(commonFrom(config))
+                .map(commonFrom(cfg))
                 .map((s)=>(new SMRS.Simulation(s)))
                );
     }

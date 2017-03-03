@@ -33,9 +33,9 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 // private
 
-function commonFrom(config) {
+function commonFrom(obj) {
     return function (c) {
-        var result = Object.assign({}, (0, _clone2.default)(c), (0, _clone2.default)(config.common));
+        var result = Object.assign({}, (0, _clone2.default)(c), (0, _clone2.default)(obj.common));
         return result;
     };
 }
@@ -64,12 +64,12 @@ var App = exports.App = function () {
 
     _createClass(App, [{
         key: "simulations",
-        value: function simulations(config) {
+        value: function simulations(cfg) {
             var SMRS = this.SMRS;
 
-            if (!config) return [];
-            if (!Array.isArray(config.configurations)) return [];
-            return config.configurations.map(commonFrom(config)).map(function (s) {
+            if (!cfg) return [];
+            if (!Array.isArray(cfg.configurations)) return [];
+            return cfg.configurations.map(commonFrom(cfg)).map(function (s) {
                 return new SMRS.Simulation(s);
             });
         }
