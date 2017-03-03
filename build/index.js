@@ -5,11 +5,11 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.App = undefined;
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /* Copyright 2016 Paul Brewer, Economic and Financial Technology Consulting LLC */
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /* Copyright 2016, 2017 Paul Brewer, Economic and Financial Technology Consulting LLC */
 /* This file is open source software.  The MIT License applies to this software. */
 
 /* global Plotly:true, window:true, $:true */
@@ -49,6 +49,7 @@ var App = exports.App = function () {
         this.Visuals = options.Visuals;
         this.editorConfigSchema = options.editorConfigSchema;
         this.editorStartValue = options.editorStartValue;
+        this.editorPostProcess = options.editorPostProcess;
         this.saveList = this.DB.openList(options.saveList);
         this.trashList = this.DB.openList(options.trashList);
         this.behavior = options.behavior;
@@ -62,13 +63,26 @@ var App = exports.App = function () {
     }
 
     _createClass(App, [{
-        key: "allSim",
-        value: function allSim(config) {
+        key: "simulations",
+        value: function simulations(config) {
             var SMRS = this.SMRS;
 
-            return config.configurations.map(commonFrom(config)).map(function (s) {
+            if (config && config.configurations) return config.configurations.map(commonFrom(config)).map(function (s) {
                 return new SMRS.Simulation(s);
             });
+        }
+    }, {
+        key: "getConfig",
+        value: function getConfig() {
+            var app = this;
+            var config = null;
+            if (app.editor && _typeof(app.editor.getValue === "function")) {
+                config = app.editor.getValue();
+                if (typeof app.editorPostProcess === "function") config = app.editorPostProcess(config);
+            } else {
+                config = app.editorStartValue;
+            }
+            return config;
         }
     }, {
         key: "plotParameters",
@@ -85,9 +99,7 @@ var App = exports.App = function () {
         value: function showParameters(conf) {
             var app = this;
             $('.paramPlot').html("");
-            conf.configurations.map(commonFrom(conf)).map(function (config) {
-                return new app.SMRS.Simulation(config);
-            }).forEach(function (sim, slot) {
+            app.simulations(conf).forEach(function (sim, slot) {
                 return app.plotParameters(sim, slot);
             });
         }
@@ -121,7 +133,7 @@ var App = exports.App = function () {
             periodTimers.length = 0;
             var scenario2p = (0, _clone2.default)(scenario);
             scenario2p.common.periods = 5;
-            Promise.all(app.allSim(scenario2p).map(function (s) {
+            Promise.all(app.simulations(scenario2p).map(function (s) {
                 return s.run({
                     update: function update(sim) {
                         var elapsed = Date.now() - t0;
@@ -132,7 +144,6 @@ var App = exports.App = function () {
                     }
                 });
             })).then(function () {
-                console.log("simulation period timers", periodTimers);
                 app.guessTime();
             }).catch(function (e) {
                 return console.log(e);
@@ -142,14 +153,18 @@ var App = exports.App = function () {
         key: "choose",
         value: function choose(n) {
             var app = this;
-            app.chosenScenarioIndex = Math.max(0, Math.min(Math.floor(n), app.savedConfigs.length - 1));
-            var choice = app.savedConfigs[app.chosenScenarioIndex];
-            if (choice) {
-                app.editor.setValue((0, _clone2.default)(choice));
-                // initialize periodsEditor only after a scenario is chosen
-                app.periodsEditor = app.editor.getEditor('root.common.periods');
-                app.timeit((0, _clone2.default)(choice)); // time a separate clone
-                app.refresh();
+            if (Array.isArray(app.savedConfigs)) {
+                app.chosenScenarioIndex = Math.max(0, Math.min(Math.floor(n), app.savedConfigs.length - 1));
+                var choice = app.savedConfigs[app.chosenScenarioIndex];
+                if (choice) {
+                    if (app.editor) {
+                        app.editor.setValue((0, _clone2.default)(choice));
+                        // initialize periodsEditor only after a scenario is chosen
+                        app.periodsEditor = app.editor.getEditor('root.common.periods');
+                    }
+                    app.timeit((0, _clone2.default)(choice)); // time a separate clone
+                    app.refresh();
+                }
             }
         }
     }, {
@@ -315,28 +330,27 @@ var App = exports.App = function () {
         key: "estimateTime",
         value: function estimateTime() {
             var app = this;
-            app.timeit(app.editor.getValue());
+            app.timeit(app.getConfig());
         }
     }, {
         key: "refresh",
         value: function refresh() {
             var app = this;
             var periodsEditor = app.periodsEditor;
-            var editor = app.editor;
+            var config = app.getConfig();
             if (periodsEditor) {
                 $('input.periods').val(periodsEditor.getValue());
                 $('span.periods').text(periodsEditor.getValue());
                 app.guessTime();
             }
-            if (editor) {
-                var current = editor.getValue();
-                app.showParameters(current);
-                $('.configTitle').text(current.title);
-                $('#xsimbs').html("<tr>" + current.configurations.map(function (config, j) {
-                    var data = [j, config.numberOfBuyers, config.numberOfSellers];
+            if (config) {
+                app.showParameters(config);
+                $('.configTitle').text(config.title);
+                $('#xsimbs').html("<tr>" + config.configurations.map(function (sim, j) {
+                    var data = [j, sim.numberOfBuyers, sim.numberOfSellers];
                     return "<td>" + data.join("</td><td>") + "</td>";
                 }).join('</tr><tr>') + "</tr>");
-                app.plotParameters(new app.SMRS.Simulation(commonFrom(current)(current.configurations[0])), "ScaleUp");
+                app.plotParameters(new app.SMRS.Simulation(commonFrom(config)(config.configurations[0])), "ScaleUp");
             }
         }
     }, {
@@ -405,8 +419,8 @@ var App = exports.App = function () {
             $('.resultPlot').html("");
             $('#runButton .glyphicon').addClass("spinning");
             setTimeout(function () {
-                var config = app.editor.getValue();
-                app.sims = config.configurations.map(commonFrom(config)).map(function (s, i) {
+                var config = app.getConfig();
+                app.sims = app.simulations(config).map(function (s, i) {
                     return app.runSimulation(s, i);
                 });
             }, 200);
@@ -451,7 +465,7 @@ var App = exports.App = function () {
             $('#downloadButton .glyphicon').addClass("spinning");
             setTimeout(function () {
                 (0, _singleMarketRobotSimulatorSavezip2.default)({
-                    config: app.editor.getValue(),
+                    config: app.getConfig(),
                     sims: app.sims,
                     download: true
                 }).then(function () {
@@ -470,7 +484,7 @@ var App = exports.App = function () {
             $('#uploadButton .glyphicon').addClass("spinning");
             setTimeout(function () {
                 (0, _singleMarketRobotSimulatorSavezip2.default)({
-                    config: app.editor.getValue(),
+                    config: app.getConfig(),
                     sims: app.sims,
                     download: false }).then(function (zipBlob) {
                     app.DB.promiseUpload(zipBlob).then(function () {

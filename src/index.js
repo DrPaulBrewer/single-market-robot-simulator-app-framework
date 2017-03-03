@@ -1,4 +1,4 @@
-/* Copyright 2016 Paul Brewer, Economic and Financial Technology Consulting LLC */
+/* Copyright 2016, 2017 Paul Brewer, Economic and Financial Technology Consulting LLC */
 /* This file is open source software.  The MIT License applies to this software. */
 
 /* global Plotly:true, window:true, $:true */
@@ -26,6 +26,7 @@ export class App {
         this.Visuals = options.Visuals;
         this.editorConfigSchema = options.editorConfigSchema;
         this.editorStartValue = options.editorStartValue;
+        this.editorPostProcess = options.editorPostProcess;
         this.saveList = this.DB.openList(options.saveList);
         this.trashList = this.DB.openList(options.trashList);
         this.behavior = options.behavior;
@@ -38,13 +39,27 @@ export class App {
         this.visual = 0;
     }
 
-    allSim(config){
+    simulations(config){
         const { SMRS } = this;
-        return (config
-                .configurations
-                .map(commonFrom(config))
-                .map((s)=>(new SMRS.Simulation(s)))
-               );
+        if (config && config.configurations)
+            return (config
+                    .configurations
+                    .map(commonFrom(config))
+                    .map((s)=>(new SMRS.Simulation(s)))
+                   );
+    }
+
+    getConfig(){
+        const app = this;
+        let config = null;
+        if ((app.editor) && (typeof(app.editor.getValue==="function"))){
+            config = app.editor.getValue();
+            if (typeof(app.editorPostProcess)==="function")
+                config = app.editorPostProcess(config);
+        } else {
+            config = app.editorStartValue;
+        }
+        return config;
     }
 
     plotParameters(sim, slot){
@@ -57,10 +72,7 @@ export class App {
     showParameters(conf){
         const app = this;
         $('.paramPlot').html("");
-        (conf
-         .configurations
-         .map(commonFrom(conf))
-         .map((config)=>(new app.SMRS.Simulation(config)))
+        (app.simulations(conf)
          .forEach((sim,slot)=>(app.plotParameters(sim,slot)))
         );
     }    
@@ -92,7 +104,7 @@ export class App {
         scenario2p.common.periods=5;
         (Promise.all(
             (app
-             .allSim(scenario2p)
+             .simulations(scenario2p)
              .map(
                  (s)=>(s.run({
                      update:(sim)=>{
@@ -110,7 +122,6 @@ export class App {
             )
         ).then(
             ()=>{
-                console.log("simulation period timers", periodTimers);
                 app.guessTime();
             }
         )
@@ -120,14 +131,18 @@ export class App {
     
     choose(n){
         const app = this;
-        app.chosenScenarioIndex = Math.max(0, Math.min(Math.floor(n),app.savedConfigs.length-1));
-        const choice = app.savedConfigs[app.chosenScenarioIndex];
-        if (choice){
-            app.editor.setValue(clone(choice));
-            // initialize periodsEditor only after a scenario is chosen
-            app.periodsEditor = app.editor.getEditor('root.common.periods');
-            app.timeit(clone(choice)); // time a separate clone
-            app.refresh();
+        if (Array.isArray(app.savedConfigs)){
+            app.chosenScenarioIndex = Math.max(0, Math.min(Math.floor(n),app.savedConfigs.length-1));
+            const choice = app.savedConfigs[app.chosenScenarioIndex];
+            if (choice){
+                if (app.editor){
+                    app.editor.setValue(clone(choice));
+                    // initialize periodsEditor only after a scenario is chosen
+                    app.periodsEditor = app.editor.getEditor('root.common.periods');
+                }
+                app.timeit(clone(choice)); // time a separate clone
+                app.refresh();
+            }
         }
     }   
 
@@ -299,33 +314,32 @@ export class App {
 
     estimateTime(){
         const app = this;
-        app.timeit(app.editor.getValue());
+        app.timeit(app.getConfig());
     }
 
     refresh(){
         const app = this;
         const periodsEditor = app.periodsEditor;
-        const editor = app.editor;
+        const config = app.getConfig();
         if (periodsEditor){
             $('input.periods').val(periodsEditor.getValue());
             $('span.periods').text(periodsEditor.getValue());
             app.guessTime();
         }
-        if (editor){
-            const current = editor.getValue();
-            app.showParameters(current);
-            $('.configTitle').text(current.title);
+        if (config){
+            app.showParameters(config);
+            $('.configTitle').text(config.title);
             $('#xsimbs').html(
-                "<tr>"+(current
+                "<tr>"+(config
                         .configurations
                         .map(
-                            (config,j)=>{
-                                const data = [j,config.numberOfBuyers,config.numberOfSellers];
+                            (sim,j)=>{
+                                const data = [j,sim.numberOfBuyers,sim.numberOfSellers];
                                 return "<td>"+data.join("</td><td>")+"</td>";
                             })
                         .join('</tr><tr>')
                        )+"</tr>");
-            app.plotParameters(new app.SMRS.Simulation((commonFrom(current)(current.configurations[0]))), "ScaleUp");
+            app.plotParameters(new app.SMRS.Simulation((commonFrom(config)(config.configurations[0]))), "ScaleUp");
         }
     }
 
@@ -392,10 +406,8 @@ export class App {
         $('.resultPlot').html("");
         $('#runButton .glyphicon').addClass("spinning");
         setTimeout(()=>{
-            let config = app.editor.getValue();
-            app.sims = (config
-                         .configurations
-                         .map(commonFrom(config))
+            const config = app.getConfig();
+            app.sims = (app.simulations(config)
                          .map((s,i)=>app.runSimulation(s,i))
                         );
         }, 200);
@@ -436,7 +448,7 @@ export class App {
         $('#downloadButton .glyphicon').addClass("spinning");
         setTimeout(()=>{
             saveZip({
-                config: app.editor.getValue(),
+                config: app.getConfig(),
                 sims: app.sims,
                 download: true
             }).then(()=>{
@@ -454,7 +466,7 @@ export class App {
         $('#uploadButton .glyphicon').addClass("spinning");
         setTimeout(()=>{
             saveZip({
-                config: app.editor.getValue(), 
+                config: app.getConfig(), 
                 sims: app.sims, 
                 download: false})
                 .then((zipBlob)=>{
