@@ -67,7 +67,9 @@ var App = exports.App = function () {
         value: function simulations(config) {
             var SMRS = this.SMRS;
 
-            if (config && config.configurations) return config.configurations.map(commonFrom(config)).map(function (s) {
+            if (!config) return [];
+            if (!Array.isArray(config.configurations)) return [];
+            return config.configurations.map(commonFrom(config)).map(function (s) {
                 return new SMRS.Simulation(s);
             });
         }

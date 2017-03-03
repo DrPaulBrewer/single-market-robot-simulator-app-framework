@@ -41,12 +41,13 @@ export class App {
 
     simulations(config){
         const { SMRS } = this;
-        if (config && config.configurations)
-            return (config
-                    .configurations
-                    .map(commonFrom(config))
-                    .map((s)=>(new SMRS.Simulation(s)))
-                   );
+        if (!config) return [];
+	if (!(Array.isArray(config.configurations))) return [];
+        return (config
+                .configurations
+                .map(commonFrom(config))
+                .map((s)=>(new SMRS.Simulation(s)))
+               );
     }
 
     getConfig(){
