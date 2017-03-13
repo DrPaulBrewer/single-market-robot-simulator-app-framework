@@ -25,6 +25,10 @@ var _singleMarketRobotSimulatorSavezip = require("single-market-robot-simulator-
 
 var _singleMarketRobotSimulatorSavezip2 = _interopRequireDefault(_singleMarketRobotSimulatorSavezip);
 
+var _singleMarketRobotSimulatorOpenzip = require("single-market-robot-simulator-openzip");
+
+var _singleMarketRobotSimulatorOpenzip2 = _interopRequireDefault(_singleMarketRobotSimulatorOpenzip);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
@@ -496,6 +500,35 @@ var App = exports.App = function () {
                     }).catch(function (e) {
                         return console.log(e);
                     });
+                });
+            }, 200);
+        }
+    }, {
+        key: "openZipFile",
+        value: function openZipFile() {
+            var app = this;
+            $('button.openzip-button').prop('disabled', true).addClass("disabled");
+            setTimeout(function () {
+                var zipPromise = new Promise(function (resolve, reject) {
+                    var zipfile = $(".openzip-file")[0].files[0];
+                    var reader = new FileReader();
+                    reader.onload = function (data) {
+                        resolve(data);
+                    };
+                    reader.onerror = function (e) {
+                        reject(e);
+                    };
+                    reader.readAsArrayBuffer(zipfile);
+                });
+                (0, _singleMarketRobotSimulatorOpenzip2.default)(zipPromise, app.SMRS, function (progress) {
+                    return $('textarea.openzip-progress').append("<p>" + progress + "</p>");
+                }).then(function (data) {
+                    app.sims = data.sims;
+                    if (app.editor && app.editor.setValue) app.editor.setValue(data.config);
+                }).then(function () {
+                    $('button.openzip-button').removeClass('diosabled').prop('disabled', false);
+                }).catch(function (e) {
+                    return console.log(e);
                 });
             }, 200);
         }

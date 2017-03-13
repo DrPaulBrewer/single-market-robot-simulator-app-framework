@@ -8,6 +8,7 @@
 
 import clone from "clone";
 import saveZip from "single-market-robot-simulator-savezip";
+import openZip from "single-market-robot-simulator-openzip";
 
 // private
 
@@ -42,7 +43,7 @@ export class App {
     simulations(cfg){
         const { SMRS } = this;
         if (!cfg) return [];
-	if (!(Array.isArray(cfg.configurations))) return [];
+        if (!(Array.isArray(cfg.configurations))) return [];
         return (cfg
                 .configurations
                 .map(commonFrom(cfg))
@@ -480,6 +481,37 @@ export class App {
                      .catch((e)=>(console.log(e)))
                          );
                 });
+        }, 200);
+    }
+
+    openZipFile(){
+        const app = this;
+        ($('button.openzip-button')
+         .prop('disabled',true)
+         .addClass("disabled")
+        );  
+        setTimeout(()=>{
+            const zipPromise = new Promise(function(resolve, reject){
+                const zipfile = $(".openzip-file")[0].files[0];
+                const reader = new FileReader();
+                reader.onload = function(data){ resolve(data); };
+                reader.onerror = function(e){ reject(e); };
+                reader.readAsArrayBuffer(zipfile);
+            });
+            (openZip(zipPromise, app.SMRS, ((progress)=>$('textarea.openzip-progress').append("<p>"+progress+"</p>")))
+             .then(function(data){
+                 app.sims = data.sims;
+                 if ((app.editor) && (app.editor.setValue))
+                     app.editor.setValue(data.config);
+             })
+             .then(function(){
+                 ($('button.openzip-button')
+                  .removeClass('diosabled')
+                  .prop('disabled',false)
+                 );
+             })
+             .catch((e)=>(console.log(e)))
+                 );
         }, 200);
     }
 
