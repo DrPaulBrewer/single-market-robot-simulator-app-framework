@@ -494,7 +494,7 @@ export class App {
             const zipPromise = new Promise(function(resolve, reject){
                 const zipfile = $(".openzip-file")[0].files[0];
                 const reader = new FileReader();
-                reader.onload = function(data){ resolve(data); };
+                reader.onload = function(event){ resolve(event.target.result); };
                 reader.onerror = function(e){ reject(e); };
                 reader.readAsArrayBuffer(zipfile);
             });
