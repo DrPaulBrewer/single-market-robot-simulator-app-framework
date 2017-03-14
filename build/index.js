@@ -517,7 +517,7 @@ var App = exports.App = function () {
                 $('div.openzip-progress').append("<p>" + message + "</p>");
             }
             function showError(e) {
-                showProgress(" ERROR: " + e);
+                showProgress('<span class="red"> ERROR: ' + e + '</span>');
             }
             function hasMissing(a) {
                 // JavaScript ignores missing elements in higher order functional operations like .some, and even .indexOf(), so we have to check this with an explicit loop
@@ -532,6 +532,10 @@ var App = exports.App = function () {
                     return u;
                 }
             }
+            function restoreUI() {
+                $('button.openzip-button').removeClass('diosabled').prop('disabled', false);
+            }
+            $('div.openzip-progress').html('');
             $('button.openzip-button').prop('disabled', true).addClass("disabled");
             setTimeout(function () {
                 var zipPromise = new Promise(function (resolve, reject) {
@@ -556,9 +560,9 @@ var App = exports.App = function () {
                     app.savedConfigs = [data.config]; // deletes local cache of DB - pulled scenarios. app only sees the loaded file.
                     app.renderConfigSelector(); // app only shows one choice in config selector -- can reload to get back to imported list 
                     app.choose(0); // configure app to use the loaded file
-                }).then(function () {
-                    $('button.openzip-button').removeClass('diosabled').prop('disabled', false);
-                }).catch(showError);
+                }).then(restoreUI, function (e) {
+                    showError(e);restoreUI();
+                });
             }, 200);
         }
     }, {
