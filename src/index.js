@@ -159,6 +159,7 @@ export class App {
         const app = this;
         let visuals = [];
         const periods = conf.periods || ((conf.common) && (conf.common.periods)) || ((conf.configurations) && (conf.configurations[0].periods));
+	console.log("in getVisuals", conf, periods);
         if (periods<=50)
             visuals = app.Visuals.small;
         else if (periods<=500)
