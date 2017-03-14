@@ -554,6 +554,7 @@ var App = exports.App = function () {
                 }).then(function (data) {
                     app.sims = data.sims;
                     app.savedConfigs = [data.config]; // deletes local cache of DB - pulled scenarios. app only sees the loaded file.
+                    app.renderConfigSelector(); // app only shows one choice in config selector -- can reload to get back to imported list 
                     app.choose(0); // configure app to use the loaded file
                 }).then(function () {
                     $('button.openzip-button').removeClass('diosabled').prop('disabled', false);
