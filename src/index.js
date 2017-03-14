@@ -494,6 +494,12 @@ export class App {
 
     openZipFile(){
         const app = this;
+        function showProgress(message){
+            $('div.openzip-progress').append("<p>"+message+"</p>");
+        }
+        function showError(e){
+            showProgress(" ERROR: "+e);
+        }
         ($('button.openzip-button')
          .prop('disabled',true)
          .addClass("disabled")
@@ -506,12 +512,20 @@ export class App {
                 reader.onerror = function(e){ reject(e); };
                 reader.readAsArrayBuffer(zipfile);
             });
-            (openZip(zipPromise, app.SMRS, ((progress)=>$('div.openzip-progress').append("<p>"+progress+"</p>")))
+            (openZip(zipPromise, app.SMRS, showProgress)
+             .then(function(data){
+                 if (!(data.config)) throw new Error("No master configuration file (config.json) was found in zip file.  Maybe this zip file is unrelated.");
+                 if (!(data.sims.length)) throw new Error("No simulation configuration files (sim.json) in the zip file");
+                 if (data.config.configurations.length !== data.sims.length)
+                     throw new Error("Missing files.  the number of configurations in config.json does not match the number of simulation directories and files I found");
+                 if (data.sims.any( (sim)=>(typeof(sim)==="undefined") ))
+                     throw new Error("It seems a folder has been deleted from the zip file or I could not read it. ");
+                 return data;
+             })
              .then(function(data){
                  app.sims = data.sims;
-                 if ((app.editor) && (app.editor.setValue))
-                     app.editor.setValue(data.config);
-                 app.refresh();
+                 app.savedConfigs = [data.config];  // deletes local cache of DB - pulled scenarios. app only sees the loaded file.
+                 app.choose(0); // configure app to use the loaded file
              })
              .then(function(){
                  ($('button.openzip-button')
@@ -519,7 +533,7 @@ export class App {
                   .prop('disabled',false)
                  );
              })
-             .catch((e)=>(console.log(e)))
+             .catch(showError)
                  );
         }, 200);
     }
