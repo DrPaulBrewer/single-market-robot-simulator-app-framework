@@ -201,7 +201,8 @@ export class App {
 
 
     renderVisualSelector(simConfig){
-	function toSelectBox(v,i){
+        const app = this;
+        function toSelectBox(v,i){
             return [
                 '<option value="',
                 i,
@@ -218,7 +219,7 @@ export class App {
             $('#vizselect').html(vizchoices);
         } else {
             console.log("invalid visuals", visuals);
-        }	
+        }       
     }
 
     
@@ -335,7 +336,7 @@ export class App {
             app.guessTime();
         }
         if (config){
-	    app.renderVisualSelector(config);
+            app.renderVisualSelector(config);
             app.showParameters(config);
             $('.configTitle').text(config.title);
             $('#xsimbs').html(
@@ -510,7 +511,7 @@ export class App {
                  app.sims = data.sims;
                  if ((app.editor) && (app.editor.setValue))
                      app.editor.setValue(data.config);
-		 app.refresh();
+                 app.refresh();
              })
              .then(function(){
                  ($('button.openzip-button')

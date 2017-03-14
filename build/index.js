@@ -189,11 +189,11 @@ var App = exports.App = function () {
         }
     }, {
         key: "getVisuals",
-        value: function getVisuals(simConfig) {
+        value: function getVisuals(conf) {
             var app = this;
             var visuals = [];
-            var cfg = simConfig.config || simConfig;
-            if (cfg.periods <= 50) visuals = app.Visuals.small;else if (cfg.periods <= 500) visuals = app.Visuals.medium;else visuals = app.Visuals.large;
+            var periods = conf.periods || conf.common && conf.common.periods || conf.configurations && conf.configurations[0].periods;
+            if (periods <= 50) visuals = app.Visuals.small;else if (periods <= 500) visuals = app.Visuals.medium;else visuals = app.Visuals.large;
             return visuals;
         }
     }, {
@@ -226,6 +226,21 @@ var App = exports.App = function () {
             (_Plotly2 = Plotly).newPlot.apply(_Plotly2, _toConsumableArray(plotParams));
         }
     }, {
+        key: "renderVisualSelector",
+        value: function renderVisualSelector(simConfig) {
+            var app = this;
+            function toSelectBox(v, i) {
+                return ['<option value="', i, '"', i === app.visual ? ' selected="selected" ' : '', '>', v.meta.title || v.meta.f, '</option>'].join('');
+            }
+            var visuals = app.getVisuals(simConfig);
+            if (Array.isArray(visuals)) {
+                var vizchoices = visuals.map(toSelectBox).join("");
+                $('#vizselect').html(vizchoices);
+            } else {
+                console.log("invalid visuals", visuals);
+            }
+        }
+    }, {
         key: "runSimulation",
         value: function runSimulation(simConfig, slot) {
             // set up and run simulation
@@ -242,16 +257,6 @@ var App = exports.App = function () {
             }
 
             function onDone(sim) {
-                function toSelectBox(v, i) {
-                    return ['<option value="', i, '"', i === app.visual ? ' selected="selected" ' : '', '>', v.meta.title || v.meta.f, '</option>'].join('');
-                }
-                var visuals = app.getVisuals(simConfig);
-                if (Array.isArray(visuals)) {
-                    var vizchoices = visuals.map(toSelectBox).join("");
-                    $('#vizselect').html(vizchoices);
-                } else {
-                    console.log("invalid visuals", visuals);
-                }
                 app.showSimulation(sim, slot);
                 $('.spinning').removeClass('spinning');
                 $('.postrun').removeClass('disabled');
@@ -350,6 +355,7 @@ var App = exports.App = function () {
                 app.guessTime();
             }
             if (config) {
+                app.renderVisualSelector(config);
                 app.showParameters(config);
                 $('.configTitle').text(config.title);
                 $('#xsimbs').html("<tr>" + config.configurations.map(function (sim, j) {
@@ -525,6 +531,7 @@ var App = exports.App = function () {
                 }).then(function (data) {
                     app.sims = data.sims;
                     if (app.editor && app.editor.setValue) app.editor.setValue(data.config);
+                    app.refresh();
                 }).then(function () {
                     $('button.openzip-button').removeClass('diosabled').prop('disabled', false);
                 }).catch(function (e) {
