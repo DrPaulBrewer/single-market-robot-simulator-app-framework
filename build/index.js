@@ -249,7 +249,7 @@ var App = exports.App = function () {
 
             function onPeriod(sim) {
                 if (sim.period < sim.config.periods) {
-                    $('#resultPlot' + slot).html("<h1>" + Math.round(100 * sim.period / sim.config.periods) + "% complete</h1>");
+                    $('#resultPlot' + slot).html("<sh1>" + Math.round(100 * sim.period / sim.config.periods) + "% complete</h1>");
                 } else {
                     $('#resultPlot' + slot).html("");
                 }
@@ -551,6 +551,8 @@ var App = exports.App = function () {
                 });
                 (0, _singleMarketRobotSimulatorOpenzip2.default)(zipPromise, app.SMRS, showProgress).then(function (data) {
                     if (!data.config) throw new Error("No master configuration file (config.json) was found in zip file.  Maybe this zip file is unrelated.");
+                    if (!data.config.common) throw new Error("No 'common' section in configuration (config.json). These simulations are incompatible.");
+                    if (!Array.isArray(data.config.configurations)) throw new Error("No 'configurations' section in config.json.  These simulations are incompatible.");
                     if (!data.sims.length) throw new Error("No simulation configuration files (sim.json) in the zip file");
                     if (data.config.configurations.length !== data.sims.length) throw new Error("Missing files.  the number of configurations in config.json does not match the number of simulation directories and files I found");
                     if (hasMissing(data.sims)) throw new Error("It seems a folder has been deleted from the zip file or I could not read it. ");
