@@ -192,8 +192,7 @@ var App = exports.App = function () {
         value: function getVisuals(conf) {
             var app = this;
             var visuals = [];
-            var periods = conf.periods || conf.common && conf.common.periods || conf.configurations && conf.configurations[0].periods;
-            console.log("in getVisuals", conf, periods);
+            var periods = conf.periods || conf.config && conf.config.periods || conf.common && conf.common.periods || conf.configurations && conf.configurations[0].periods;
             if (periods <= 50) visuals = app.Visuals.small;else if (periods <= 500) visuals = app.Visuals.medium;else visuals = app.Visuals.large;
             return visuals;
         }
