@@ -155,13 +155,13 @@ export class App {
         $('#selector').on('change', (evt)=>this.choose(evt.target.selectedIndex));
     }
 
-    getVisuals(simConfig){
+    getVisuals(conf){
         const app = this;
         let visuals = [];
-        const cfg = simConfig.config || simConfig;
-        if (cfg.periods<=50)
+        const periods = conf.periods || ((conf.common) && (conf.common.periods)) || ((conf.configurations) && (conf.configurations[0].periods));
+        if (periods<=50)
             visuals = app.Visuals.small;
-        else if (cfg.periods<=500)
+        else if (periods<=500)
             visuals = app.Visuals.medium;
         else
             visuals = app.Visuals.large;
@@ -199,6 +199,29 @@ export class App {
         Plotly.newPlot(...plotParams);
     }
 
+
+    renderVisualSelector(simConfig){
+	function toSelectBox(v,i){
+            return [
+                '<option value="',
+                i,
+                '"',
+                ((i===app.visual)? ' selected="selected" ': ''),
+                '>',
+                (v.meta.title || v.meta.f),
+                '</option>'
+            ].join('');
+        }
+        const visuals = app.getVisuals(simConfig);
+        if (Array.isArray(visuals)){
+            const vizchoices = visuals.map(toSelectBox).join("");
+            $('#vizselect').html(vizchoices);
+        } else {
+            console.log("invalid visuals", visuals);
+        }	
+    }
+
+    
     runSimulation(simConfig, slot){
         // set up and run simulation
 
@@ -213,25 +236,8 @@ export class App {
             return sim;
         }
 
+
         function onDone(sim){
-            function toSelectBox(v,i){
-                return [
-                    '<option value="',
-                    i,
-                    '"',
-                    ((i===app.visual)? ' selected="selected" ': ''),
-                    '>',
-                     (v.meta.title || v.meta.f),
-                    '</option>'
-                ].join('');
-            }
-            const visuals = app.getVisuals(simConfig);
-            if (Array.isArray(visuals)){
-                const vizchoices = visuals.map(toSelectBox).join("");
-                $('#vizselect').html(vizchoices);
-            } else {
-                console.log("invalid visuals", visuals);
-            }
             app.showSimulation(sim, slot);
             $('.spinning').removeClass('spinning');
             $('.postrun').removeClass('disabled');
@@ -329,6 +335,7 @@ export class App {
             app.guessTime();
         }
         if (config){
+	    app.renderVisualSelector(config);
             app.showParameters(config);
             $('.configTitle').text(config.title);
             $('#xsimbs').html(
@@ -503,6 +510,7 @@ export class App {
                  app.sims = data.sims;
                  if ((app.editor) && (app.editor.setValue))
                      app.editor.setValue(data.config);
+		 app.refresh();
              })
              .then(function(){
                  ($('button.openzip-button')
