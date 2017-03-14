@@ -446,7 +446,7 @@ var App = exports.App = function () {
                     return window.location.reload();
                 });
             }
-            if (app.savedConfigs.length && app.savedConfigs[app.chosenScenarioIndex] && app.editor.getValue().title === app.savedConfigs[app.chosenScenarioIndex].title) {
+            if (app.savedConfigs.length > 1 && app.savedConfigs[app.chosenScenarioIndex] && app.editor.getValue().title === app.savedConfigs[app.chosenScenarioIndex].title) {
                 app.DB.promiseRemoveItem(app.savedConfigs[app.chosenScenarioIndex], app.saveList).then(doSave);
             } else {
                 doSave();
