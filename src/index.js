@@ -506,7 +506,7 @@ export class App {
                 reader.onerror = function(e){ reject(e); };
                 reader.readAsArrayBuffer(zipfile);
             });
-            (openZip(zipPromise, app.SMRS, ((progress)=>$('textarea.openzip-progress').append("<p>"+progress+"</p>")))
+            (openZip(zipPromise, app.SMRS, ((progress)=>$('div.openzip-progress').append("<p>"+progress+"</p>")))
              .then(function(data){
                  app.sims = data.sims;
                  if ((app.editor) && (app.editor.setValue))

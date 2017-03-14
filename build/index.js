@@ -527,7 +527,7 @@ var App = exports.App = function () {
                     reader.readAsArrayBuffer(zipfile);
                 });
                 (0, _singleMarketRobotSimulatorOpenzip2.default)(zipPromise, app.SMRS, function (progress) {
-                    return $('textarea.openzip-progress').append("<p>" + progress + "</p>");
+                    return $('div.openzip-progress').append("<p>" + progress + "</p>");
                 }).then(function (data) {
                     app.sims = data.sims;
                     if (app.editor && app.editor.setValue) app.editor.setValue(data.config);
