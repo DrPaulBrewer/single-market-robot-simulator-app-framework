@@ -509,7 +509,6 @@ export class App {
         function showSuccess(){
             showProgress('<span class="green"> SUCCESS.  The data in the zip file has been loaded.  You may click the "App" or "Edit" tabs now.  </span>');
             restoreUI();
-            setTimeout( ()=>{ $('#app').click(); }, 200 );
         }
         function showFailure(e){
             if (e) showError(e);
