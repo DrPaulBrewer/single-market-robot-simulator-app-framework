@@ -519,6 +519,21 @@ var App = exports.App = function () {
             function showError(e) {
                 showProgress('<span class="red"> ERROR: ' + e + '</span>');
             }
+            function restoreUI() {
+                $('button.openzip-button').removeClass('diosabled').prop('disabled', false);
+            }
+            function showSuccess() {
+                showProgress('<span class="green"> SUCCESS.  The data in the zip file has been loaded.  You may click the "App" or "Edit" tabs now.  </span>');
+                restoreUI();
+                setTimeout(function () {
+                    $('#app').click();
+                }, 200);
+            }
+            function showFailure(e) {
+                if (e) showError(e);
+                showProgress('<span class="red"> FAILURE. I could not use that zip file.  You may try again, choosing a different zip file');
+                restoreUI();
+            }
             function hasMissing(a) {
                 // JavaScript ignores missing elements in higher order functional operations like .some, and even .indexOf(), so we have to check this with an explicit loop
                 if (Array.isArray(a)) {
@@ -531,9 +546,6 @@ var App = exports.App = function () {
                     }
                     return u;
                 }
-            }
-            function restoreUI() {
-                $('button.openzip-button').removeClass('diosabled').prop('disabled', false);
             }
             $('div.openzip-progress').html('');
             $('button.openzip-button').prop('disabled', true).addClass("disabled");
@@ -562,9 +574,7 @@ var App = exports.App = function () {
                     app.savedConfigs = [data.config]; // deletes local cache of DB - pulled scenarios. app only sees the loaded file.
                     app.renderConfigSelector(); // app only shows one choice in config selector -- can reload to get back to imported list 
                     app.choose(0); // configure app to use the loaded file
-                }).then(restoreUI, function (e) {
-                    showError(e);restoreUI();
-                });
+                }).then(showSuccess, showFailure);
             }, 200);
         }
     }, {
