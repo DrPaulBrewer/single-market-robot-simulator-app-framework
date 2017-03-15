@@ -1,7 +1,7 @@
 single-market-robot-simulator-app-framework
 ===========================================
 
-Provides an opinionated skeleton and logic for a webapp based on [single-market-robot-simulator]([robot-trading-webapp](https://github.com/DrPaulBrewer/single-market-robot-simulator).
+Provides an opinionated skeleton and logic for a webapp based on [single-market-robot-simulator](https://github.com/DrPaulBrewer/single-market-robot-simulator).
 Does not provide HTML or CSS files, but makes assumptions about what might be there and what it means.
 
 ## Installation
