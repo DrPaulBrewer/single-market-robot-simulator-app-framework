@@ -230,7 +230,7 @@ export class App {
         
         function onPeriod(sim){
             if (sim.period<sim.config.periods){
-                $('#resultPlot'+slot).html("<sh1>"+Math.round(100*sim.period/sim.config.periods)+"% complete</h1>");
+                $('#resultPlot'+slot).html("<h1>"+Math.round(100*sim.period/sim.config.periods)+"% complete</h1>");
             } else {
                 $('#resultPlot'+slot).html("");
             }
