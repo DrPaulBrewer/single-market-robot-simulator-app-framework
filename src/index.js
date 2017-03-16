@@ -11,8 +11,8 @@ import saveZip from "single-market-robot-simulator-savezip";
 import openZip from "single-market-robot-simulator-openzip";
 
 /**
- * creates a function that clones input objec, and then overrides some properties with those in a clone of obj.common
- * @param {Object} object with a .common property, obj.common should also be an object
+ * creates a function that clones input object, and then overrides some properties with those in a clone of obj.common
+ * @param {Object} obj object with a .common property, obj.common should also be an object
  * @return {function(c: Object):Object} clone of c with properties overridden by obj.common
  */
 
@@ -144,7 +144,7 @@ export class App {
 
     /**
      * Clears all class .paramPlot UI elements and plots all parameters of simulations in a scenario. Calls app.simulations and app.plotParameters
-     * @param {conf} A scenario configuration, see app.simulations
+     * @param {Object} conf A scenario configuration, see app.simulations
      */
 
     showParameters(conf){
