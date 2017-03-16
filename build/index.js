@@ -17,6 +17,10 @@ var _createClass = function () { function defineProperties(target, props) { for 
 /* eslint no-console: "off" */
 /* eslint consistent-this: ["error", "app", "that"] */
 
+exports.commonFrom = commonFrom;
+exports.adjustTitle = adjustTitle;
+exports.makeClassicSimulations = makeClassicSimulations;
+
 var _clone = require("clone");
 
 var _clone2 = _interopRequireDefault(_clone);
@@ -65,6 +69,23 @@ function adjustTitle(plotParams, modifier) {
     }
 }
 
+/**
+ * Create new simulations from ~ Jan-2017 original scenario cfg format 
+ * @param {Object} cfg The scenario configuration
+ * @param {Array<Object>} cfg.configurations An array of SMRS.Simulation() configurations, one for each independent panel in a scenario.  
+ * @param {Object} cfg.common Common single-market-robot-simulator configuration settings to be forced in all simulations
+ * @param {Object} SMRS A reference to the (possibly forked) single-market-robot-simulator module
+ * @return {Array<Object>} array of new SMRS.Simulation - each simulation will be initialized but not running
+ */
+
+function makeClassicSimulations(cfg, SMRS) {
+    if (!cfg) return [];
+    if (!Array.isArray(cfg.configurations)) return [];
+    return cfg.configurations.map(commonFrom(cfg)).map(function (s) {
+        return new SMRS.Simulation(s);
+    });
+}
+
 var App = exports.App = function () {
 
     /**
@@ -103,23 +124,18 @@ var App = exports.App = function () {
     }
 
     /**
-     * Create new simulations for scenario cfg
-     * @param {Object} cfg The scenario configuration
-     * @param {Array<Object>} cfg.configurations An array of SMRS.Simulation() configurations, one for each independent panel in a scenario.  
-     * @param {Object} cfg.common Common single-market-robot-simulator configuration settings to be forced in all simulations
+     * Create new simulations for scenario  
+     * @param {Object} scenarioConfig The scenario configuration
+     * @param {Array<Object>} scenarioConfig.configurations An array of SMRS.Simulation() configurations, one for each independent panel in a scenario.  
+     * @param {Object} scenarioConfig.common Common single-market-robot-simulator configuration settings to be forced in all simulations
      * @return {Array<Object>} array of new SMRS.Simulation - each simulation will be initialized but not running
      */
 
     _createClass(App, [{
         key: "simulations",
-        value: function simulations(cfg) {
-            var SMRS = this.SMRS;
-
-            if (!cfg) return [];
-            if (!Array.isArray(cfg.configurations)) return [];
-            return cfg.configurations.map(commonFrom(cfg)).map(function (s) {
-                return new SMRS.Simulation(s);
-            });
+        value: function simulations(scenarioConfig) {
+            var app = this;
+            return makeClassicSimulations(scenarioConfig, app.SMRS);
         }
 
         /** 
