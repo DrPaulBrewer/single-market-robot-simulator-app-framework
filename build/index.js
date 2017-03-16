@@ -48,6 +48,23 @@ function commonFrom(obj) {
     };
 }
 
+/**
+ * Change Plotly plot title by prepending, appending, or replacing existing plot title
+ * @param {Array<Object>} plotParams The plot to be modified -- a two element Array of [PlotlyTraces, PlotlyLayout]
+ * @param {{prepend: ?string, append: ?string, replace: ?string}} modifier modifications to title
+ */
+
+function adjustTitle(plotParams, modifier) {
+    var layout = plotParams[1];
+    if (layout) {
+        if (modifier.replace && modifier.replace.length > 0) layout.title = modifier.replace;
+        if (layout.title) {
+            if (modifier.prepend && modifier.prepend.length > 0) layout.title = modifier.prepend + layout.title;
+            if (modifier.append && modifier.append.length > 0) layout.title += modifier.append;
+        }
+    }
+}
+
 var App = exports.App = function () {
 
     /**
@@ -275,25 +292,6 @@ var App = exports.App = function () {
         }
 
         /**
-         * Change plot title by prepending, appending, or replacing existing plot title
-         * @param {Array<Object>} plotParams The plot to be modified -- a two element Array of [PlotlyTraces, PlotlyLayout]
-         * @param {{prepend: ?string, append: ?string, replace: ?string}} modifier modifications to title
-         */
-
-    }, {
-        key: "adjustTitle",
-        value: function adjustTitle(plotParams, modifier) {
-            var layout = plotParams[1];
-            if (layout) {
-                if (layout.title) {
-                    if (modifier.prepend && modifier.prepend.length > 0) layout.title = modifier.prepend + layout.title;
-                    if (modifier.append && modifier.append.length > 0) layout.title += modifier.append;
-                }
-                if (modifier.replace && modifier.replace.length > 0) layout.title = modifier.replace;
-            }
-        }
-
-        /**
          * plot simulation data plot into "slot" at div with id resultPlot+slot using chosen visual; adjust plot title per sim.config.title{append,prepend,replace}
          * @param {Object} simConfig An instance of SMRS.Simulation with finished simulation data in the logs
          * @param {number} slot 
@@ -308,7 +306,7 @@ var App = exports.App = function () {
             var visuals = app.getVisuals(simConfig);
             var plotParams = visuals[app.visual % visuals.length](simConfig);
             var config = simConfig.config;
-            app.adjustTitle(plotParams, {
+            adjustTitle(plotParams, {
                 prepend: config.titlePrepend,
                 append: config.titleAppend,
                 replace: config.titleReplace

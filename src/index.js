@@ -23,6 +23,25 @@ function commonFrom(obj){
     };
 }
 
+/**
+ * Change Plotly plot title by prepending, appending, or replacing existing plot title
+ * @param {Array<Object>} plotParams The plot to be modified -- a two element Array of [PlotlyTraces, PlotlyLayout]
+ * @param {{prepend: ?string, append: ?string, replace: ?string}} modifier modifications to title
+ */
+
+function adjustTitle(plotParams, modifier){
+    const layout = plotParams[1];
+    if (layout){
+        if (modifier.replace && (modifier.replace.length>0))
+            layout.title = modifier.replace;
+        if (layout.title){
+            if (modifier.prepend && (modifier.prepend.length>0))
+                layout.title = modifier.prepend + layout.title;
+            if (modifier.append && (modifier.append.length>0))
+                layout.title += modifier.append;
+        }
+    }
+}
 
 export class App {
 
@@ -237,25 +256,6 @@ export class App {
         return visuals;
     }
 
-    /**
-     * Change plot title by prepending, appending, or replacing existing plot title
-     * @param {Array<Object>} plotParams The plot to be modified -- a two element Array of [PlotlyTraces, PlotlyLayout]
-     * @param {{prepend: ?string, append: ?string, replace: ?string}} modifier modifications to title
-     */
-
-    adjustTitle(plotParams, modifier){
-        const layout = plotParams[1];
-        if (layout){
-            if (layout.title){
-                if (modifier.prepend && (modifier.prepend.length>0))
-                    layout.title = modifier.prepend + layout.title;
-                if (modifier.append && (modifier.append.length>0))
-                    layout.title += modifier.append;
-            }
-            if (modifier.replace && (modifier.replace.length>0))
-                layout.title = modifier.replace;
-        }
-    }
 
     /**
      * plot simulation data plot into "slot" at div with id resultPlot+slot using chosen visual; adjust plot title per sim.config.title{append,prepend,replace}
@@ -268,7 +268,7 @@ export class App {
         const visuals = app.getVisuals(simConfig);
         const plotParams = visuals[app.visual%visuals.length](simConfig);
         const config = simConfig.config;
-        app.adjustTitle(
+        adjustTitle(
             plotParams,
             {
                 prepend: config.titlePrepend,
