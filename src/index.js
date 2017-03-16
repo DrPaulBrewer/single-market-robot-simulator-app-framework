@@ -348,8 +348,8 @@ export class App {
         if (mysim.config.periods>500){
             delete mysim.logs.buyorder;
             delete mysim.logs.sellorder;
-            delete mysim.log.rejectbuyorder;
-            delete mysim.log.rejectsellorder;
+            delete mysim.logs.rejectbuyorder;
+            delete mysim.logs.rejectsellorder;
         }
 
         return mysim;
