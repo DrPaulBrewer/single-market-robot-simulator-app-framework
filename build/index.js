@@ -376,6 +376,8 @@ var App = exports.App = function () {
             if (mysim.config.periods > 500) {
                 delete mysim.logs.buyorder;
                 delete mysim.logs.sellorder;
+                delete mysim.log.rejectbuyorder;
+                delete mysim.log.rejectsellorder;
             }
 
             return mysim;
