@@ -10,7 +10,11 @@ import clone from "clone";
 import saveZip from "single-market-robot-simulator-savezip";
 import openZip from "single-market-robot-simulator-openzip";
 
-// private
+/**
+ * creates a function that clones input objec, and then overrides some properties with those in a clone of obj.common
+ * @param {Object} object with a .common property, obj.common should also be an object
+ * @return {function(c: Object):Object} clone of c with properties overridden by obj.common
+ */
 
 function commonFrom(obj){
     return function(c){
@@ -21,6 +25,21 @@ function commonFrom(obj){
 
 
 export class App {
+
+    /**
+     * Create App with given settings.  Many of these settings are required.
+     * @param {Object} options
+     * @param {Object} options.SMRS reference to either the imported module single-market-robot-simulator or a fork 
+     * @param {Object} options.DB "database" instance of single-market-robot-simulator-db-local or single-market-robot-simulator-webdismay for storing simulation configurations
+     * @param {Object} options.Visuals object describing visualizations of completed simulations and parameters, to be interpreted by single-market-robot-simulator-viz-plotly
+     * @param {Object} options.editorConfigSchema JSON Schema object for json-editor relevant to user editing of simulation configurations
+     * @param {Object} options.editorStartValue default simulation configuration for editing if none are defined
+     * @param {function(c:Object):Object} [options.editorPostProcess] optional function transforming result of editing into format needed by simulator (NOTE: unused, imminent deprecation)
+     * @param {string} options.saveList name that will open list of save configurations when passed to options.DB.openList()
+     * @param {string} options.trashList name that will open trash list of abandoned configurations when passed to options.DB.openList()
+     * @param {Array<Array<string>>} options.behavior click and eventmap stored as Array of 2 or 3 element arrays [jqSelector, appMethodName, [ eventType = click ] ]
+     */
+
     constructor(options){
         this.SMRS = options.SMRS;
         this.DB = options.DB;
@@ -40,6 +59,14 @@ export class App {
         this.visual = 0;
     }
 
+    /**
+     * Create new simulations for scenario cfg
+     * @param {Object} cfg The scenario configuration
+     * @param {Array<Object>} cfg.configurations An array of SMRS.Simulation() configurations, one for each independent panel in a scenario.  
+     * @param {Object} cfg.common Common single-market-robot-simulator configuration settings to be forced in all simulations
+     * @return {Array<Object>} array of new SMRS.Simulation - each simulation will be initialized but not running
+     */
+    
     simulations(cfg){
         const { SMRS } = this;
         if (!cfg) return [];
@@ -50,6 +77,11 @@ export class App {
                 .map((s)=>(new SMRS.Simulation(s)))
                );
     }
+
+    /** 
+     * Get current post-processed scenario configuration from json-editor, or if app.editor undefined, return app.editorStartValue 
+     * @return {Object} scenario configuration
+     */
 
     getConfig(){
         const app = this;
@@ -64,6 +96,13 @@ export class App {
         return config;
     }
 
+    /**
+     * Plot the parameters of a simulation into a numbered slot in the UI 
+     * Low level, for SMRS.Simulation --  For scenario level, see showParameters(conf)
+     * @param {Object} sim - an instance of SMRS.Simulation
+     * @param {number} slot - slot number, appended to "paramPlot" to get DOM id
+     */
+
     plotParameters(sim, slot){
         const app = this;
         const plotlyParams = app.Visuals.params(sim);
@@ -71,14 +110,24 @@ export class App {
         Plotly.newPlot(...plotlyParams);
     }
 
+    /**
+     * Clears all class .paramPlot UI elements and plots all parameters of simulations in a scenario. Calls app.simulations and app.plotParameters
+     * @param {conf} A scenario configuration, see app.simulations
+     */
+
     showParameters(conf){
         const app = this;
         $('.paramPlot').html("");
         (app.simulations(conf)
          .forEach((sim,slot)=>(app.plotParameters(sim,slot)))
         );
-    }    
+    }
 
+    /**
+     * Updates span.estimated-running-time with estimate of required running time for the current scenario, given the periodsEditor UI value and the cached timing run, 
+     * 
+     */
+    
     guessTime(){
         const { periodsEditor, periodTimers } = this;
         const l = periodTimers.length;
@@ -96,6 +145,11 @@ export class App {
             $('span.estimated-running-time').text("?");
         }
     }
+
+    /**
+     * Updates Array<number> app.periodTimers by running a scenario for up to 5 periods or 5 seconds to get period finishing times. Calls guessTIme to update span.estimated-running-time
+     * @param {Object} scenario - A scenario as defined by app.simulations
+     */
     
     timeit(scenario){
         const app = this;
@@ -130,6 +184,10 @@ export class App {
          .catch((e)=>(console.log(e)))
              );
     }
+
+    /**
+     * Choose scenario n from app.savedConfigs if possible, send it to app.editor and app.periodsEditor if defined, then app.timeit, and then refresh UI with app.refresh
+     */
     
     choose(n){
         const app = this;
@@ -146,7 +204,11 @@ export class App {
                 app.refresh();
             }
         }
-    }   
+    }
+
+    /**
+     * Render #selector if it exists, by erasing all options and reading each scenario .title from app.savedConfigs  You should define an empty select element in index.html with id "selector"
+     */
 
     renderConfigSelector(){
         const app = this;
@@ -155,6 +217,13 @@ export class App {
         $('#selector').on('change', (evt)=>this.choose(evt.target.selectedIndex));
     }
 
+    /**
+     * get array of visualizations appropriate to the number of periods in the scenario or simulation
+     * if periods<=50, returns app.Visuals.small;  if 50<periods<=500, returns app.Visuals.medium; if periods>500, returns app.Visuals.large
+     * @param {Object} conf An object with .periods, or a scenario or an initialized SMRS instance
+     * @return {Array<function>} array of visualization functions generated from single-market-robot-simulator-viz-plotly
+     */
+    
     getVisuals(conf){
         const app = this;
         let visuals = [];
@@ -167,6 +236,12 @@ export class App {
             visuals = app.Visuals.large;
         return visuals;
     }
+
+    /**
+     * Change plot title by prepending, appending, or replacing existing plot title
+     * @param {Array<Object>} plotParams The plot to be modified -- a two element Array of [PlotlyTraces, PlotlyLayout]
+     * @param {{prepend: ?string, append: ?string, replace: ?string}} modifier modifications to title
+     */
 
     adjustTitle(plotParams, modifier){
         const layout = plotParams[1];
@@ -181,6 +256,12 @@ export class App {
                 layout.title = modifier.replace;
         }
     }
+
+    /**
+     * plot simulation data plot into "slot" at div with id resultPlot+slot using chosen visual; adjust plot title per sim.config.title{append,prepend,replace}
+     * @param {Object} simConfig An instance of SMRS.Simulation with finished simulation data in the logs
+     * @param {number} slot 
+     */
 
     showSimulation(simConfig, slot){
         const app = this;
@@ -199,7 +280,11 @@ export class App {
         Plotly.newPlot(...plotParams);
     }
 
-
+    /** 
+     * Render visualization options for scenario or simulation into DOM select existing at id #vizselect 
+     * @param {Object} simConfig scenario or simulation
+     */
+    
     renderVisualSelector(simConfig){
         const app = this;
         function toSelectBox(v,i){
@@ -222,6 +307,12 @@ export class App {
         }       
     }
 
+    /**
+     * asynchronously start running a simulation and when done show its plots in a slot.  stops spinning run animation when done. Deletes logs buyorder,sellorder if periods>500 to prevent out-of-memory.
+     * @param {Object} simConfig An initialized SMRS.Simulation
+     * @param {number} slot A slot number.  Plots appear in div with id resultPlot+slot and paramPlot+slot
+     * @return {Object} running SMRS.Simulations 
+     */
     
     runSimulation(simConfig, slot){
         // set up and run simulation
@@ -240,9 +331,9 @@ export class App {
 
         function onDone(sim){
             app.showSimulation(sim, slot);
-            $('.spinning').removeClass('spinning');
-            $('.postrun').removeClass('disabled');
-            $('.postrun').prop('disabled',false);
+            $('.spinning').removeClass('spinning'); // this is perhaps needessly done multiple times
+            $('.postrun').removeClass('disabled');  // same here
+            $('.postrun').prop('disabled',false);   // and here
         } 
 
         let mysim = simConfig;  // this line used to call new Simulation based on simConfig... but that is done in .simulations already 
@@ -263,6 +354,13 @@ export class App {
         
     }
 
+    /**
+     * Fetches current scenario from app.editor.getValue() and modifies it for expansion.
+     * If the number of buyers or sellers is 1, that number is unchanged.  Otherwise, multiplies the number of buyers and sellers by xfactor.
+     * .buyerValues and .sellerCosts arrays in the current scenaio are updated using supplied function how.  " x"+factor is appended to scenario title. 
+     * @param {function(valuesOrCosts: number[], expansionFactor: number):number[]} how Function specifying how to modify the values and costs
+     */
+    
     expand(how){
         const app = this;
         const xfactor = +$('#xfactor').val();
@@ -283,7 +381,8 @@ export class App {
         }
     }
 
-    /* public: app functions for outside code below this line */
+    /** Performa additional required initialization, NOT called by constructor. Sets up (1) app.behavior with jQuery.on; (2) JSON Editor in div with id editor; (3) begins reading database for saveList 
+     */
     
     init(){
         const app = this;
@@ -321,11 +420,19 @@ export class App {
              );
     }
 
+    /**
+     * updates running time estimate in span.estimated-running-time , using the curent scenario from app.getConfig()
+     */
+
     estimateTime(){
         const app = this;
         app.timeit(app.getConfig());
     }
 
+    /**
+     * refreshes a number of UI elements
+     */
+    
     refresh(){
         const app = this;
         const periodsEditor = app.periodsEditor;
@@ -353,6 +460,10 @@ export class App {
         }
     }
 
+    /**
+     * expands the current scenario by creating new values and costs by interpolation
+     */
+
     interpolate(){
         const app = this;
         app.expand(
@@ -371,6 +482,10 @@ export class App {
         );
     }
 
+    /**
+     * expands the current scenario by duplicating unit costs and values 
+     */
+
     duplicate(){
         const app = this;
         app.expand(
@@ -386,10 +501,18 @@ export class App {
         );
     }
 
+    /**
+     * abandon edits to the current scenario by refreshing the UI and editor from the cached version of the current scenario
+     */
+
     undo(){
         const app = this;
         app.choose(app.chosenScenarioIndex);
     }
+
+    /**
+     * move the current scenario to the trash list
+     */
 
     moveToTrash(){
         const app = this;
@@ -405,6 +528,10 @@ export class App {
          })
              );
     }
+
+    /**
+     * run the current scenario and display a visualization 
+     */
 
     run(){
         const app = this;
@@ -423,6 +550,12 @@ export class App {
         }, 200);
     }
 
+    /**
+     * saves the current scenario from the editor.  Save is to the top of the app DB saveList, if the title is changed.  Otherwise, in place (remove/save).  
+     * Finally, reload the browser to give the app a clean restart.
+     * 
+     */
+    
     save(){
         const app = this;
         function doSave(){
@@ -439,17 +572,31 @@ export class App {
         }
     }
 
+    /**
+     * Change the number of periods in the current scenario, via app.periodsEditor
+     * @param {number} n Number of periods
+     */
+
     setPeriods(n){
         const app = this;
         app.periodsEditor.setValue(Math.floor(n));
         app.refresh();
     }
 
+    /**
+     * Select a visualization from the visualization list and refresh the UI.
+     * @param {number} n Visualization index in Visuals array
+     */
+
     setVisualNumber(n){
         const app = this;
         app.visual = n;
         app.sims.forEach((s,j)=>app.showSimulation(s,j));
     }
+
+    /**
+     * Create  .zip file containing scenario and simulation configurations and data and give it to the user
+     */
     
     downloadData(){
         const app = this;
@@ -468,6 +615,10 @@ export class App {
             });
         }, 200);
     }
+
+    /**
+     * Create .zip file containing scenario and simulation configurations and data and upload it to the cloud
+     */
 
     uploadData(){
         const app = this;
@@ -491,6 +642,10 @@ export class App {
                 });
         }, 200);
     }
+
+    /**
+     * open a .zip file previously generated by app.downloadData() and load data and configurations as current scenario.  Check validity.  Hackish in places.
+     */
 
     openZipFile(){
         const app = this;
@@ -561,6 +716,10 @@ export class App {
             );
         }, 200);
     }
+
+    /**
+     * render into the div with id "trashList" the first 20 discarded scenario configurations in the app.DB at name app.trashList.  Trash items can be clicked to restore to editor.
+     */
 
     renderTrash(){
         const app = this;
