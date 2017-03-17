@@ -172,7 +172,7 @@ export class App {
 
     plotParameters(sim, slot){
         const app = this;
-        const plotlyParams = app.visualIndexs.params(sim);
+        const plotlyParams = app.visuals.params(sim);
         plotlyParams.unshift("paramPlot"+slot);
         Plotly.newPlot(...plotlyParams);
     }
@@ -284,7 +284,7 @@ export class App {
 
     /**
      * get array of visualizations appropriate to the number of periods in the study or simulation
-     * if periods<=50, returns app.visualIndexs.small;  if 50<periods<=500, returns app.visuals.medium; if periods>500, returns app.visuals.large
+     * if periods<=50, returns app.visuals.small;  if 50<periods<=500, returns app.visuals.medium; if periods>500, returns app.visuals.large
      * @param {Object} conf An object with .periods, or a study or an initialized SMRS instance
      * @return {Array<function>} array of visualization functions generated from single-market-robot-simulator-viz-plotly
      */

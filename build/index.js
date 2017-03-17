@@ -211,7 +211,7 @@ var App = exports.App = function () {
             var _Plotly;
 
             var app = this;
-            var plotlyParams = app.visualIndexs.params(sim);
+            var plotlyParams = app.visuals.params(sim);
             plotlyParams.unshift("paramPlot" + slot);
             (_Plotly = Plotly).newPlot.apply(_Plotly, _toConsumableArray(plotlyParams));
         }
@@ -329,7 +329,7 @@ var App = exports.App = function () {
 
         /**
          * get array of visualizations appropriate to the number of periods in the study or simulation
-         * if periods<=50, returns app.visualIndexs.small;  if 50<periods<=500, returns app.visuals.medium; if periods>500, returns app.visuals.large
+         * if periods<=50, returns app.visuals.small;  if 50<periods<=500, returns app.visuals.medium; if periods>500, returns app.visuals.large
          * @param {Object} conf An object with .periods, or a study or an initialized SMRS instance
          * @return {Array<function>} array of visualization functions generated from single-market-robot-simulator-viz-plotly
          */
