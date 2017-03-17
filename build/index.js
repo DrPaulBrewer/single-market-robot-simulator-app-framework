@@ -328,7 +328,7 @@ var App = exports.App = function () {
         }
 
         /**
-         * get array of visualizations appropriate to the number of periods in the study or simulation
+         * get array of visualizations appropriate to the number of periods in the current study
          * if periods<=50, returns app.Visuals.small;  if 50<periods<=500, returns app.Visuals.medium; if periods>500, returns app.Visuals.large
          * @param {Object} conf An object with .periods, or a study or an initialized SMRS instance
          * @return {Array<function>} array of visualization functions generated from single-market-robot-simulator-viz-plotly
@@ -336,10 +336,10 @@ var App = exports.App = function () {
 
     }, {
         key: "getVisuals",
-        value: function getVisuals(conf) {
+        value: function getVisuals() {
             var app = this;
             var visuals = [];
-            var periods = conf.periods || conf.config && conf.config.periods || conf.common && conf.common.periods || conf.configurations && conf.configurations[0].periods;
+            var periods = app.getPeriods();
             if (periods <= 50) visuals = app.Visuals.small;else if (periods <= 500) visuals = app.Visuals.medium;else visuals = app.Visuals.large;
             return visuals;
         }
@@ -356,7 +356,7 @@ var App = exports.App = function () {
             var _Plotly2;
 
             var app = this;
-            var visuals = app.getVisuals(simConfig);
+            var visuals = app.getVisuals();
             var plotParams = visuals[app.visualIndex % visuals.length](simConfig);
             var config = simConfig.config;
             adjustTitle(plotParams, {
@@ -369,15 +369,14 @@ var App = exports.App = function () {
         }
 
         /** 
-         * Render visualization options for study into DOM select existing at id #vizselect 
-         * @param {Object} studyConfig configuration for study 
+         * Render visualization options for current app.study into DOM select existing at id #vizselect 
          */
 
     }, {
         key: "renderVisualSelector",
-        value: function renderVisualSelector(studyConfig) {
+        value: function renderVisualSelector() {
             var app = this;
-            var visuals = app.getVisuals(studyConfig);
+            var visuals = app.getVisuals();
             function toSelectBox(v, i) {
                 return ['<option value="', i, '"', i === app.visualIndex ? ' selected="selected" ' : '', '>', v.meta.title || v.meta.f, '</option>'].join('');
             }
@@ -635,9 +634,9 @@ var App = exports.App = function () {
             $('.paramPlot').html("");
             $('.resultPlot').html("");
             $('#runButton .glyphicon').addClass("spinning");
+            app.renderVisualSelector();
             setTimeout(function () {
                 var studyConfig = app.getStudy();
-                app.renderVisualSelector(studyConfig);
                 app.sims = app.simulations(studyConfig).map(function (s, i) {
                     return app.runSimulation(s, i);
                 });

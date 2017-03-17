@@ -283,16 +283,16 @@ export class App {
     }
 
     /**
-     * get array of visualizations appropriate to the number of periods in the study or simulation
+     * get array of visualizations appropriate to the number of periods in the current study
      * if periods<=50, returns app.Visuals.small;  if 50<periods<=500, returns app.Visuals.medium; if periods>500, returns app.Visuals.large
      * @param {Object} conf An object with .periods, or a study or an initialized SMRS instance
      * @return {Array<function>} array of visualization functions generated from single-market-robot-simulator-viz-plotly
      */
     
-    getVisuals(conf){
+    getVisuals(){
         const app = this;
         let visuals = [];
-        const periods = conf.periods || ((conf.config) && (conf.config.periods)) || ((conf.common) && (conf.common.periods)) || ((conf.configurations) && (conf.configurations[0].periods));
+        const periods = app.getPeriods();
         if (periods<=50)
             visuals = app.Visuals.small;
         else if (periods<=500)
@@ -311,7 +311,7 @@ export class App {
 
     showSimulation(simConfig, slot){
         const app = this;
-        const visuals = app.getVisuals(simConfig);
+        const visuals = app.getVisuals();
         const plotParams = visuals[app.visualIndex%visuals.length](simConfig);
         const config = simConfig.config;
         adjustTitle(
@@ -327,13 +327,12 @@ export class App {
     }
 
     /** 
-     * Render visualization options for study into DOM select existing at id #vizselect 
-     * @param {Object} studyConfig configuration for study 
+     * Render visualization options for current app.study into DOM select existing at id #vizselect 
      */
     
-    renderVisualSelector(studyConfig){
+    renderVisualSelector(){
         const app = this;
-        const visuals = app.getVisuals(studyConfig);
+        const visuals = app.getVisuals();
         function toSelectBox(v,i){
             return [
                 '<option value="',
@@ -593,9 +592,9 @@ export class App {
         $('.paramPlot').html("");
         $('.resultPlot').html("");
         $('#runButton .glyphicon').addClass("spinning");
+	app.renderVisualSelector();
         setTimeout(()=>{
             const studyConfig = app.getStudy();
-            app.renderVisualSelector(studyConfig);
             app.sims = (app.simulations(studyConfig)
                          .map((s,i)=>app.runSimulation(s,i))
                         );
