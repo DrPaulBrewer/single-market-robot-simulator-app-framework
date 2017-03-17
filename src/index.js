@@ -172,7 +172,7 @@ export class App {
 
     plotParameters(sim, slot){
         const app = this;
-        const plotlyParams = app.visuals.params(sim);
+        const plotlyParams = app.Visuals.params(sim);
         plotlyParams.unshift("paramPlot"+slot);
         Plotly.newPlot(...plotlyParams);
     }
@@ -284,7 +284,7 @@ export class App {
 
     /**
      * get array of visualizations appropriate to the number of periods in the study or simulation
-     * if periods<=50, returns app.visuals.small;  if 50<periods<=500, returns app.visuals.medium; if periods>500, returns app.visuals.large
+     * if periods<=50, returns app.Visuals.small;  if 50<periods<=500, returns app.Visuals.medium; if periods>500, returns app.Visuals.large
      * @param {Object} conf An object with .periods, or a study or an initialized SMRS instance
      * @return {Array<function>} array of visualization functions generated from single-market-robot-simulator-viz-plotly
      */
@@ -294,11 +294,11 @@ export class App {
         let visuals = [];
         const periods = conf.periods || ((conf.config) && (conf.config.periods)) || ((conf.common) && (conf.common.periods)) || ((conf.configurations) && (conf.configurations[0].periods));
         if (periods<=50)
-            visuals = app.visuals.small;
+            visuals = app.Visuals.small;
         else if (periods<=500)
-            visuals = app.visuals.medium;
+            visuals = app.Visuals.medium;
         else
-            visuals = app.visuals.large;
+            visuals = app.Visuals.large;
         return visuals;
     }
 
