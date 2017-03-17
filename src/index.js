@@ -284,7 +284,7 @@ export class App {
 
     /**
      * get array of visualizations appropriate to the number of periods in the study or simulation
-     * if periods<=50, returns app.visualIndexs.small;  if 50<periods<=500, returns app.visualIndexs.medium; if periods>500, returns app.visualIndexs.large
+     * if periods<=50, returns app.visualIndexs.small;  if 50<periods<=500, returns app.visuals.medium; if periods>500, returns app.visuals.large
      * @param {Object} conf An object with .periods, or a study or an initialized SMRS instance
      * @return {Array<function>} array of visualization functions generated from single-market-robot-simulator-viz-plotly
      */
@@ -294,11 +294,11 @@ export class App {
         let visuals = [];
         const periods = conf.periods || ((conf.config) && (conf.config.periods)) || ((conf.common) && (conf.common.periods)) || ((conf.configurations) && (conf.configurations[0].periods));
         if (periods<=50)
-            visuals = app.visualIndexs.small;
+            visuals = app.visuals.small;
         else if (periods<=500)
-            visuals = app.visualIndexs.medium;
+            visuals = app.visuals.medium;
         else
-            visuals = app.visualIndexs.large;
+            visuals = app.visuals.large;
         return visuals;
     }
 
