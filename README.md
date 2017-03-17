@@ -32,6 +32,10 @@ $(function(){
 });
 ```
 
+progressive features
+====================
+app.DB and app.edirot/window.JSONEditor are optional; leaving these undefined should be appropriate in apps that do not have maintain a list of saved studies or allow editing by the end user
+
 conventions and side-effects
 ============================
 Some output is coded to be placed into particularly identified divs in the UI's HTML. Most of the time it is OK if a particular
@@ -42,8 +46,7 @@ TODO
 =====
 Catalog of special div ids and classes.
 
-Features should be made progressive. For example, omitting json-editor should result in a simulator that can not be adjusted,
-not one that does not function at all.
+
 
 
 

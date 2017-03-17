@@ -72,7 +72,6 @@ export class App {
      * @param {Object} options.Visuals object describing visualizations of completed simulations and parameters, to be interpreted by single-market-robot-simulator-viz-plotly
      * @param {Object} options.editorConfigSchema JSON Schema object for json-editor relevant to user editing of simulation configurations
      * @param {Object} options.editorStartValue default simulation configuration for editing if none are defined
-     * @param {function(c:Object):Object} [options.editorPostProcess] optional function transforming result of editing into format needed by simulator (NOTE: unused, imminent deprecation)
      * @param {string} options.saveList name that will open list of save configurations when passed to options.DB.openList()
      * @param {string} options.trashList name that will open trash list of abandoned configurations when passed to options.DB.openList()
      * @param {Array<Array<string>>} options.behavior click and eventmap stored as Array of 2 or 3 element arrays [jqSelector, appMethodName, [ eventType = click ] ]
@@ -84,67 +83,103 @@ export class App {
         this.Visuals = options.Visuals;
         this.editorConfigSchema = options.editorConfigSchema;
         this.editorStartValue = options.editorStartValue;
-        this.editorPostProcess = options.editorPostProcess;
-        this.saveList = this.DB.openList(options.saveList);
-        this.trashList = this.DB.openList(options.trashList);
+        if (this.DB){
+            this.saveList = this.DB.openList(options.saveList);
+            this.trashList = this.DB.openList(options.trashList);
+        }
         this.behavior = options.behavior;
         this.editor = 0;
-        this.periodsEditor = 0;
         this.periodTimers  = [];
-        this.savedConfigs = [];
-        this.chosenScenarioIndex = 0;
+        this.study = 0;
+        this.studies = [];
+        this.chosenStudyIndex = 0;
         this.sims = [];
-        this.visual = 0;
+        this.visualIndex = 0;
     }
 
     /**
-     * Create new simulations for scenario  
-     * @param {Object} scenarioConfig The scenario configuration
-     * @param {Array<Object>} scenarioConfig.configurations An array of SMRS.Simulation() configurations, one for each independent panel in a scenario.  
-     * @param {Object} scenarioConfig.common Common single-market-robot-simulator configuration settings to be forced in all simulations
+     * Create new simulations for study 
+     * @param {Object} studyConfig The study configuration
+     * @param {Array<Object>} studyConfig.configurations An array of SMRS.Simulation() configurations, one for each independent simulation in a study.  
+     * @param {Object} studyConfig.common Common single-market-robot-simulator configuration settings to be forced in all simulations in a study.
      * @return {Array<Object>} array of new SMRS.Simulation - each simulation will be initialized but not running
      */
 
-    simulations(scenarioConfig){
-	const app = this;
-	return makeClassicSimulations(scenarioConfig, app.SMRS);
+    simulations(studyConfig){
+        const app = this;
+        return makeClassicSimulations(studyConfig, app.SMRS);
     }
 
     /** 
-     * Get current post-processed scenario configuration from json-editor, or if app.editor undefined, return app.editorStartValue 
-     * @return {Object} scenario configuration
+     * Get current study
+     * @return {Object} study configuration
      */
 
-    getConfig(){
+    getStudy(){
         const app = this;
-        let config = null;
-        if ((app.editor) && (typeof(app.editor.getValue==="function"))){
-            config = app.editor.getValue();
-            if (typeof(app.editorPostProcess)==="function")
-                config = app.editorPostProcess(config);
-        } else {
-            config = app.editorStartValue;
-        }
-        return config;
+        return clone(app.study); 
     }
 
     /**
+     * Set current study 
+     * @param {Object} studyConfig study configuraion
+     */
+
+    setStudy(studyConfig){
+        const app = this;
+        if (studyConfig){
+            app.study = clone(studyConfig);
+            if (app.editor){
+                app.editor.setValue(clone(studyConfig));
+            }
+            app.timeit(clone(studyConfig)); 
+            app.refresh();
+        }
+    }
+
+    /**
+     * Get number of periods for next run of study
+     * @return {number} number of periods
+     */
+    
+    getPeriods(){
+        const app = this;
+        if (app.study && app.study.common && (typeof(app.study.common.periods)==='number'))
+            return app.study.common.periods;
+    }
+    
+    /**
+     * Sets number of periods for the next run of the current study.  Affects config of cached app.study but not settings in editor.
+     * @param {number} n number of periods
+     */
+    
+    setPeriods(n){
+        const app = this;
+        if (app.study){
+            if (app.study.common){
+                app.study.common.periods = n;
+                app.refresh();
+            }
+        }
+    }
+    
+    /**
      * Plot the parameters of a simulation into a numbered slot in the UI 
-     * Low level, for SMRS.Simulation --  For scenario level, see showParameters(conf)
+     * Low level, for SMRS.Simulation --  For study level, see showParameters(conf)
      * @param {Object} sim - an instance of SMRS.Simulation
      * @param {number} slot - slot number, appended to "paramPlot" to get DOM id
      */
 
     plotParameters(sim, slot){
         const app = this;
-        const plotlyParams = app.Visuals.params(sim);
+        const plotlyParams = app.visualIndexs.params(sim);
         plotlyParams.unshift("paramPlot"+slot);
         Plotly.newPlot(...plotlyParams);
     }
 
     /**
-     * Clears all class .paramPlot UI elements and plots all parameters of simulations in a scenario. Calls app.simulations and app.plotParameters
-     * @param {Object} conf A scenario configuration, see app.simulations
+     * Clears all class .paramPlot UI elements and plots all parameters of simulations in a study. Calls app.simulations and app.plotParameters
+     * @param {Object} conf A study configuration compatible with app.simulations()
      */
 
     showParameters(conf){
@@ -156,50 +191,53 @@ export class App {
     }
 
     /**
-     * Updates span.estimated-running-time with estimate of required running time for the current scenario, given the periodsEditor UI value and the cached timing run, 
+     * Updates span.estimated-running-time with estimate of required running time for the current study, given the number of periods and the cached timing run, 
      * 
      */
     
     guessTime(){
-        const { periodsEditor, periodTimers } = this;
+        const app = this;
+        const periodTimers = this.periodTimers;
+        const periods = app.getPeriods();
         const l = periodTimers.length;
         let guess = 0;
-        if (l>2){ 
-            guess = ((periodsEditor.getValue())*(periodTimers[l-1]-periodTimers[1])/(l-2))+periodTimers[1];
-        } else if (l===2){
-            guess = (periodsEditor.getValue())*periodTimers[1];
-        }
-        if (guess){
-            const seconds = Math.round(guess/1000.0);
-            const minutes = Math.ceil(seconds/60);
-            $('span.estimated-running-time').text((minutes>1)? ('~'+minutes+'min'): ('~'+seconds+'sec'));
-        } else {
-            $('span.estimated-running-time').text("?");
+        if (periods){
+            if (l>2){ 
+                guess = (periods*(periodTimers[l-1]-periodTimers[1])/(l-2))+periodTimers[1];
+            } else if (l===2){
+                guess = periods*periodTimers[1];
+            }
+            if (guess){
+                const seconds = Math.round(guess/1000.0);
+                const minutes = Math.ceil(seconds/60);
+                $('span.estimated-running-time').text((minutes>1)? ('~'+minutes+'min'): ('~'+seconds+'sec'));
+            } else {
+                $('span.estimated-running-time').text("?");
+            }
         }
     }
 
     /**
-     * Updates Array<number> app.periodTimers by running a scenario for up to 5 periods or 5 seconds to get period finishing times. Calls guessTIme to update span.estimated-running-time
-     * @param {Object} scenario - A scenario as defined by app.simulations
+     * Updates Array<number> app.periodTimers by running a study for up to 5 periods or 5 seconds to get period finishing times. Calls guessTIme to update span.estimated-running-time
+     * @param {Object} studyConfig - A studyConfig as defined by app.simulations
      */
     
-    timeit(scenario){
+    timeit(studyConfig){
         const app = this;
         const t0 = Date.now();
         const periodTimers = app.periodTimers;
         periodTimers.length = 0;
-        const scenario2p = clone(scenario);
-        scenario2p.common.periods=5;
+        const studyConfig2p = clone(studyConfig);
         (Promise.all(
             (app
-             .simulations(scenario2p)
+             .simulations(studyConfig2p)
              .map(
                  (s)=>(s.run({
                      update:(sim)=>{
                          const elapsed = Date.now()-t0;
                          periodTimers[sim.period] = elapsed;
-                         // hack to end simulations if over 5 sec
-                         if (elapsed>5000)
+                         // hack to end simulations if over 5 sec or 5 periods
+                         if ((elapsed>5000) || (sim.period>5))
                              sim.config.periods = 0;
                          return sim;
                          
@@ -218,41 +256,36 @@ export class App {
     }
 
     /**
-     * Choose scenario n from app.savedConfigs if possible, send it to app.editor and app.periodsEditor if defined, then app.timeit, and then refresh UI with app.refresh
+     * Choose study n from Array app.studies if possible, send it to app.editor and app.periodsEditor if defined, then app.timeit, and then refresh UI with app.refresh
+     * @param {number} n index of chosen study in app.studies[]
      */
     
     choose(n){
         const app = this;
-        if (Array.isArray(app.savedConfigs)){
-            app.chosenScenarioIndex = Math.max(0, Math.min(Math.floor(n),app.savedConfigs.length-1));
-            const choice = app.savedConfigs[app.chosenScenarioIndex];
+        if (Array.isArray(app.studies)){
+            app.chosenStudyIndex = Math.max(0, Math.min(Math.floor(n),app.studies.length-1));
+            const choice = app.studies[app.chosenStudyIndex];
             if (choice){
-                if (app.editor){
-                    app.editor.setValue(clone(choice));
-                    // initialize periodsEditor only after a scenario is chosen
-                    app.periodsEditor = app.editor.getEditor('root.common.periods');
-                }
-                app.timeit(clone(choice)); // time a separate clone
-                app.refresh();
+                app.setStudy(choice);
             }
         }
     }
 
     /**
-     * Render #selector if it exists, by erasing all options and reading each scenario .title from app.savedConfigs  You should define an empty select element in index.html with id "selector"
+     * Render #selector if it exists, by erasing all options and reading each study .title from app.studies  You should define an empty select element in index.html with id "selector"
      */
 
     renderConfigSelector(){
         const app = this;
         $("#selector > option").remove();
-        app.savedConfigs.forEach((c,n)=> ($("#selector").append('<option value="'+n+'">'+c.title+'</option>')));
+        app.studies.forEach((c,n)=> ($("#selector").append('<option value="'+n+'">'+c.title+'</option>')));
         $('#selector').on('change', (evt)=>this.choose(evt.target.selectedIndex));
     }
 
     /**
-     * get array of visualizations appropriate to the number of periods in the scenario or simulation
-     * if periods<=50, returns app.Visuals.small;  if 50<periods<=500, returns app.Visuals.medium; if periods>500, returns app.Visuals.large
-     * @param {Object} conf An object with .periods, or a scenario or an initialized SMRS instance
+     * get array of visualizations appropriate to the number of periods in the study or simulation
+     * if periods<=50, returns app.visualIndexs.small;  if 50<periods<=500, returns app.visualIndexs.medium; if periods>500, returns app.visualIndexs.large
+     * @param {Object} conf An object with .periods, or a study or an initialized SMRS instance
      * @return {Array<function>} array of visualization functions generated from single-market-robot-simulator-viz-plotly
      */
     
@@ -261,11 +294,11 @@ export class App {
         let visuals = [];
         const periods = conf.periods || ((conf.config) && (conf.config.periods)) || ((conf.common) && (conf.common.periods)) || ((conf.configurations) && (conf.configurations[0].periods));
         if (periods<=50)
-            visuals = app.Visuals.small;
+            visuals = app.visualIndexs.small;
         else if (periods<=500)
-            visuals = app.Visuals.medium;
+            visuals = app.visualIndexs.medium;
         else
-            visuals = app.Visuals.large;
+            visuals = app.visualIndexs.large;
         return visuals;
     }
 
@@ -279,7 +312,7 @@ export class App {
     showSimulation(simConfig, slot){
         const app = this;
         const visuals = app.getVisuals(simConfig);
-        const plotParams = visuals[app.visual%visuals.length](simConfig);
+        const plotParams = visuals[app.visualIndex%visuals.length](simConfig);
         const config = simConfig.config;
         adjustTitle(
             plotParams,
@@ -294,24 +327,24 @@ export class App {
     }
 
     /** 
-     * Render visualization options for scenario or simulation into DOM select existing at id #vizselect 
-     * @param {Object} simConfig scenario or simulation
+     * Render visualization options for study into DOM select existing at id #vizselect 
+     * @param {Object} studyConfig configuration for study 
      */
     
-    renderVisualSelector(simConfig){
+    renderVisualSelector(studyConfig){
         const app = this;
+        const visuals = app.getVisuals(studyConfig);
         function toSelectBox(v,i){
             return [
                 '<option value="',
                 i,
                 '"',
-                ((i===app.visual)? ' selected="selected" ': ''),
+                ((i===app.visualIndex)? ' selected="selected" ': ''),
                 '>',
                 (v.meta.title || v.meta.f),
                 '</option>'
             ].join('');
         }
-        const visuals = app.getVisuals(simConfig);
         if (Array.isArray(visuals)){
             const vizchoices = visuals.map(toSelectBox).join("");
             $('#vizselect').html(vizchoices);
@@ -370,16 +403,16 @@ export class App {
     }
 
     /**
-     * Fetches current scenario from app.editor.getValue() and modifies it for expansion.
+     * Fetches current study and modifies it for expansion.
      * If the number of buyers or sellers is 1, that number is unchanged.  Otherwise, multiplies the number of buyers and sellers by xfactor.
-     * .buyerValues and .sellerCosts arrays in the current scenaio are updated using supplied function how.  " x"+factor is appended to scenario title. 
+     * .buyerValues and .sellerCosts arrays in the current study are updated using supplied function how.  " x"+factor is appended to study title. 
      * @param {function(valuesOrCosts: number[], expansionFactor: number):number[]} how Function specifying how to modify the values and costs
      */
     
     expand(how){
         const app = this;
         const xfactor = +$('#xfactor').val();
-        const config = app.editor.getValue();
+        const config = app.getStudy();
         if (xfactor){
             config.title += ' x'+xfactor;
             config.configurations.forEach((sim)=>{
@@ -390,13 +423,13 @@ export class App {
                 if (sim.numberOfSellers>1)
                     sim.numberOfSellers *= xfactor;
             });
-            app.editor.setValue(config);
+            app.setStudy(config);
             app.timeit(clone(config));
             app.refresh();
         }
     }
 
-    /** Performa additional required initialization, NOT called by constructor. Sets up (1) app.behavior with jQuery.on; (2) JSON Editor in div with id editor; (3) begins reading database for saveList 
+    /** Perform additional required initialization, NOT called by constructor. Sets up (1) app.behavior with jQuery.on; (2) JSON Editor in div with id editor; (3) begins reading database for saveList 
      */
     
     init(){
@@ -412,58 +445,59 @@ export class App {
         });
         $('.postrun').prop('disabled',true);
         let editorElement = document.getElementById('editor');
-        let editorOptions = {
-            schema: app.editorConfigSchema,
-            startval: app.editorStartValue
-        };
-        app.editor = new window.JSONEditor(editorElement, editorOptions);
-        app.editor.on('change', ()=>{
-            $('#runError').html("Click >Run to run the simulation and see the new results");
-        });
-        (app.DB.promiseList(app.saveList)
-         .then((configs)=>{
-             if (Array.isArray(configs) && (configs.length)){
-                 app.savedConfigs = configs;
-                 app.renderConfigSelector();
-                 app.choose(0);
-             }
-         })
-         .catch((e)=>{
-             console.log("Error accessing simulation configuration database:"+e);
-             app.DB = null;
-         })
-             );
+        if (editorElement && app.editor && window.JSONEditor ){
+            let editorOptions = {
+                schema: app.editorConfigSchema,
+                startval: app.editorStartValue
+            };
+            app.editor = new window.JSONEditor(editorElement, editorOptions);
+            app.editor.on('change', ()=>{
+                $('#runError').html("Click >Run to run the simulation and see the new results");
+            });
+        }
+        if (app.DB)
+            (app.DB.promiseList(app.saveList)
+             .then((configs)=>{
+                 if (Array.isArray(configs) && (configs.length)){
+                     app.studies = configs;
+                     app.renderConfigSelector();
+                     app.choose(0);
+                 }
+             })
+             .catch((e)=>{
+                 console.log("Error accessing simulation configuration database:"+e);
+                 app.DB = null;
+             })
+                 );
     }
-
+    
     /**
-     * updates running time estimate in span.estimated-running-time , using the curent scenario from app.getConfig()
+     * updates running time estimate in span.estimated-running-time , using the current study
      */
-
+    
     estimateTime(){
         const app = this;
-        app.timeit(app.getConfig());
+        app.timeit(app.getStudy());
     }
-
+    
     /**
      * refreshes a number of UI elements
      */
     
     refresh(){
         const app = this;
-        const periodsEditor = app.periodsEditor;
-        const config = app.getConfig();
-        if (periodsEditor){
-            $('input.periods').val(periodsEditor.getValue());
-            $('span.periods').text(periodsEditor.getValue());
-            app.guessTime();
-        }
-        if (config){
-            app.renderVisualSelector(config);
-            app.showParameters(config);
-            $('.configTitle').text(config.title);
+        const study = app.getStudy();
+        const periods = app.getPeriods();
+        if (study){
+            app.showParameters(study);
+            $('.configTitle').text(study.title);
+            if (periods){
+                $('input.periods').val(periods);
+                $('span.periods').text(periods);
+            }
+            const sims = app.simulations(study);
             $('#xsimbs').html(
-                "<tr>"+(config
-                        .configurations
+                "<tr>"+(sims
                         .map(
                             (sim,j)=>{
                                 const data = [j,sim.numberOfBuyers,sim.numberOfSellers];
@@ -471,12 +505,12 @@ export class App {
                             })
                         .join('</tr><tr>')
                        )+"</tr>");
-            app.plotParameters(new app.SMRS.Simulation((commonFrom(config)(config.configurations[0]))), "ScaleUp");
+            app.plotParameters(sims[0], "ScaleUp");
         }
     }
 
     /**
-     * expands the current scenario by creating new values and costs by interpolation
+     * expands the current study by creating new values and costs by interpolation
      */
 
     interpolate(){
@@ -498,7 +532,7 @@ export class App {
     }
 
     /**
-     * expands the current scenario by duplicating unit costs and values 
+     * expands the current study by duplicating unit costs and values 
      */
 
     duplicate(){
@@ -517,35 +551,37 @@ export class App {
     }
 
     /**
-     * abandon edits to the current scenario by refreshing the UI and editor from the cached version of the current scenario
+     * abandon edits to the current study by refreshing the UI and editor from the cache
      */
 
     undo(){
         const app = this;
-        app.choose(app.chosenScenarioIndex);
+        app.choose(app.chosenStudyIndex);
     }
 
     /**
-     * move the current scenario to the trash list
+     * move the current study to the trash list
      */
 
     moveToTrash(){
         const app = this;
-        const {savedConfigs, chosenScenarioIndex, saveList, trashList } = app;
-        (app.DB.promiseMoveItem(savedConfigs[chosenScenarioIndex], saveList, trashList)
-         .then(()=>{
-             savedConfigs.splice(chosenScenarioIndex,1);
-             app.renderConfigSelector();
-             app.choose(0);
-         })
-         .catch((e)=>{
-             console.log(e);
-         })
-             );
+        const {studies, chosenStudyIndex, saveList, trashList } = app;
+        if (app.DB){
+            (app.DB.promiseMoveItem(studies[chosenStudyIndex], saveList, trashList)
+             .then(()=>{
+                 studies.splice(chosenStudyIndex,1);
+                 app.renderConfigSelector();
+                 app.choose(0);
+             })
+             .catch((e)=>{
+                 console.log(e);
+             })
+                 );
+        }
     }
 
     /**
-     * run the current scenario and display a visualization 
+     * run the current study and display a visualization 
      */
 
     run(){
@@ -558,15 +594,16 @@ export class App {
         $('.resultPlot').html("");
         $('#runButton .glyphicon').addClass("spinning");
         setTimeout(()=>{
-            const config = app.getConfig();
-            app.sims = (app.simulations(config)
+            const studyConfig = app.getStudy();
+            app.renderVisualSelector(studyConfig);
+            app.sims = (app.simulations(studyConfig)
                          .map((s,i)=>app.runSimulation(s,i))
                         );
         }, 200);
     }
 
     /**
-     * saves the current scenario from the editor.  Save is to the top of the app DB saveList, if the title is changed.  Otherwise, in place (remove/save).  
+     * saves the current study from the editor.  Save is to the top of the app DB saveList, if the title is changed.  Otherwise, in place (remove/save).  
      * Finally, reload the browser to give the app a clean restart.
      * 
      */
@@ -577,25 +614,16 @@ export class App {
             (app.DB.promiseSaveItem(app.editor.getValue(), app.saveList)
              .then(()=>(window.location.reload()))
             );
-        }   
-        if ((app.savedConfigs.length>1) && (app.savedConfigs[app.chosenScenarioIndex]) && (app.editor.getValue().title===app.savedConfigs[app.chosenScenarioIndex].title)){
-            (app.DB.promiseRemoveItem(app.savedConfigs[app.chosenScenarioIndex], app.saveList)
-             .then(doSave)
-            );
-        } else {
-            doSave();
         }
-    }
-
-    /**
-     * Change the number of periods in the current scenario, via app.periodsEditor
-     * @param {number} n Number of periods
-     */
-
-    setPeriods(n){
-        const app = this;
-        app.periodsEditor.setValue(Math.floor(n));
-        app.refresh();
+        if (app.DB){
+            if ((app.studies.length>1) && (app.studies[app.chosenStudyIndex]) && (app.editor.getValue().title===app.studies[app.chosenStudyIndex].title)){
+                (app.DB.promiseRemoveItem(app.studies[app.chosenStudyIndex], app.saveList)
+                 .then(doSave)
+                );
+            } else {
+                doSave();
+            }
+        }
     }
 
     /**
@@ -605,12 +633,12 @@ export class App {
 
     setVisualNumber(n){
         const app = this;
-        app.visual = n;
+        app.visualIndex = n;
         app.sims.forEach((s,j)=>app.showSimulation(s,j));
     }
 
     /**
-     * Create  .zip file containing scenario and simulation configurations and data and give it to the user
+     * Create  .zip file containing study and simulation configurations and data and give it to the user
      */
     
     downloadData(){
@@ -620,7 +648,7 @@ export class App {
         $('#downloadButton .glyphicon').addClass("spinning");
         setTimeout(()=>{
             saveZip({
-                config: app.getConfig(),
+                config: app.getStudy(),
                 sims: app.sims,
                 download: true
             }).then(()=>{
@@ -632,7 +660,7 @@ export class App {
     }
 
     /**
-     * Create .zip file containing scenario and simulation configurations and data and upload it to the cloud
+     * Create .zip file containing study and simulation configurations and data and upload it to the cloud
      */
 
     uploadData(){
@@ -642,7 +670,7 @@ export class App {
         $('#uploadButton .glyphicon').addClass("spinning");
         setTimeout(()=>{
             saveZip({
-                config: app.getConfig(), 
+                config: app.getStudy(), 
                 sims: app.sims, 
                 download: false})
                 .then((zipBlob)=>{
@@ -659,7 +687,7 @@ export class App {
     }
 
     /**
-     * open a .zip file previously generated by app.downloadData() and load data and configurations as current scenario.  Check validity.  Hackish in places.
+     * open a .zip file previously generated by app.downloadData() and load data and configurations as current study.  Check validity.  Hackish in places.
      */
 
     openZipFile(){
@@ -712,10 +740,8 @@ export class App {
             (openZip(zipPromise, app.SMRS, showProgress)
              .then(function(data){
                  if (!(data.config)) throw new Error("No master configuration file (config.json) was found in zip file.  Maybe this zip file is unrelated.");
-                 if (!(data.config.common)) throw new Error("No 'common' section in configuration (config.json). These simulations are incompatible.");
-                 if (!Array.isArray(data.config.configurations)) throw new Error("No 'configurations' section in config.json.  These simulations are incompatible.");
                  if (!(data.sims.length)) throw new Error("No simulation configuration files (sim.json) in the zip file");
-                 if (data.config.configurations.length !== data.sims.length)
+                 if ( (Array.isArray(data.config.configurations)) &&  (data.config.configurations.length !== data.sims.length) )
                      throw new Error("Missing files.  the number of configurations in config.json does not match the number of simulation directories and files I found");
                  if (hasMissing(data.sims))
                      throw new Error("It seems a folder has been deleted from the zip file or I could not read it. ");
@@ -723,7 +749,7 @@ export class App {
              })
              .then(function(data){
                  app.sims = data.sims;
-                 app.savedConfigs = [data.config];  // deletes local cache of DB - pulled scenarios. app only sees the loaded file.
+                 app.studies = [data.config];  // deletes local cache of DB - pulled studiess. app only sees the loaded file.
                  app.renderConfigSelector(); // app only shows one choice in config selector -- can reload to get back to imported list 
                  app.choose(0); // configure app to use the loaded file
              })
@@ -733,38 +759,40 @@ export class App {
     }
 
     /**
-     * render into the div with id "trashList" the first 20 discarded scenario configurations in the app.DB at name app.trashList.  Trash items can be clicked to restore to editor.
+     * render into the div with id "trashList" the first 20 discarded study configurations in the app.DB at name app.trashList.  Trash items can be clicked to restore to editor.
      */
 
     renderTrash(){
         const app = this;
         $('#trashList').html("");
-        (app.DB.promiseListRange(app.trashList,0,20)
-         .then((items)=>{
-             items.forEach((item)=>{
-                 $('#trashList').append('<pre class="pre-scrollable trash-item">'+JSON.stringify(item,null,2)+'</pre>');
-             });
-             $('pre.trash-item').click(function(){
+        if (app.DB){
+            (app.DB.promiseListRange(app.trashList,0,20)
+             .then((items)=>{
+                 items.forEach((item)=>{
+                     $('#trashList').append('<pre class="pre-scrollable trash-item">'+JSON.stringify(item,null,2)+'</pre>');
+                 });
+                 $('pre.trash-item').click(function(){
 
-                 // this click function needs to be a full function with its own "this", not an anonymous ()=>{block}
-                 
-                 try {
-                     const restoredScenario = JSON.parse($(this).text());
-                     if ( (typeof(restoredScenario)==='object') && 
-                          (typeof(restoredScenario.title)==='string') && 
-                          (typeof(restoredScenario.common)==='object') && 
-                          (Array.isArray(restoredScenario.configurations))
-                        ){                        
-                         app.editor.setValue(restoredScenario);
-                         $('#editLink').click();
-                     } else {
-                         console.log("trashed item is not a valid scenario");
+                     // this click function needs to be a full function with its own "this", not an anonymous ()=>{block}
+                     
+                     try {
+                         const restoredStudy = JSON.parse($(this).text());
+                         if ( (typeof(restoredStudy)==='object') && 
+                              (typeof(restoredStudy.title)==='string') && 
+                              (typeof(restoredStudy.common)==='object') && 
+                              (Array.isArray(restoredStudy.configurations))
+                            ){
+                             app.editor.setValue(restoredStudy);
+                             $('#editLink').click();
+                         } else {
+                             console.log("trashed item is not a valid study");
+                         }
+                     } catch(e){ 
+                         console.log("could not send trashed item to editor: "+e);
                      }
-                 } catch(e){ 
-                     console.log("could not send trashed item to editor: "+e);
-                 }
-             });
-         })
-        );           
+                 });
+             })
+            );           
+        }
     }
 }
