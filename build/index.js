@@ -484,7 +484,7 @@ var App = exports.App = function () {
             });
             $('.postrun').prop('disabled', true);
             var editorElement = document.getElementById('editor');
-            if (editorElement && app.editor && window.JSONEditor) {
+            if (editorElement && window.JSONEditor) {
                 var editorOptions = {
                     schema: app.editorConfigSchema,
                     startval: app.editorStartValue

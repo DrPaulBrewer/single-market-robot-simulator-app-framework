@@ -444,7 +444,7 @@ export class App {
         });
         $('.postrun').prop('disabled',true);
         let editorElement = document.getElementById('editor');
-        if (editorElement && app.editor && window.JSONEditor ){
+        if (editorElement && window.JSONEditor ){
             let editorOptions = {
                 schema: app.editorConfigSchema,
                 startval: app.editorStartValue
