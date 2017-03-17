@@ -190,9 +190,9 @@ var App = exports.App = function () {
         key: "setPeriods",
         value: function setPeriods(n) {
             var app = this;
-            if (app.study) {
+            if (app.study && +n > 0 && +n <= 10000) {
                 if (app.study.common) {
-                    app.study.common.periods = n;
+                    app.study.common.periods = +n;
                     app.refresh();
                 }
             }
