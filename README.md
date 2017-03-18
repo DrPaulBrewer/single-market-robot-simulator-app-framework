@@ -34,18 +34,18 @@ $(function(){
 
 progressive features
 ====================
-app.DB and app.edirot/window.JSONEditor are optional; leaving these undefined should be appropriate in apps that do not have maintain a list of saved studies or allow editing by the end user
+app.DB and window.JSONEditor/app.editor* are optional; leaving these undefined should be appropriate in apps that do not have to maintain a list of saved studies or allow editing by the end user
 
 conventions and side-effects
 ============================
-Some output is coded to be placed into particularly identified divs in the UI's HTML. Most of the time it is OK if a particular
-div does not exist, as jQuery is used to find and act on it.
+Some output is coded to be placed into particularly identified divs in the UI's HTML. Most of the time it is OK if a particular div does not exist, as a jQuery selector is used to find and modify it.
 
 
 TODO
 =====
 Catalog of special div ids and classes.
 
+More example apps
 
 
 
