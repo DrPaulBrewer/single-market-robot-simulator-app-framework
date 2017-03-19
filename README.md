@@ -1,7 +1,6 @@
-single-market-robot-simulator-app-framework
-===========================================
+# single-market-robot-simulator-app-framework
 
-# Overview
+## Overview
 
 Provides an opinionated skeleton and logic for a webapp based on [single-market-robot-simulator](https://github.com/DrPaulBrewer/single-market-robot-simulator).
 
@@ -10,6 +9,7 @@ single-market-robot-simulator and various charts.
 
 An example app (see github drpaulbrewer/robot-trading-webapp) built from single-market-robot-simulator-app-framework is structured as a single webpage javascript
 app.  The page for that example app is divided into 7 tabs for different functional areas:
+
 * app - Pick a study, run it, choose charts to view, download a .zip file of the data or upload to cloud.
 * edit - Edit the configuration of the study, such as buyers values, sellers costs, number of buyers and sellers, robot type for each buyer and seller, Poisson rate of arrival for each buyer and seller, various market rules
 * open (.zip file) - Open a .zip file of study data and original configuration, to make additional plots, or run more simulations of this type.
@@ -35,6 +35,7 @@ to run the study or when we need properties of the un-run simulations of a study
 Each of the 7 tabs in the example app is supported by code in `single-market-robot-simulator-app-framework` as follows:
 
 The app tab - choose a study, run it, stop running it, look at charts, get the data, abandon the study:
+
 * `app.choose(n)` Choose study at index n from the list of saved study configurations 
 * `app.run()` Runs the simulations for the current study
 * `app.stop()` Stops running the simulations for the current study.
@@ -43,17 +44,18 @@ The app tab - choose a study, run it, stop running it, look at charts, get the d
 * `app.uploadData()` Upload to a cloud server a .zip file of a studies' simulation data and the original configuration.
 * `app.moveToTrash()` Move study configuration to trash can.
 
-The edit tab - edit the parameters of a study
+The edit tab - edit the parameters of a study:
 
-* editing delegated to window.JSONEditor if it exists, using the app constructor property `editorConfigSchema` and either
-the chosen study config or `editorStartValue`
+* editing delegated to window.JSONEditor if it exists, using the app constructor property `editorConfigSchema` and either the chosen study config or `editorStartValue`
 * `app.save()` Save the edited study configuration to the saved list of studies, and reload browser to prepare to run it.
 * `app.undo()` Undo editing in the study editor.
 
-The open tab - restore a study's configuration *and* **data** from a .zip file
+The open tab - restore a study's configuration *and* **data** from a .zip file:
+
 * `app.openZipFile()` Open a .zip file produced earlier with `app.downloadData()`
 
-The scale up tab - increase the number of buyers and sellers and adjust aggregate values and costs appropriately
+The scale up tab - increase the number of buyers and sellers and adjust aggregate values and costs appropriately:
+
 * `app.interpolate()/app.duplicate()` Scale up a study to more buyers and sellers.
 
 The Archive tab -- redirects user to an appropriate URL where data is archived
@@ -80,7 +82,7 @@ to set up a saved list of studies in localStorage or in a remote database.  For 
 A full example ES6 Javascript webapp can be found in [robot-trading-webapp](https://github.com/DrPaulBrewer/robot-trading-webapp).
 Here is a snippet that shows initialization and usage.
 
-```
+```javascript
 import * as AF from "single-market-robot-simulator-app-framework"
 ...
 const app = new AF.App({
@@ -99,29 +101,17 @@ $(function(){
 });
 ```
 
-progressive features
-====================
+## progressive features
+
 app.DB and window.JSONEditor/app.editor* are optional; leaving these undefined should be appropriate in apps that do not have to maintain a list of saved studies or allow editing by the end user
 
-conventions and side-effects
-============================
+## conventions and side-effects
+
 Some output is coded to be placed into particularly identified divs in the UI's HTML. Most of the time it is OK if a particular div does not exist, as a jQuery selector is used to find and modify it.
 
 
-TODO
-=====
+## TODO
+
 Catalog of special div ids and classes.
 
 More example apps
-
-
-
-
-
-
-
-
-
-
-
-
