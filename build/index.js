@@ -70,10 +70,10 @@ function adjustTitle(plotParams, modifier) {
 }
 
 /**
- * Create new simulations from ~ Jan-2017 original scenario cfg format 
- * @param {Object} cfg The scenario configuration
- * @param {Array<Object>} cfg.configurations An array of SMRS.Simulation() configurations, one for each independent panel in a scenario.  
- * @param {Object} cfg.common Common single-market-robot-simulator configuration settings to be forced in all simulations
+ * Create new simulations from ~ Jan-2017 original study cfg format 
+ * @param {Object} cfg The study configuration
+ * @param {Array<Object>} cfg.configurations An array of SMRS.Simulation() configurations, one for each independent simulation in a study.  
+ * @param {Object} cfg.common Common simulation configuration settings to be forced in all simulations. (if there is a conflict, common has priority over and overrides configurations)
  * @param {Object} SMRS A reference to the (possibly forked) single-market-robot-simulator module
  * @return {Array<Object>} array of new SMRS.Simulation - each simulation will be initialized but not running
  */
