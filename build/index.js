@@ -653,7 +653,7 @@ var App = exports.App = function () {
         value: function stop() {
             var app = this;
             // trigger normal completion
-            app.sims.foreach(function (sim) {
+            app.sims.forEach(function (sim) {
                 sim.config.periods = sim.period;
             });
         }

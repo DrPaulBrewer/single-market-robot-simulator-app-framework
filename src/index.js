@@ -609,7 +609,7 @@ export class App {
     stop(){
 	const app = this;
 	// trigger normal completion
-	app.sims.foreach((sim)=>{ sim.config.periods = sim.period; });
+	app.sims.forEach((sim)=>{ sim.config.periods = sim.period; });
     }
 
     /**
