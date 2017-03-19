@@ -279,7 +279,7 @@ var App = exports.App = function () {
                         var elapsed = Date.now() - t0;
                         periodTimers[sim.period] = elapsed;
                         // hack to end simulations if over 5 sec or 5 periods
-                        if (elapsed > 5000 || sim.period > 5) sim.config.periods = 0;
+                        if (elapsed > 5000 || sim.period > 5) sim.config.periods = sim.period;
                         return sim;
                     }
                 });
@@ -641,6 +641,21 @@ var App = exports.App = function () {
                     return app.runSimulation(s, i);
                 });
             }, 200);
+        }
+
+        /**
+         * stop a run of the current study
+         * should have no effect unless study is running
+         */
+
+    }, {
+        key: "stop",
+        value: function stop() {
+            var app = this;
+            // trigger normal completion
+            app.sims.foreach(function (sim) {
+                sim.config.periods = sim.period;
+            });
         }
 
         /**

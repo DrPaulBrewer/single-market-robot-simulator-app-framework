@@ -238,7 +238,7 @@ export class App {
                          periodTimers[sim.period] = elapsed;
                          // hack to end simulations if over 5 sec or 5 periods
                          if ((elapsed>5000) || (sim.period>5))
-                             sim.config.periods = 0;
+                             sim.config.periods = sim.period;
                          return sim;
                          
                      }
@@ -599,6 +599,17 @@ export class App {
                          .map((s,i)=>app.runSimulation(s,i))
                         );
         }, 200);
+    }
+
+    /**
+     * stop a run of the current study
+     * should have no effect unless study is running
+     */
+
+    stop(){
+	const app = this;
+	// trigger normal completion
+	app.sims.foreach((sim)=>{ sim.config.periods = sim.period; });
     }
 
     /**
