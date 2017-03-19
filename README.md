@@ -9,7 +9,7 @@ It is assumed that the goal is a comparitive study consisting of, say, simulatio
 single-market-robot-simulator and various charts.
 
 An example app (see github drpaulbrewer/robot-trading-webapp) built from single-market-robot-simulator-app-framework is structured as a single webpage javascript
-app.  The page is divided into 7 tabs for different functional areas:
+app.  The page for that example app is divided into 7 tabs for different functional areas:
 * app - Pick a study, run it, choose charts to view, download a .zip file of the data or upload to cloud.
 * edit - Edit the configuration of the study, such as buyers values, sellers costs, number of buyers and sellers, robot type for each buyer and seller, Poisson rate of arrival for each buyer and seller, various market rules
 * open (.zip file) - Open a .zip file of study data and original configuration, to make additional plots, or run more simulations of this type.
@@ -18,10 +18,11 @@ app.  The page is divided into 7 tabs for different functional areas:
 * Trash - Recyclcing center for study configurations that are thought to be no longer needed. 
 * Version - Software version technical information.
 
-Each of these 7 areas is supported by code in `single-market-robot-simulator-app-framework`.
-Here is a sampling of methods that are available to help process a study:
+No matter how an app is rendered onto the page, these methods are crucial in defining what a study is. In principal a study
+can be defined by any JavaScript Object and the properties are left, in practice, for interpretation by these functions:
 
-`app.simulations(studyConfig)` Creates an array of new Simulations from the study configuration.
+`app.simulations(studyConfig)` Creates an array of new Simulations from the study configuration object whenever we need
+to run the study or when we need properties of the un-run simulations of a study.
 
 `app.getPeriods()` Number of periods in each simulation of the current study.
 
@@ -31,27 +32,33 @@ Here is a sampling of methods that are available to help process a study:
 
 `app.setStudy(studyConfig)` Sets the current study.
 
-`app.run()` Runs the simulations for the current study
+Each of the 7 tabs in the example app is supported by code in `single-market-robot-simulator-app-framework` as follows:
 
-`app.stop()` Stops running the simulations for the current study.
+The app tab - choose a study, run it, stop running it, look at charts, get the data, abandon the study:
+* `app.choose(n)` Choose study at index n from the list of saved study configurations 
+* `app.run()` Runs the simulations for the current study
+* `app.stop()` Stops running the simulations for the current study.
+* `app.estimateTime()` Update the screen to show an estimate of how long it takes to run this study.
+* `app.downloadData()` Download a .zip file of study simulation data and the original configuration.
+* `app.uploadData()` Upload to a cloud server a .zip file of a studies' simulation data and the original configuration.
+* `app.moveToTrash()` Move study configuration to trash can.
 
-`app.choose(n)` Choose study n from the saved list of studies.
+The edit tab - edit the parameters of a study
 
-`app.estimateTime()` Update the screen to show an estimate of how long it takes to run this study.
+* editing delegated to window.JSONEditor if it exists, using the app constructor property `editorConfigSchema` and either
+the chosen study config or `editorStartValue`
+* `app.save()` Save the edited study configuration to the saved list of studies, and reload browser to prepare to run it.
+* `app.undo()` Undo editing in the study editor.
 
-`app.interpolate()/app.duplicate()` Scale up a study to more buyers and sellers.
+The open tab - restore a study's configuration *and* **data** from a .zip file
+* `app.openZipFile()` Open a .zip file produced earlier with `app.downloadData()`
 
-`app.undo()` Undo editing in the study editor.
+The scale up tab - increase the number of buyers and sellers and adjust aggregate values and costs appropriately
+* `app.interpolate()/app.duplicate()` Scale up a study to more buyers and sellers.
 
-`app.moveToTrash()` Move study configuration to trash can.
+The Archive tab -- redirects user to an appropriate URL where data is archived
 
-`app.save()` Save the edited study configuration to the saved list of studies, and prepare to run it.
-
-`app.downloadData()` Download a .zip file of study simulation data and the original configuration.
-
-`app.uploadData()` Upload to a cloud server a .zip file of a studies' simulation data and the original configuration.
-
-`app.openZipFile()` Open a .zip file produced earlier with `app.downloadData()`
+The Trash tab - a collection of abandoned configuration studies, with option to restore to the editor
 
 Does not provide HTML or CSS files, but makes assumptions about what might be there and what it means.
 
