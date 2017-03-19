@@ -1,12 +1,14 @@
 single-market-robot-simulator-app-framework
 ===========================================
 
+# Overview
+
 Provides an opinionated skeleton and logic for a webapp based on [single-market-robot-simulator](https://github.com/DrPaulBrewer/single-market-robot-simulator).
 
 It is assumed that the goal is a comparitive study consisting of, say, simulation data from N different configurations of 
 single-market-robot-simulator and various charts.
 
-The example app built from single-market-robot-simulator-app-framework is structured as a single webpage javascript
+An example app (see github drpaulbrewer/robot-trading-webapp) built from single-market-robot-simulator-app-framework is structured as a single webpage javascript
 app.  The page is divided into 7 tabs for different functional areas:
 * app - Pick a study, run it, choose charts to view, download a .zip file of the data or upload to cloud.
 * edit - Edit the configuration of the study, such as buyers values, sellers costs, number of buyers and sellers, robot type for each buyer and seller, Poisson rate of arrival for each buyer and seller, various market rules
@@ -52,6 +54,15 @@ Here is a sampling of methods that are available to help process a study:
 `app.openZipFile()` Open a .zip file produced earlier with `app.downloadData()`
 
 Does not provide HTML or CSS files, but makes assumptions about what might be there and what it means.
+
+## Creating Subclasses
+
+This information is necessarily incomplete, but may be enough to get a good start.
+
+To create your own simulator with a simplified or specialized editor, you would need to create a subclass of App overriding `app.simulations()` to translate from your study object format to an array of Simulations in the configuration format required by single-robot-market-simulator.  You would also probably need to override `app.getPeriods()` and `app.setPeriods()` if the number of periods is not stored in `study.common.periods`
+
+A JSON Schema listing the fields required by the editor to create a new study, or edit an existing one, must be supplied in the property `editorConfigSchema` and an example study configuration set in `editorStartValue`.  It is also possible
+to set up a saved list of studies in localStorage or in a remote database.  For samples of such a schema and values, I refer again to the example app in the separate github repository at **robot-trading-webapp**  -- look in [`./json/configSchema.json`](https://raw.githubusercontent.com/DrPaulBrewer/robot-trading-webapp/b7693c5bce293d1561ce3db78b2e10ea535ce9be/json/configSchema.json) for the schema and [`./json/examples-highlow.json`](https://raw.githubusercontent.com/DrPaulBrewer/robot-trading-webapp/b7693c5bce293d1561ce3db78b2e10ea535ce9be/json/examples-highlow.json) for an example configuration.
 
 ## Installation
 
