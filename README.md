@@ -6,7 +6,18 @@ Provides an opinionated skeleton and logic for a webapp based on [single-market-
 It is assumed that the goal is a comparitive study consisting of, say, simulation data from N different configurations of 
 single-market-robot-simulator and various charts.
 
-Here is a sampling of framework functions that are available to help process a study:
+The example app built from single-market-robot-simulator-app-framework is structured as a single webpage javascript
+app.  The page is divided into 7 tabs for different functional areas:
+* app - Pick a study, run it, choose charts to view, download a .zip file of the data or upload to cloud.
+* edit - Edit the configuration of the study, such as buyers values, sellers costs, number of buyers and sellers, robot type for each buyer and seller, Poisson rate of arrival for each buyer and seller, various market rules
+* open (.zip file) - Open a .zip file of study data and original configuration, to make additional plots, or run more simulations of this type.
+* scale up - Scaling up tool - Increase the number of buyers and sellers while simultaneously interpolating or duplicating the aggregate buyers values and sellers costs for consistency.
+* Archive - Web based file storage area for simulation data
+* Trash - Recyclcing center for study configurations that are thought to be no longer needed. 
+* Version - Software version technical information.
+
+Each of these 7 areas is supported by code in `single-market-robot-simulator-app-framework`.
+Here is a sampling of methods that are available to help process a study:
 
 `app.simulations(studyConfig)` Creates an array of new Simulations from the study configuration.
 
