@@ -6,7 +6,7 @@ Provides an opinionated skeleton and logic for a webapp based on [single-market-
 It is assumed that the goal is a comparitive study consisting of, say, simulation data from N different configurations of 
 single-market-robot-simulator and various charts.
 
-Here is a sampling of framework functions are available to help process a study:
+Here is a sampling of framework functions that are available to help process a study:
 
 `app.simulations(studyConfig)` Creates an array of new Simulations from the study configuration.
 
