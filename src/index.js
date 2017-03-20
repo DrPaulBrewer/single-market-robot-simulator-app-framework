@@ -487,6 +487,7 @@ export class App {
         const study = app.getStudy();
         const periods = app.getPeriods();
         if (study){
+            app.guessTime();
             app.showParameters(study);
             $('.configTitle').text(study.title);
             if (periods){
