@@ -330,7 +330,6 @@ var App = exports.App = function () {
         /**
          * get array of visualizations appropriate to the number of periods in the current study
          * if periods<=50, returns app.Visuals.small;  if 50<periods<=500, returns app.Visuals.medium; if periods>500, returns app.Visuals.large
-         * @param {Object} conf An object with .periods, or a study or an initialized SMRS instance
          * @return {Array<function>} array of visualization functions generated from single-market-robot-simulator-viz-plotly
          */
 
