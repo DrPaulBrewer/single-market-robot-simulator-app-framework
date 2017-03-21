@@ -170,7 +170,7 @@ var App = exports.App = function () {
         }
 
         /**
-         * Get number of periods for next run of study
+         * Get number of periods for next run of study, looks in study.common.periods first or if study.common not found, looks in study.periods
          * @return {number} number of periods
          */
 
@@ -178,11 +178,12 @@ var App = exports.App = function () {
         key: "getPeriods",
         value: function getPeriods() {
             var app = this;
-            if (app.study && app.study.common && typeof app.study.common.periods === 'number') return app.study.common.periods;
+            var study = app.study;
+            return study.common ? study.common.periods : study.periods;
         }
 
         /**
-         * Sets number of periods for the next run of the current study.  Affects config of cached app.study but not settings in editor.
+         * Safely sets number of periods for the next run of the current study.  Affects config of cached app.study but not settings in editor.
          * @param {number} n number of periods
          */
 
@@ -190,11 +191,10 @@ var App = exports.App = function () {
         key: "setPeriods",
         value: function setPeriods(n) {
             var app = this;
-            if (app.study && +n > 0 && +n <= 10000) {
-                if (app.study.common) {
-                    app.study.common.periods = +n;
-                    app.refresh();
-                }
+            var study = app.study;
+            if (study && +n > 0 && +n <= 10000) {
+                if (study.common) study.common.periods = +n;else study.periods = +n;
+                app.refresh();
             }
         }
 
