@@ -10,7 +10,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /* Copyright 2016, 2017 Paul Brewer, Economic and Financial Technology Consulting LLC */
-/* This file is open source software.  The MIT License applies to this software. */
+/* This file is open source software.  The MIT License applies to this software.  */
 
 /* global Plotly:true, window:true, $:true */
 
@@ -830,8 +830,9 @@ var App = exports.App = function () {
                 }).then(function (data) {
                     app.sims = data.sims;
                     app.studies = [data.config]; // deletes local cache of DB - pulled studiess. app only sees the loaded file.
-                    app.renderConfigSelector(); // app only shows one choice in config selector -- can reload to get back to imported list 
-                    app.choose(0); // configure app to use the loaded file
+                    app.renderConfigSelector(); // app only shows one choice in config selector -- can reload to get back to imported list
+                    app.choose(0); // configure app to use the loaded file as the current study
+                    app.renderVisualSelector(); // can render the list of available visualization only once the study is chosen as current study           
                 }).then(showSuccess, showFailure);
             }, 200);
         }
