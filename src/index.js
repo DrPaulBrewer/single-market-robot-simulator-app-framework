@@ -352,12 +352,25 @@ export class App {
     }
 
     /**
+     * show progress message in resultPlot slot with h1 header tag; blank message clears (no h1)
+     * 
+     * @param {string} message text to show as heading in div resultPlot+slot
+     * @param {number} slot Location for showing message
+     */
+
+    progress(message, slot){
+        const hmsg = (message && (message.length>0))? ("<h1>"+message+"</h1>") : '';
+        $('#resultPlot'+slot).html(hmsg);
+    }
+
+    /**
      * asynchronously start running a simulation and when done show its plots in a slot.  stops spinning run animation when done. Deletes logs buyorder,sellorder if periods>500 to prevent out-of-memory.
      * @param {Object} simConfig An initialized SMRS.Simulation
      * @param {number} slot A slot number.  Plots appear in div with id resultPlot+slot and paramPlot+slot
      * @return {Object} running SMRS.Simulations 
      */
-    
+
+
     runSimulation(simConfig, slot){
         // set up and run simulation
 
@@ -365,19 +378,22 @@ export class App {
         
         function onPeriod(sim){
             if (sim.period<sim.config.periods){
-                $('#resultPlot'+slot).html("<h1>"+Math.round(100*sim.period/sim.config.periods)+"% complete</h1>");
+                app.progress(Math.round(100*sim.period/sim.config.periods)+"% complete", slot);
             } else {
-                $('#resultPlot'+slot).html("");
+                app.progress('', slot);
             }
             return sim;
         }
 
-
-        function onDone(sim){
-            app.showSimulation(sim, slot);
+        function uiDone(){
             $('.spinning').removeClass('spinning'); // this is perhaps needessly done multiple times
             $('.postrun').removeClass('disabled');  // same here
             $('.postrun').prop('disabled',false);   // and here
+        }
+
+        function onDone(sim){
+            app.showSimulation(sim, slot);
+            uiDone();
         } 
 
         let mysim = simConfig;  // this line used to call new Simulation based on simConfig... but that is done in .simulations already 
@@ -387,7 +403,11 @@ export class App {
         (mysim
          .run({update: onPeriod})
          .then(onDone)
-         .catch((e)=>{ console.log(e); })
+         .catch((e)=>{ 
+             console.log(e);
+             app.progress('<span class="error">'+e+'</span>', slot);
+             uiDone();
+         })
         );
         if (mysim.config.periods>500){
             delete mysim.logs.buyorder;
