@@ -35,6 +35,7 @@
   "dependencies": {
     "clone": "^2.1.0",
     "single-market-robot-simulator-openzip": "^0.2.0",
-    "single-market-robot-simulator-savezip": "^0.6.0"
+    "single-market-robot-simulator-savezip": "^0.6.0",
+    "single-market-robot-simulator-study": "^1.0.0"
   }
 }

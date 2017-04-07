@@ -9,19 +9,7 @@
 import clone from "clone";
 import saveZip from "single-market-robot-simulator-savezip";
 import openZip from "single-market-robot-simulator-openzip";
-
-/**
- * creates a function that clones input object, and then overrides some properties with those in a clone of obj.common
- * @param {Object} obj object with a .common property, obj.common should also be an object
- * @return {function(c: Object):Object} clone of c with properties overridden by obj.common
- */
-
-export function commonFrom(obj){
-    return function(c){
-        const result =  Object.assign({},clone(c),clone(obj.common));
-        return result;
-    };
-}
+import { makeClassicSimulations } from "single-market-robot-simulator-study";
 
 /**
  * Change Plotly plot title by prepending, appending, or replacing existing plot title
@@ -41,25 +29,6 @@ export function adjustTitle(plotParams, modifier){
                 layout.title += modifier.append;
         }
     }
-}
-
-/**
- * Create new simulations from ~ Jan-2017 original study cfg format 
- * @param {Object} cfg The study configuration
- * @param {Array<Object>} cfg.configurations An array of SMRS.Simulation() configurations, one for each independent simulation in a study.  
- * @param {Object} cfg.common Common simulation configuration settings to be forced in all simulations. (if there is a conflict, common has priority over and overrides configurations)
- * @param {Object} SMRS A reference to the (possibly forked) single-market-robot-simulator module
- * @return {Array<Object>} array of new SMRS.Simulation - each simulation will be initialized but not running
- */
-
-export function makeClassicSimulations(cfg, SMRS){
-    if (!cfg) return [];
-    if (!(Array.isArray(cfg.configurations))) return [];
-    return (cfg
-            .configurations
-            .map(commonFrom(cfg))
-            .map((s)=>(new SMRS.Simulation(s)))
-           );
 }
 
 export class App {
@@ -107,7 +76,7 @@ export class App {
 
     simulations(studyConfig){
         const app = this;
-        return makeClassicSimulations(studyConfig, app.SMRS);
+        return makeClassicSimulations(studyConfig, app.SMRS.Simulation);
     }
 
     /** 
@@ -132,6 +101,7 @@ export class App {
             if (app.editor){
                 app.editor.setValue(clone(studyConfig));
             }
+            $('#runError').html("Click >Run to run the simulation and see the new results");
             app.timeit(clone(studyConfig)); 
             app.refresh();
         }
@@ -471,9 +441,6 @@ export class App {
                 startval: app.editorStartValue
             };
             app.editor = new window.JSONEditor(editorElement, editorOptions);
-            app.editor.on('change', ()=>{
-                $('#runError').html("Click >Run to run the simulation and see the new results");
-            });
         }
         if (app.DB)
             (app.DB.promiseList(app.saveList)

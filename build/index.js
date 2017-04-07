@@ -17,9 +17,7 @@ var _createClass = function () { function defineProperties(target, props) { for 
 /* eslint no-console: "off" */
 /* eslint consistent-this: ["error", "app", "that"] */
 
-exports.commonFrom = commonFrom;
 exports.adjustTitle = adjustTitle;
-exports.makeClassicSimulations = makeClassicSimulations;
 
 var _clone = require("clone");
 
@@ -33,24 +31,13 @@ var _singleMarketRobotSimulatorOpenzip = require("single-market-robot-simulator-
 
 var _singleMarketRobotSimulatorOpenzip2 = _interopRequireDefault(_singleMarketRobotSimulatorOpenzip);
 
+var _singleMarketRobotSimulatorStudy = require("single-market-robot-simulator-study");
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-/**
- * creates a function that clones input object, and then overrides some properties with those in a clone of obj.common
- * @param {Object} obj object with a .common property, obj.common should also be an object
- * @return {function(c: Object):Object} clone of c with properties overridden by obj.common
- */
-
-function commonFrom(obj) {
-    return function (c) {
-        var result = Object.assign({}, (0, _clone2.default)(c), (0, _clone2.default)(obj.common));
-        return result;
-    };
-}
 
 /**
  * Change Plotly plot title by prepending, appending, or replacing existing plot title
@@ -67,23 +54,6 @@ function adjustTitle(plotParams, modifier) {
             if (modifier.append && modifier.append.length > 0) layout.title += modifier.append;
         }
     }
-}
-
-/**
- * Create new simulations from ~ Jan-2017 original study cfg format 
- * @param {Object} cfg The study configuration
- * @param {Array<Object>} cfg.configurations An array of SMRS.Simulation() configurations, one for each independent simulation in a study.  
- * @param {Object} cfg.common Common simulation configuration settings to be forced in all simulations. (if there is a conflict, common has priority over and overrides configurations)
- * @param {Object} SMRS A reference to the (possibly forked) single-market-robot-simulator module
- * @return {Array<Object>} array of new SMRS.Simulation - each simulation will be initialized but not running
- */
-
-function makeClassicSimulations(cfg, SMRS) {
-    if (!cfg) return [];
-    if (!Array.isArray(cfg.configurations)) return [];
-    return cfg.configurations.map(commonFrom(cfg)).map(function (s) {
-        return new SMRS.Simulation(s);
-    });
 }
 
 var App = exports.App = function () {
@@ -135,7 +105,7 @@ var App = exports.App = function () {
         key: "simulations",
         value: function simulations(studyConfig) {
             var app = this;
-            return makeClassicSimulations(studyConfig, app.SMRS);
+            return (0, _singleMarketRobotSimulatorStudy.makeClassicSimulations)(studyConfig, app.SMRS.Simulation);
         }
 
         /** 
@@ -164,6 +134,7 @@ var App = exports.App = function () {
                 if (app.editor) {
                     app.editor.setValue((0, _clone2.default)(studyConfig));
                 }
+                $('#runError').html("Click >Run to run the simulation and see the new results");
                 app.timeit((0, _clone2.default)(studyConfig));
                 app.refresh();
             }
@@ -509,9 +480,6 @@ var App = exports.App = function () {
                     startval: app.editorStartValue
                 };
                 app.editor = new window.JSONEditor(editorElement, editorOptions);
-                app.editor.on('change', function () {
-                    $('#runError').html("Click >Run to run the simulation and see the new results");
-                });
             }
             if (app.DB) app.DB.promiseList(app.saveList).then(function (configs) {
                 if (Array.isArray(configs) && configs.length) {
