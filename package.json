@@ -29,13 +29,13 @@
     "esdoc": "^0.5.2",
     "eslint": "^3.15.0",
     "istanbul": "^1.0.0-alpha.2",
-    "mocha": "^2.5.3",
-    "should": "^8.3.1"
+    "mocha": "^3.2.0",
+    "should": "^11.2.1"
   },
   "dependencies": {
     "clone": "^2.1.0",
-    "single-market-robot-simulator-openzip": "^0.2.0",
-    "single-market-robot-simulator-savezip": "^1.0.0",
+    "single-market-robot-simulator-openzip": "^1.0.0",
+    "single-market-robot-simulator-savezip": "^2.0.0",
     "single-market-robot-simulator-study": "^1.0.0"
   }
 }
