@@ -1,6 +1,12 @@
 # single-market-robot-simulator-app-framework
 
-## Overview
+# Warning: major changes in 4.0 onward
+
+version 4.0 is a development version; early 4.0 versions may not be working code. Changes will first address use changes to create compatibility with Google Drive and cloud-based simulation.
+
+The previously prepared documentation, below, possibly includes obsolete functions that are no longer possible to use.
+
+### Overview: versions 1-3
 
 Provides an opinionated skeleton and logic for a webapp based on [single-market-robot-simulator](https://github.com/DrPaulBrewer/single-market-robot-simulator).
 

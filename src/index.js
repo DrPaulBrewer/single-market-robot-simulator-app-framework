@@ -60,7 +60,7 @@ export class App {
         this.editor = 0;
         this.periodTimers  = [];
         this.study = 0;
-        this.studies = [];
+        this.availableStudies = [];
         this.chosenStudyIndex = 0;
         this.sims = [];
         this.visualIndex = 0;
@@ -94,15 +94,18 @@ export class App {
      * @param {Object} studyConfig study configuraion
      */
 
-    setStudy(studyConfig){
+    setStudy(study){
         const app = this;
-        if (studyConfig){
-            app.study = clone(studyConfig);
+        if (study && study.config && study.schema){
+            app.study = clone(study);
             if (app.editor){
-                app.editor.setValue(clone(studyConfig));
+                app.initEditor({
+                    config: clone(study.config),
+                    schema: clone(study.schema)
+                });
             }
             $('#runError').html("Click >Run to run the simulation and see the new results");
-            app.timeit(clone(studyConfig)); 
+            app.timeit(clone(study.config)); 
             app.refresh();
         }
     }
@@ -228,29 +231,26 @@ export class App {
     }
 
     /**
-     * Choose study n from Array app.studies if possible, send it to app.editor and app.periodsEditor if defined, then app.timeit, and then refresh UI with app.refresh
-     * @param {number} n index of chosen study in app.studies[]
+     * Choose study n from Array app.availableStudies if possible, get details from DB, send it to app.editor and app.periodsEditor if defined, then app.timeit, and then refresh UI with app.refresh
+     * @param {number} n index of chosen study in app.availableStudies[]
      */
     
     choose(n){
         const app = this;
-        if (Array.isArray(app.studies)){
-            app.chosenStudyIndex = Math.max(0, Math.min(Math.floor(n),app.studies.length-1));
-            const choice = app.studies[app.chosenStudyIndex];
-            if (choice){
-                app.setStudy(choice);
-            }
+        if (Array.isArray(app.availableStudies)){
+            app.chosenStudyIndex = Math.max(0, Math.min(Math.floor(n),app.availableStudies.length-1));
+            app.DB.getStudyConfig(app.availableStudies[app.chosenStudyIndex]).then((choice)=>(app.setStudy(choice)));
         }
     }
 
     /**
-     * Render #selector if it exists, by erasing all options and reading each study .title from app.studies  You should define an empty select element in index.html with id "selector"
+     * Render #selector if it exists, by erasing all options and reading each study .title from app.availableStudies  You should define an empty select element in index.html with id "selector"
      */
 
     renderConfigSelector(){
         const app = this;
         $("#selector > option").remove();
-        app.studies.forEach((c,n)=> ($("#selector").append('<option value="'+n+'">'+c.title+'</option>')));
+        app.availableStudies.forEach((c,n)=> ($("#selector").append('<option value="'+n+'">'+c.title+'</option>')));
         $('#selector').on('change', (evt)=>this.choose(evt.target.selectedIndex));
     }
 
@@ -424,6 +424,16 @@ export class App {
     
     init(){
         const app = this;
+        app.initBehavior();
+        app.initEditor({
+            config: app.editorStartValue,
+            schema: app.editorConfigSchema 
+        });
+        app.initDB();
+    }
+
+    initBehavior(){
+        const app = this;
         app.behavior.forEach((v)=>{
             let [jqSelector, appMethod, eventName] = v;
             if (typeof(app[appMethod])!=='function')
@@ -434,19 +444,34 @@ export class App {
             selection.on(eventName || 'click', ((evt)=>app[appMethod](evt && evt.target && evt.target.value)));
         });
         $('.postrun').prop('disabled',true);
+    }
+                   
+    initEditor({config, schema}){
+        const app = this;
+        if (typeof(config)!=='object')
+            throw new Error("config must be an object, instead got: "+typeof(config));
+        if (typeof(schema)!=='object')
+            throw new Error("schema must be an object, instead got: "+typeof(schema));
         let editorElement = document.getElementById('editor');
         if (editorElement && window.JSONEditor ){
+            while (editorElement.firstChild){
+                editorElement.removeChild(editorElement.firstChild);
+            }
             let editorOptions = {
-                schema: app.editorConfigSchema,
-                startval: app.editorStartValue
+                schema,
+                startval: config
             };
             app.editor = new window.JSONEditor(editorElement, editorOptions);
         }
+    }
+
+    initDB(){
+        const app = this;
         if (app.DB)
-            (app.DB.promiseList(app.saveList)
-             .then((configs)=>{
-                 if (Array.isArray(configs) && (configs.length)){
-                     app.studies = configs;
+            (app.DB.availableStudies(app.saveList)
+             .then((items)=>{
+                 if (Array.isArray(items) && (items.length)){
+                     app.availableStudies = items;
                      app.renderConfigSelector();
                      app.choose(0);
                  }
@@ -457,7 +482,7 @@ export class App {
              })
                  );
     }
-    
+        
     /**
      * updates running time estimate in span.estimated-running-time , using the current study
      */
@@ -553,11 +578,11 @@ export class App {
 
     moveToTrash(){
         const app = this;
-        const {studies, chosenStudyIndex, saveList, trashList } = app;
+        const { availableStudies, chosenStudyIndex, saveList, trashList } = app;
         if (app.DB){
-            (app.DB.promiseMoveItem(studies[chosenStudyIndex], saveList, trashList)
+            (app.DB.trashStudy(availableStudies[chosenStudyIndex], saveList, trashList)
              .then(()=>{
-                 studies.splice(chosenStudyIndex,1);
+                 availableStudies.splice(chosenStudyIndex,1);
                  app.renderConfigSelector();
                  app.choose(0);
              })
@@ -610,13 +635,13 @@ export class App {
     save(){
         const app = this;
         function doSave(){
-            (app.DB.promiseSaveItem(app.editor.getValue(), app.saveList)
+            (app.DB.saveStudyConfig(app.editor.getValue(), app.saveList)
              .then(()=>(window.location.reload()))
             );
         }
         if (app.DB){
-            if ((app.studies.length>1) && (app.studies[app.chosenStudyIndex]) && (app.editor.getValue().title===app.studies[app.chosenStudyIndex].title)){
-                (app.DB.promiseRemoveItem(app.studies[app.chosenStudyIndex], app.saveList)
+            if ((app.availableStudies.length>1) && (app.availableStudies[app.chosenStudyIndex]) && (app.editor.getValue().title===app.availableStudies[app.chosenStudyIndex].title)){
+                (app.DB.removeStudyConfig(app.availableStudies[app.chosenStudyIndex], app.saveList)
                  .then(doSave)
                 );
             } else {
@@ -664,16 +689,17 @@ export class App {
 
     uploadData(){
         const app = this;
+        const study = app.getStudy();
         $('#uploadButton').prop('disabled',true);
         $('#uploadButton').addClass('disabled');
         $('#uploadButton .glyphicon').addClass("spinning");
         setTimeout(()=>{
             saveZip({
-                config: app.getStudy(), 
+                config: study, 
                 sims: app.sims, 
                 download: false})
                 .then((zipBlob)=>{
-                    (app.DB.promiseUpload(zipBlob)
+                    (app.DB.uploadStudyZip(zipBlob, {id: study.id })
                      .then(()=>{
                          $('#uploadButton .spinning').removeClass("spinning");
                          $('#uploadButton').removeClass("disabled");
@@ -748,7 +774,7 @@ export class App {
              })
              .then(function(data){
                  app.sims = data.sims;
-                 app.studies = [data.config];  // deletes local cache of DB - pulled studiess. app only sees the loaded file.
+                 app.availableStudies = [data.config];  // deletes local cache of DB - pulled studiess. app only sees the loaded file.
                  app.renderConfigSelector(); // app only shows one choice in config selector -- can reload to get back to imported list
                  app.choose(0); // configure app to use the loaded file as the current study
                  app.renderVisualSelector();  // can render the list of available visualization only once the study is chosen as current study           
@@ -766,7 +792,7 @@ export class App {
         const app = this;
         $('#trashList').html("");
         if (app.DB){
-            (app.DB.promiseListRange(app.trashList,0,20)
+            (app.DB.trashedStudyConfigs(app.trashList,0,20)
              .then((items)=>{
                  items.forEach((item)=>{
                      $('#trashList').append('<pre class="pre-scrollable trash-item">'+JSON.stringify(item,null,2)+'</pre>');
