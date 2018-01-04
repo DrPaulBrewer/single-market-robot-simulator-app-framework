@@ -425,10 +425,11 @@ export class App {
     init(){
         const app = this;
         app.initBehavior();
-        app.initEditor({
-            config: app.editorStartValue,
-            schema: app.editorConfigSchema 
-        });
+	if (app.editorStartValue && app.editorConfigSchema)
+            app.initEditor({
+		config: app.editorStartValue,
+		schema: app.editorConfigSchema 
+            });
         app.initDB();
     }
 
