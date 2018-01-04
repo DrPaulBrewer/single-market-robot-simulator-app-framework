@@ -52,7 +52,7 @@ export class App {
         this.Visuals = options.Visuals;
         this.editorConfigSchema = options.editorConfigSchema;
         this.editorStartValue = options.editorStartValue;
-        if (this.DB){
+        if (this.DB && this.DB.openList){
             this.saveList = this.DB.openList(options.saveList);
             this.trashList = this.DB.openList(options.trashList);
         }
