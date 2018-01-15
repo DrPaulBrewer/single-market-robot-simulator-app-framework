@@ -293,7 +293,7 @@ var App = exports.App = function () {
             var app = this;
             $("#selector > option").remove();
             app.availableStudies.forEach(function (c, n) {
-                return $("#selector").append('<option value="' + n + '">' + c.title + '</option>');
+                return $("#selector").append('<option value="' + n + '">' + (c.title || c.name) + '</option>');
             });
             $('#selector').on('change', function (evt) {
                 return _this.choose(evt.target.selectedIndex);
