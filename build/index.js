@@ -462,7 +462,7 @@ var App = exports.App = function () {
         value: function init() {
             var app = this;
             app.initBehavior();
-            app.initEditor({
+            if (app.editorStartValue && app.editorConfigSchema) app.initEditor({
                 config: app.editorStartValue,
                 schema: app.editorConfigSchema
             });
@@ -519,7 +519,7 @@ var App = exports.App = function () {
                     app.choose(0);
                 }
             }).catch(function (e) {
-                console.log("Error accessing simulation configuration database:" + e);
+                console.log("app-framework initDB() Error accessing simulation configuration database:" + e);
                 app.DB = null;
             });
         }

@@ -250,7 +250,7 @@ export class App {
     renderConfigSelector(){
         const app = this;
         $("#selector > option").remove();
-        app.availableStudies.forEach((c,n)=> ($("#selector").append('<option value="'+n+'">'+c.title+'</option>')));
+        app.availableStudies.forEach((c,n)=> ($("#selector").append('<option value="'+n+'">'+(c.title || c.name)+'</option>')));
         $('#selector').on('change', (evt)=>this.choose(evt.target.selectedIndex));
     }
 
@@ -478,7 +478,7 @@ export class App {
                  }
              })
              .catch((e)=>{
-                 console.log("Error accessing simulation configuration database:"+e);
+                 console.log("app-framework initDB() Error accessing simulation configuration database:"+e);
                  app.DB = null;
              })
                  );
