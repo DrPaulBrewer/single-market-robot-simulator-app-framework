@@ -111,14 +111,14 @@ export class App {
     }
 
     /**
-     * Get number of periods for next run of study, looks in study.common.periods first or if study.common not found, looks in study.periods
+     * Get number of periods for next run of study, looks in study.common.periods 
      * @return {number} number of periods
      */
     
     getPeriods(){
         const app = this;
         const study = app.study;
-        return (study.common)? (study.common.periods) : (study.periods);
+        return study.common.periods;
     }
     
     /**
@@ -130,10 +130,7 @@ export class App {
         const app = this;
         const study = app.study;
         if ((study) && (+n>0) && (+n <= 10000)) {
-            if (study.common)
-                study.common.periods = +n;
-            else
-                study.periods = +n;
+            study.common.periods = +n;
             app.refresh();
         }
     }
