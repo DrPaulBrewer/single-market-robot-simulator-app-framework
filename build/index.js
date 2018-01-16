@@ -127,24 +127,27 @@ var App = exports.App = function () {
 
     }, {
         key: "setStudy",
-        value: function setStudy(study) {
+        value: function setStudy(_ref) {
+            var config = _ref.config,
+                schema = _ref.schema;
+
             var app = this;
-            if (study && study.config && study.schema) {
-                app.study = (0, _clone2.default)(study);
+            if (config) {
+                app.study = (0, _clone2.default)(config);
                 if (app.editor) {
                     app.initEditor({
-                        config: (0, _clone2.default)(study.config),
-                        schema: (0, _clone2.default)(study.schema)
+                        config: (0, _clone2.default)(config),
+                        schema: (0, _clone2.default)(schema || app.editorConfigSchema)
                     });
                 }
                 $('#runError').html("Click >Run to run the simulation and see the new results");
-                app.timeit((0, _clone2.default)(study.config));
+                app.timeit((0, _clone2.default)(app.config));
                 app.refresh();
             }
         }
 
         /**
-         * Get number of periods for next run of study, looks in study.common.periods first or if study.common not found, looks in study.periods
+         * Get number of periods for next run of study, looks in study.common.periods 
          * @return {number} number of periods
          */
 
@@ -153,7 +156,7 @@ var App = exports.App = function () {
         value: function getPeriods() {
             var app = this;
             var study = app.study;
-            return study.common ? study.common.periods : study.periods;
+            return study.common.periods;
         }
 
         /**
@@ -167,7 +170,7 @@ var App = exports.App = function () {
             var app = this;
             var study = app.study;
             if (study && +n > 0 && +n <= 10000) {
-                if (study.common) study.common.periods = +n;else study.periods = +n;
+                study.common.periods = +n;
                 app.refresh();
             }
         }
@@ -448,7 +451,7 @@ var App = exports.App = function () {
                     if (sim.numberOfBuyers > 1) sim.numberOfBuyers *= xfactor;
                     if (sim.numberOfSellers > 1) sim.numberOfSellers *= xfactor;
                 });
-                app.setStudy(config);
+                app.setStudy({ config: config });
                 app.timeit((0, _clone2.default)(config));
                 app.refresh();
             }
@@ -489,9 +492,9 @@ var App = exports.App = function () {
         }
     }, {
         key: "initEditor",
-        value: function initEditor(_ref) {
-            var config = _ref.config,
-                schema = _ref.schema;
+        value: function initEditor(_ref2) {
+            var config = _ref2.config,
+                schema = _ref2.schema;
 
             var app = this;
             if ((typeof config === "undefined" ? "undefined" : _typeof(config)) !== 'object') throw new Error("config must be an object, instead got: " + (typeof config === "undefined" ? "undefined" : _typeof(config)));

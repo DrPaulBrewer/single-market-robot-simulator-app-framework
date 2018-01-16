@@ -94,18 +94,18 @@ export class App {
      * @param {Object} studyConfig study configuraion
      */
 
-    setStudy(study){
+    setStudy({config, schema}){
         const app = this;
-        if (study && study.config && study.schema){
-            app.study = clone(study);
+        if (config){
+            app.study = clone(config);
             if (app.editor){
                 app.initEditor({
-                    config: clone(study.config),
-                    schema: clone(study.schema)
+                    config: clone(config),
+                    schema: clone(schema || app.editorConfigSchema)
                 });
             }
             $('#runError').html("Click >Run to run the simulation and see the new results");
-            app.timeit(clone(study.config)); 
+            app.timeit(clone(app.config)); 
             app.refresh();
         }
     }
@@ -410,7 +410,7 @@ export class App {
                 if (sim.numberOfSellers>1)
                     sim.numberOfSellers *= xfactor;
             });
-            app.setStudy(config);
+            app.setStudy({config});
             app.timeit(clone(config));
             app.refresh();
         }
