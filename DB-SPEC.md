@@ -35,7 +35,8 @@ These are uploaded into a study folder as the result of data production
 
 all behavior is via `async function`
 
-### DB.myPrimaryFolder()==>DriveFolder
+### private DB.myPrimaryFolder()
+* probably called internaly, only in DB.createStudyFolder()
 
 ### DB.listStudyFolders({trashed: true| false, search })=>Array[StudyFolder]*
 * ordered with most recent first
