@@ -50,6 +50,6 @@ all behavior is via `async function`
 ### StudyFolder.setConfig({config,schema})
 ### StudyFolder.listFiles()=>[list of file objects, each with a .name property, and possibly other properties]
 ### StudyFolder.download({name, id})=>contents of file from file object containing .name or .id or both
-### StudyFolder.upload({name, contents, blob, onProgress})
+### StudyFolder.upload({name, contents, blob, onProgress}) => uploads file, responsible for upload/clobber-prevention logic
 
 
