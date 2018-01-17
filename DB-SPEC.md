@@ -38,7 +38,7 @@ all behavior is via `async function`
 ### private DB.myPrimaryFolder()
 * probably called internaly, only in DB.createStudyFolder()
 
-### DB.listStudyFolders({trashed: true| false, search })=>Array[StudyFolder]
+### DB.listStudyFolders({trashed: true| false })=>Array[StudyFolder]
 * ordered with most recent first
 * search term searches descriptions
 
