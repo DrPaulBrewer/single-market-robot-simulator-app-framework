@@ -46,7 +46,8 @@ all behavior is via `async function`
 
 ### StudyFolder.trash()
 ### StudyFolder.untrash()
-### StudyFolder.getConfig()=>({config,schema})
+### StudyFolder.getConfig()=>({config,schema,folder})
+### StudyFolder.setConfig({config,schema})
 ### StudyFolder.listFiles()=>[list of filenames]
 ### StudyFolder.download(name)=>contents of file
 ### StudyFolder.upload(name, contents)
