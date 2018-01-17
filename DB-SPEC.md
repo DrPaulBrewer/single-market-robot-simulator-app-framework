@@ -42,14 +42,14 @@ all behavior is via `async function`
 * ordered with most recent first
 * search term searches descriptions
 
-### DB.createStudyFolder(name)=>StudyFolder
+### DB.createStudyFolder({name})=>StudyFolder
 
 ### StudyFolder.trash()
 ### StudyFolder.untrash()
 ### StudyFolder.getConfig()=>({config,schema,folder})
 ### StudyFolder.setConfig({config,schema})
-### StudyFolder.listFiles()=>[list of files, each with a .name property, and possibly other properties]
-### StudyFolder.download({name})=>contents of file
+### StudyFolder.listFiles()=>[list of file objects, each with a .name property, and possibly other properties]
+### StudyFolder.download({name, id})=>contents of file from file object containing .name or .id or both
 ### StudyFolder.upload({name, contents, blob, onProgress})
 
 
