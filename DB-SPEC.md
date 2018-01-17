@@ -48,8 +48,8 @@ all behavior is via `async function`
 ### StudyFolder.untrash()
 ### StudyFolder.getConfig()=>({config,schema,folder})
 ### StudyFolder.setConfig({config,schema})
-### StudyFolder.listFiles()=>[list of filenames]
-### StudyFolder.download(name)=>contents of file
-### StudyFolder.upload(name, contents)
+### StudyFolder.listFiles()=>[list of files, each with a .name property, and possibly other properties]
+### StudyFolder.download({name})=>contents of file
+### StudyFolder.upload({name, contents, blob, onProgress})
 
 
