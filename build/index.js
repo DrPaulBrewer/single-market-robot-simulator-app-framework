@@ -12,6 +12,10 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /* Copyright 2016, 2017 Paul Brewer, Economic and Financial Technology Consulting LLC */
 /* This file is open source software.  The MIT License applies to this software.  */
 
+// TODOs 01-2018
+//  remove all references to app.saveList and update code
+//                        to app.trashList and update code
+
 /* global Plotly:true, window:true, $:true */
 
 /* eslint no-console: "off" */
@@ -62,12 +66,10 @@ var App = exports.App = function () {
      * Create App with given settings.  Many of these settings are required.
      * @param {Object} options
      * @param {Object} options.SMRS reference to either the imported module single-market-robot-simulator or a fork 
-     * @param {Object} options.DB "database" instance of single-market-robot-simulator-db-local or single-market-robot-simulator-webdismay for storing simulation configurations
+     * @param {Object} options.DB "database" such as single-market-robot-simulator-db-googledrive for storing simulation configurations
      * @param {Object} options.Visuals object describing visualizations of completed simulations and parameters, to be interpreted by single-market-robot-simulator-viz-plotly
      * @param {Object} options.editorConfigSchema JSON Schema object for json-editor relevant to user editing of simulation configurations
      * @param {Object} options.editorStartValue default simulation configuration for editing if none are defined
-     * @param {string} options.saveList name that will open list of save configurations when passed to options.DB.openList()
-     * @param {string} options.trashList name that will open trash list of abandoned configurations when passed to options.DB.openList()
      * @param {Array<Array<string>>} options.behavior click and eventmap stored as Array of 2 or 3 element arrays [jqSelector, appMethodName, [ eventType = click ] ]
      */
 
@@ -79,10 +81,6 @@ var App = exports.App = function () {
         this.Visuals = options.Visuals;
         this.editorConfigSchema = options.editorConfigSchema;
         this.editorStartValue = options.editorStartValue;
-        if (this.DB && this.DB.openList) {
-            this.saveList = this.DB.openList(options.saveList);
-            this.trashList = this.DB.openList(options.trashList);
-        }
         this.behavior = options.behavior;
         this.editor = 0;
         this.periodTimers = [];
@@ -109,15 +107,27 @@ var App = exports.App = function () {
         }
 
         /** 
-         * Get current study
+         * Get current study configuration
          * @return {Object} study configuration
          */
 
     }, {
-        key: "getStudy",
-        value: function getStudy() {
+        key: "getStudyConfig",
+        value: function getStudyConfig() {
             var app = this;
-            return (0, _clone2.default)(app.study);
+            return app.study && app.study.config;
+        }
+
+        /** 
+         * Get current StudyFolder
+         * @return {Object} an instance implementing the StudyFolder interface
+         */
+
+    }, {
+        key: "getStudyFolder",
+        value: function getStudyFolder() {
+            var app = this;
+            return app.study && app.study.folder;
         }
 
         /**
@@ -129,20 +139,20 @@ var App = exports.App = function () {
         key: "setStudy",
         value: function setStudy(_ref) {
             var config = _ref.config,
-                schema = _ref.schema;
+                folder = _ref.folder;
 
             var app = this;
+            app.study = { config: config, folder: folder };
             if (config) {
-                app.study = (0, _clone2.default)(config);
-                if (app.editor) {
+                if (app.editor && app.initEditor) {
                     app.initEditor({
                         config: (0, _clone2.default)(config),
-                        schema: (0, _clone2.default)(schema || app.editorConfigSchema)
+                        schema: app.editorConfigSchema
                     });
                 }
                 $('#runError').html("Click >Run to run the simulation and see the new results");
-                app.timeit((0, _clone2.default)(app.config));
-                app.refresh();
+                if (app.timeit) app.timeit((0, _clone2.default)(config));
+                if (app.refresh) app.refresh();
             }
         }
 
@@ -155,8 +165,8 @@ var App = exports.App = function () {
         key: "getPeriods",
         value: function getPeriods() {
             var app = this;
-            var study = app.study;
-            return study.common.periods;
+            var config = app.getStudyConfig();
+            return config && config.common.periods;
         }
 
         /**
@@ -168,9 +178,9 @@ var App = exports.App = function () {
         key: "setPeriods",
         value: function setPeriods(n) {
             var app = this;
-            var study = app.study;
-            if (study && +n > 0 && +n <= 10000) {
-                study.common.periods = +n;
+            var config = app.getStudyConfig();
+            if (config && config.common && +n > 0 && +n <= 200) {
+                config.common.periods = +n;
                 app.refresh();
             }
         }
@@ -238,7 +248,7 @@ var App = exports.App = function () {
         }
 
         /**
-         * Updates Array<number> app.periodTimers by running a study for up to 5 periods or 5 seconds to get period finishing times. Calls guessTIme to update span.estimated-running-time
+         * Eventually updates Array<number> app.periodTimers by running a study for up to 5 periods or 5 seconds to get period finishing times. Calls guessTIme to update span.estimated-running-time
          * @param {Object} studyConfig - A studyConfig as defined by app.simulations
          */
 
@@ -268,7 +278,7 @@ var App = exports.App = function () {
         }
 
         /**
-         * Choose study n from Array app.availableStudies if possible, get details from DB, send it to app.editor and app.periodsEditor if defined, then app.timeit, and then refresh UI with app.refresh
+         * Eventually choose study n from Array app.availableStudies if possible, get details from DB, send it to app.editor and app.periodsEditor if defined, then app.timeit, and then refresh UI with app.refresh
          * @param {number} n index of chosen study in app.availableStudies[]
          */
 
@@ -276,9 +286,9 @@ var App = exports.App = function () {
         key: "choose",
         value: function choose(n) {
             var app = this;
-            if (Array.isArray(app.availableStudies)) {
-                app.chosenStudyIndex = Math.max(0, Math.min(Math.floor(n), app.availableStudies.length - 1));
-                app.DB.getStudyConfig(app.availableStudies[app.chosenStudyIndex]).then(function (choice) {
+            if (Array.isArray(app.availableStudyFolders)) {
+                app.chosenStudyIndex = Math.max(0, Math.min(Math.floor(n), app.availableStudyFolders.length - 1));
+                app.availableStudyFolders[app.chosenStudyIndex].getConfig().then(function (choice) {
                     return app.setStudy(choice);
                 });
             }
@@ -295,8 +305,8 @@ var App = exports.App = function () {
 
             var app = this;
             $("#selector > option").remove();
-            app.availableStudies.forEach(function (c, n) {
-                return $("#selector").append('<option value="' + n + '">' + (c.title || c.name) + '</option>');
+            app.availableStudyFolders.forEach(function (c, n) {
+                return $("#selector").append('<option value="' + n + '">' + c.name + '</option>');
             });
             $('#selector').on('change', function (evt) {
                 return _this.choose(evt.target.selectedIndex);
@@ -442,7 +452,7 @@ var App = exports.App = function () {
         value: function expand(how) {
             var app = this;
             var xfactor = +$('#xfactor').val();
-            var config = app.getStudy();
+            var config = app.getStudyConfig();
             if (xfactor) {
                 config.title += ' x' + xfactor;
                 config.configurations.forEach(function (sim) {
@@ -452,8 +462,6 @@ var App = exports.App = function () {
                     if (sim.numberOfSellers > 1) sim.numberOfSellers *= xfactor;
                 });
                 app.setStudy({ config: config });
-                app.timeit((0, _clone2.default)(config));
-                app.refresh();
             }
         }
 
@@ -515,15 +523,14 @@ var App = exports.App = function () {
         key: "initDB",
         value: function initDB() {
             var app = this;
-            if (app.DB) app.DB.availableStudies(app.saveList).then(function (items) {
+            if (app.DB) app.DB.listStudyFolders({ trashed: false }).then(function (items) {
                 if (Array.isArray(items) && items.length) {
-                    app.availableStudies = items;
+                    app.availableStudyFolders = items;
                     app.renderConfigSelector();
                     app.choose(0);
                 }
             }).catch(function (e) {
                 console.log("app-framework initDB() Error accessing simulation configuration database:" + e);
-                app.DB = null;
             });
         }
 
@@ -535,7 +542,7 @@ var App = exports.App = function () {
         key: "estimateTime",
         value: function estimateTime() {
             var app = this;
-            app.timeit(app.getStudy());
+            app.timeit((0, _clone2.default)(app.getStudyConfig()));
         }
 
         /**
@@ -546,7 +553,7 @@ var App = exports.App = function () {
         key: "refresh",
         value: function refresh() {
             var app = this;
-            var study = app.getStudy();
+            var study = (0, _clone2.default)(app.getStudyConfig());
             var periods = app.getPeriods();
             if (study) {
                 app.guessTime();
@@ -625,14 +632,12 @@ var App = exports.App = function () {
         key: "moveToTrash",
         value: function moveToTrash() {
             var app = this;
-            var availableStudies = app.availableStudies,
-                chosenStudyIndex = app.chosenStudyIndex,
-                saveList = app.saveList,
-                trashList = app.trashList;
+            var availableStudyFolders = app.availableStudyFolders,
+                chosenStudyIndex = app.chosenStudyIndex;
 
             if (app.DB) {
-                app.DB.trashStudy(availableStudies[chosenStudyIndex], saveList, trashList).then(function () {
-                    availableStudies.splice(chosenStudyIndex, 1);
+                availableStudyFolders[chosenStudyIndex].trash().then(function () {
+                    availableStudyFolders.splice(chosenStudyIndex, 1);
                     app.renderConfigSelector();
                     app.choose(0);
                 }).catch(function (e) {
@@ -658,7 +663,7 @@ var App = exports.App = function () {
             $('#runButton .glyphicon').addClass("spinning");
             app.renderVisualSelector();
             setTimeout(function () {
-                var studyConfig = app.getStudy();
+                var studyConfig = (0, _clone2.default)(app.getStudyConfig());
                 app.sims = app.simulations(studyConfig).map(function (s, i) {
                     return app.runSimulation(s, i);
                 });
@@ -681,7 +686,9 @@ var App = exports.App = function () {
         }
 
         /**
-         * saves the current study from the editor.  Save is to the top of the app DB saveList, if the title is changed.  Otherwise, in place (remove/save).  
+         * tries to save the current study from the editor. try to save in place if name is unchanged.  If new name, create a new StudyFolder and save.  Reload the browser after saving.
+         *
+         * Previous behavior was to Save to the top of the app DB saveList, if the title is changed.  Otherwise, in place (remove/save).  
          * Finally, reload the browser to give the app a clean restart.
          * 
          */
@@ -690,18 +697,28 @@ var App = exports.App = function () {
         key: "save",
         value: function save() {
             var app = this;
-            function doSave() {
-                app.DB.saveStudyConfig(app.editor.getValue(), app.saveList).then(function () {
-                    return window.location.reload();
-                });
-            }
-            if (app.DB) {
-                if (app.availableStudies.length > 1 && app.availableStudies[app.chosenStudyIndex] && app.editor.getValue().title === app.availableStudies[app.chosenStudyIndex].title) {
-                    app.DB.removeStudyConfig(app.availableStudies[app.chosenStudyIndex], app.saveList).then(doSave);
-                } else {
-                    doSave();
-                }
-            }
+            var myStudyFolder = app.getStudyFolder();
+            var config = app.editor.getValue();
+
+            /*
+             * if name is unchanged, try to save in place 
+             *
+             */
+
+            if (myStudyFolder && config.name === myStudyFolder.name) return myStudyFolder.setConfig({ config: config }).then(function () {
+                return window.location.reload();
+            });
+
+            /*
+             * name is different, or no myStudyFolder, so create a new Study Folder then save
+             *
+             */
+
+            return app.DB.createStudyFolder({ name: config.name }).then(function (folder) {
+                return folder.setConfig({ config: config });
+            }).then(function () {
+                return window.location.reload();
+            });
         }
 
         /**
@@ -732,7 +749,7 @@ var App = exports.App = function () {
             $('#downloadButton .glyphicon').addClass("spinning");
             setTimeout(function () {
                 (0, _singleMarketRobotSimulatorSavezip2.default)({
-                    config: app.getStudy(),
+                    config: (0, _clone2.default)(app.getStudyConfig()),
                     sims: app.sims,
                     download: true
                 }).then(function () {
@@ -751,24 +768,33 @@ var App = exports.App = function () {
         key: "uploadData",
         value: function uploadData() {
             var app = this;
-            var study = app.getStudy();
-            $('#uploadButton').prop('disabled', true);
-            $('#uploadButton').addClass('disabled');
-            $('#uploadButton .glyphicon').addClass("spinning");
-            setTimeout(function () {
-                (0, _singleMarketRobotSimulatorSavezip2.default)({
-                    config: study,
-                    sims: app.sims,
-                    download: false }).then(function (zipBlob) {
-                    app.DB.uploadStudyZip(zipBlob, { id: study.id }).then(function () {
-                        $('#uploadButton .spinning').removeClass("spinning");
-                        $('#uploadButton').removeClass("disabled");
-                        $('#uploadButton').prop('disabled', false);
-                    }).catch(function (e) {
-                        return console.log(e);
+            var study = (0, _clone2.default)(app.getStudyConfig());
+            var folder = app.getStudyFolder();
+            if (folder) {
+                $('#uploadButton').prop('disabled', true);
+                $('#uploadButton').addClass('disabled');
+                $('#uploadButton .glyphicon').addClass("spinning");
+                setTimeout(function () {
+                    (0, _singleMarketRobotSimulatorSavezip2.default)({
+                        config: study,
+                        sims: app.sims,
+                        download: false }).then(function (zipBlob) {
+                        folder.upload({
+                            name: (0, _singleMarketRobotSimulatorStudy.myDateStamp)(),
+                            blob: zipBlob,
+                            onProgress: function onProgress(x) {
+                                return console.log(x);
+                            }
+                        }).then(function () {
+                            $('#uploadButton .spinning').removeClass("spinning");
+                            $('#uploadButton').removeClass("disabled");
+                            $('#uploadButton').prop('disabled', false);
+                        }).catch(function (e) {
+                            return console.log(e);
+                        });
                     });
-                });
-            }, 200);
+                }, 200);
+            }
         }
 
         /**
@@ -848,9 +874,10 @@ var App = exports.App = function () {
         key: "renderTrash",
         value: function renderTrash() {
             var app = this;
+            var StudyFolder = app.DB.studyFolder;
             $('#trashList').html("");
             if (app.DB) {
-                app.DB.trashedStudyConfigs(app.trashList, 0, 20).then(function (items) {
+                app.DB.listStudyFolders({ trashed: true }).then(function (items) {
                     items.forEach(function (item) {
                         $('#trashList').append('<pre class="pre-scrollable trash-item">' + JSON.stringify(item, null, 2) + '</pre>');
                     });
@@ -858,16 +885,17 @@ var App = exports.App = function () {
 
                         // this click function needs to be a full function with its own "this", not an anonymous ()=>{block}
 
-                        try {
-                            var restoredStudy = JSON.parse($(this).text());
-                            if ((typeof restoredStudy === "undefined" ? "undefined" : _typeof(restoredStudy)) === 'object' && typeof restoredStudy.title === 'string' && _typeof(restoredStudy.common) === 'object' && Array.isArray(restoredStudy.configurations)) {
-                                app.editor.setValue(restoredStudy);
+                        var folder = new StudyFolder(JSON.parse($(this).text()));
+                        if ((typeof folder === "undefined" ? "undefined" : _typeof(folder)) === 'object' && folder.id && folder.name) {
+                            folder.untrash().then(function () {
+                                return folder.getConfig();
+                            }).then(function (response) {
+                                return app.setStudy(response);
+                            }).then(function () {
                                 $('#editLink').click();
-                            } else {
-                                console.log("trashed item is not a valid study");
-                            }
-                        } catch (e) {
-                            console.log("could not send trashed item to editor: " + e);
+                            }).catch(function (e) {
+                                return console.log(e);
+                            });
                         }
                     });
                 });
