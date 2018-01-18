@@ -25,7 +25,6 @@ Each study folder has metadata for these items:
 
 A study folder contains or otherwise can retrieve these files:
 * config.json JSON configuration for running new realizations of this study.
-* optional zero or one schema.json file containing JSON schema for displaying configuration options in JSONEditor
 These are uploaded into a study folder as the result of data production
 * optional zero or more dated .zip files containing a completed data realization for this study.  
 * optional image files
@@ -46,8 +45,8 @@ all behavior is via `async function`
 
 ### StudyFolder.trash()
 ### StudyFolder.untrash()
-### StudyFolder.getConfig()=>({config,schema,folder})
-### StudyFolder.setConfig({config,schema})
+### StudyFolder.getConfig()=>({config,folder})
+### StudyFolder.setConfig({config})
 ### StudyFolder.listFiles()=>[list of file objects, each with a .name property, and possibly other properties]
 ### StudyFolder.download({name, id})=>contents of file from file object containing .name or .id or both
 ### StudyFolder.upload({name, contents, blob, onProgress}) => uploads file, responsible for upload/clobber-prevention logic
