@@ -504,7 +504,7 @@ export class App {
             app.guessTime();
             app.showParameters(study);
             $('.configTitle').text(folder.name);
-            $('.currentStudyFolderModifiedDate').text(new Date(folder.modifiedDate).toString());
+            $('.currentStudyFolderModifiedTime').text(new Date(folder.modifiedTime).toString());
             $('.currentStudyFolderDescription').text(folder.description);
             if (periods){
                 $('input.periods').val(periods);
