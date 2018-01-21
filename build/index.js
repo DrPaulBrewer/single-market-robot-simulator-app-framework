@@ -550,11 +550,14 @@ var App = exports.App = function () {
         value: function refresh() {
             var app = this;
             var study = (0, _clone2.default)(app.getStudyConfig());
+            var folder = (0, _clone2.default)(app.getStudyFolder());
             var periods = app.getPeriods();
             if (study) {
                 app.guessTime();
                 app.showParameters(study);
-                $('.configTitle').text(study.title);
+                $('.configTitle').text(folder.name);
+                $('.currentStudyFolderModifiedDate').text(new Date(folder.modifiedDate).toString());
+                $('.currentStudyFolderDescription').text(folder.description);
                 if (periods) {
                     $('input.periods').val(periods);
                     $('span.periods').text(periods);

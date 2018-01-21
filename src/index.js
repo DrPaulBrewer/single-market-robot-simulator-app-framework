@@ -498,11 +498,14 @@ export class App {
     refresh(){
         const app = this;
         const study = clone(app.getStudyConfig());
+        const folder = clone(app.getStudyFolder());
         const periods = app.getPeriods();
         if (study){
             app.guessTime();
             app.showParameters(study);
-            $('.configTitle').text(study.title);
+            $('.configTitle').text(folder.name);
+            $('.currentStudyFolderModifiedDate').text(new Date(folder.modifiedDate).toString());
+            $('.currentStudyFolderDescription').text(folder.description);
             if (periods){
                 $('input.periods').val(periods);
                 $('span.periods').text(periods);
