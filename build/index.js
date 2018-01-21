@@ -12,10 +12,6 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /* Copyright 2016, 2017 Paul Brewer, Economic and Financial Technology Consulting LLC */
 /* This file is open source software.  The MIT License applies to this software.  */
 
-// TODOs 01-2018
-//  remove all references to app.saveList and update code
-//                        to app.trashList and update code
-
 /* global Plotly:true, window:true, $:true */
 
 /* eslint no-console: "off" */
@@ -867,7 +863,7 @@ var App = exports.App = function () {
         }
 
         /**
-         * render into the div with id "trashList" the first 20 discarded study configurations in the app.DB at name app.trashList.  Trash items can be clicked to restore to editor.
+         * render into the div with id "trashList" the study folders found in Trash. Trash items can be clicked to restore to editor.
          */
 
     }, {

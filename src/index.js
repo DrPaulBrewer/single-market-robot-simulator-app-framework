@@ -1,10 +1,6 @@
 /* Copyright 2016, 2017 Paul Brewer, Economic and Financial Technology Consulting LLC */
 /* This file is open source software.  The MIT License applies to this software.  */
 
-// TODOs 01-2018
-//  remove all references to app.saveList and update code
-//                        to app.trashList and update code
-
 /* global Plotly:true, window:true, $:true */
 
 /* eslint no-console: "off" */
@@ -807,7 +803,7 @@ export class App {
     }
 
     /**
-     * render into the div with id "trashList" the first 20 discarded study configurations in the app.DB at name app.trashList.  Trash items can be clicked to restore to editor.
+     * render into the div with id "trashList" the study folders found in Trash. Trash items can be clicked to restore to editor.
      */
 
     renderTrash(){
