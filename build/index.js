@@ -827,12 +827,13 @@ var App = exports.App = function () {
                         sims: app.sims,
                         download: false }).then(function (zipBlob) {
                         folder.upload({
-                            name: (0, _singleMarketRobotSimulatorStudy.myDateStamp)(),
+                            name: (0, _singleMarketRobotSimulatorStudy.myDateStamp)() + '.zip',
                             blob: zipBlob,
                             onProgress: function onProgress(x) {
                                 return console.log(x);
                             }
-                        }).then(function () {
+                        }).then(function (newfile) {
+                            if (Array.isArray(app.study.zipfiles)) app.study.zipfiles.unshift(newfile);
                             $('#uploadButton .spinning').removeClass("spinning");
                             $('#uploadButton').removeClass("disabled");
                             $('#uploadButton').prop('disabled', false);

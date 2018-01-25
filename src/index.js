@@ -272,7 +272,7 @@ export class App {
     }
 
     chooseRun(n){
-	const app = this;
+        const app = this;
         alert("To Be Implemented...you chose "+n+" "+app.study.zipFiles[+n].name); // eslint-disable-line no-alert
     }
     
@@ -758,10 +758,12 @@ export class App {
                     download: false})
                     .then((zipBlob)=>{
                         (folder.upload({
-                            name: myDateStamp(),
+                            name: myDateStamp()+'.zip',
                             blob: zipBlob,
                             onProgress: (x)=>(console.log(x))
-                        }).then(()=>{
+                        }).then((newfile)=>{
+                            if (Array.isArray(app.study.zipfiles))
+                                app.study.zipfiles.unshift(newfile);
                             $('#uploadButton .spinning').removeClass("spinning");
                             $('#uploadButton').removeClass("disabled");
                             $('#uploadButton').prop('disabled',false);
