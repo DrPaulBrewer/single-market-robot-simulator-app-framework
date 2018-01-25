@@ -134,7 +134,7 @@ export class App {
         if (folder && app.renderPriorRunSelector){
             (folder
              .listFiles()
-             .then((files)=>(files.filter((f)=>(f.name.endsWith(".zip")))))
+             .then((files)=>(files.filter((f)=>(f.mimeType==='application/zip'))))
              .then((files)=>{ app.study.zipFiles = files; })
              .then(()=>(app.renderPriorRunSelector()))
             );
@@ -285,7 +285,7 @@ export class App {
         const select = '#selector';
         const options = (
             app.availableStudyFolders &&
-                app.availableStudyFolders.map((f)=>(f.name))
+                app.availableStudyFolders.map((f)=>(f.name+': '+(Number(f.size)/1e6).toString().substr(0,3)+' MB'))
         ) || []; // fails thru to empty set of options
         const selectedOption = 0;
         setSelectOptions({ select, options, selectedOption });
@@ -302,7 +302,7 @@ export class App {
         const options = (
             app.study &&
                 app.study.zipFiles &&
-                app.study.zipFiles.filter((f)=>(f.name.endsWith(".zip"))).map((f)=>(f.name))
+                app.study.zipFiles.map((f)=>(f.name))
         ) || []; // fails thru to empty set of options
         const selectedOption = 0;
         setSelectOptions({ select, options, selectedOption });
