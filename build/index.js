@@ -337,7 +337,7 @@ var App = exports.App = function () {
             var app = this;
             var select = '#selector';
             var options = app.availableStudyFolders && app.availableStudyFolders.map(function (f) {
-                return f.name + ': ' + (Number(f.size) / 1e6).toString().substr(0, 3) + ' MB';
+                return f.name;
             }) || []; // fails thru to empty set of options
             var selectedOption = 0;
             setSelectOptions({ select: select, options: options, selectedOption: selectedOption });
@@ -354,7 +354,7 @@ var App = exports.App = function () {
             var app = this;
             var select = '#priorRunSelector';
             var options = app.study && app.study.zipFiles && app.study.zipFiles.map(function (f) {
-                return f.name;
+                return f.name + ': ' + (Number(f.size) / 1e6).toString().substr(0, 3) + ' MB';
             }) || []; // fails thru to empty set of options
             var selectedOption = 0;
             setSelectOptions({ select: select, options: options, selectedOption: selectedOption });

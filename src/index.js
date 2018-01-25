@@ -285,7 +285,7 @@ export class App {
         const select = '#selector';
         const options = (
             app.availableStudyFolders &&
-                app.availableStudyFolders.map((f)=>(f.name+': '+(Number(f.size)/1e6).toString().substr(0,3)+' MB'))
+                app.availableStudyFolders.map((f)=>(f.name))
         ) || []; // fails thru to empty set of options
         const selectedOption = 0;
         setSelectOptions({ select, options, selectedOption });
@@ -302,7 +302,7 @@ export class App {
         const options = (
             app.study &&
                 app.study.zipFiles &&
-                app.study.zipFiles.map((f)=>(f.name))
+                app.study.zipFiles.map((f)=>(f.name+': '+((Number(f.size)/1e6).toString().substr(0,3))+' MB'))
         ) || []; // fails thru to empty set of options
         const selectedOption = 0;
         setSelectOptions({ select, options, selectedOption });
