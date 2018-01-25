@@ -870,19 +870,6 @@ var App = exports.App = function () {
                 showProgress('<span class="red"> FAILURE. I could not use that zip file.  You may try again, choosing a different zip file');
                 restoreUI();
             }
-            function hasMissing(a) {
-                // JavaScript ignores missing elements in higher order functional operations like .some, and even .indexOf(), so we have to check this with an explicit loop
-                if (Array.isArray(a)) {
-                    var i = 0,
-                        l = a.length,
-                        u = false;
-                    while (i < l && !u) {
-                        u = typeof a[i] === "undefined";
-                        i++;
-                    }
-                    return u;
-                }
-            }
             $('div.openzip-progress').html('');
             $('button.openzip-button').prop('disabled', true).addClass("disabled");
             setTimeout(function () {
@@ -901,7 +888,7 @@ var App = exports.App = function () {
                     if (!data.config) throw new Error("No master configuration file (config.json) was found in zip file.  Maybe this zip file is unrelated.");
                     if (!data.sims.length) throw new Error("No simulation configuration files (sim.json) in the zip file");
                     if (Array.isArray(data.config.configurations) && data.config.configurations.length !== data.sims.length) throw new Error("Missing files.  the number of configurations in config.json does not match the number of simulation directories and files I found");
-                    if (hasMissing(data.sims)) throw new Error("It seems a folder has been deleted from the zip file or I could not read it. ");
+                    if (data.sims.includes(undefined)) throw new Error("It seems a folder has been deleted from the zip file or I could not read it. ");
                     return data;
                 }).then(function (data) {
                     app.sims = data.sims;
