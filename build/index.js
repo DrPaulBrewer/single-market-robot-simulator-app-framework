@@ -56,6 +56,26 @@ function adjustTitle(plotParams, modifier) {
     }
 }
 
+/**
+ * Use jQuery to manipulate DOM select element
+ * @param {string} select - jQuery selector for select element, i.e. '#selector'
+ * @param {Array<String>} options - array of strings for option labels (optional, but will blank previous options)
+ * @param {number} selectedOption - the index of the selected option (optional)
+ * @param {function(number)} onChange - called when user changes the selection (optional)
+ */
+
+function setSelectOptions(_ref) {
+    var select = _ref.select,
+        options = _ref.options,
+        selectedOption = _ref.selectedOption;
+
+    $(select + ' > option').remove();
+    if (Array.isArray(options)) options.forEach(function (o, n) {
+        var s = n === selectedOption ? 'selected="selected"' : '';
+        $(select).append("<option value=\"" + n + "\" " + s + ">" + o + "</option>");
+    });
+}
+
 var App = exports.App = function () {
 
     /**
@@ -133,9 +153,9 @@ var App = exports.App = function () {
 
     }, {
         key: "setStudy",
-        value: function setStudy(_ref) {
-            var config = _ref.config,
-                folder = _ref.folder;
+        value: function setStudy(_ref2) {
+            var config = _ref2.config,
+                folder = _ref2.folder;
 
             var app = this;
             app.study = { config: config, folder: folder };
@@ -149,6 +169,17 @@ var App = exports.App = function () {
                 $('#runError').html("Click >Run to run the simulation and see the new results");
                 if (app.timeit) app.timeit((0, _clone2.default)(config));
                 if (app.refresh) app.refresh();
+            }
+            if (folder && app.renderPriorRunSelector) {
+                folder.listFiles().then(function (files) {
+                    return files.filter(function (f) {
+                        return f.name.endsWith(".zip");
+                    });
+                }).then(function (files) {
+                    app.study.zipFiles = files;
+                }).then(function () {
+                    return app.renderPriorRunSelector();
+                });
             }
         }
 
@@ -289,6 +320,12 @@ var App = exports.App = function () {
                 });
             }
         }
+    }, {
+        key: "chooseRun",
+        value: function chooseRun(n) {
+            var app = this;
+            alert("To Be Implemented...you chose " + n + " " + app.study.zipFiles[+n].name); // eslint-disable-line no-alert
+        }
 
         /**
          * Render #selector if it exists, by erasing all options and reading each study .title from app.availableStudies  You should define an empty select element in index.html with id "selector"
@@ -297,16 +334,32 @@ var App = exports.App = function () {
     }, {
         key: "renderConfigSelector",
         value: function renderConfigSelector() {
-            var _this = this;
-
             var app = this;
-            $("#selector > option").remove();
-            app.availableStudyFolders.forEach(function (c, n) {
-                return $("#selector").append('<option value="' + n + '">' + c.name + '</option>');
-            });
-            $('#selector').on('change', function (evt) {
-                return _this.choose(evt.target.selectedIndex);
-            });
+            var select = '#selector';
+            var options = app.availableStudyFolders && app.availableStudyFolders.map(function (f) {
+                return f.name;
+            }) || []; // fails thru to empty set of options
+            var selectedOption = 0;
+            setSelectOptions({ select: select, options: options, selectedOption: selectedOption });
+        }
+
+        /**
+         * Render #priorRunSelector if it exists
+         *
+         */
+
+    }, {
+        key: "renderPriorRunSelector",
+        value: function renderPriorRunSelector() {
+            var app = this;
+            var select = '#priorRunSelector';
+            var options = app.study && app.study.zipFiles && app.study.zipFiles.filter(function (f) {
+                return f.name.endsWith(".zip");
+            }).map(function (f) {
+                return f.name;
+            }) || []; // fails thru to empty set of options
+            var selectedOption = 0;
+            setSelectOptions({ select: select, options: options, selectedOption: selectedOption });
         }
 
         /**
@@ -358,15 +411,12 @@ var App = exports.App = function () {
         value: function renderVisualSelector() {
             var app = this;
             var visuals = app.getVisuals();
-            function toSelectBox(v, i) {
-                return ['<option value="', i, '"', i === app.visualIndex ? ' selected="selected" ' : '', '>', v.meta.title || v.meta.f, '</option>'].join('');
-            }
-            if (Array.isArray(visuals)) {
-                var vizchoices = visuals.map(toSelectBox).join("");
-                $('#vizselect').html(vizchoices);
-            } else {
-                console.log("invalid visuals", visuals);
-            }
+            var select = '#vizselect';
+            var options = visuals && visuals.map(function (v) {
+                return v.meta.title || v.meta.f;
+            }) || [];
+            var selectedOption = app.visualIndex;
+            setSelectOptions({ select: select, options: options, selectedOption: selectedOption });
         }
 
         /**
@@ -496,9 +546,9 @@ var App = exports.App = function () {
         }
     }, {
         key: "initEditor",
-        value: function initEditor(_ref2) {
-            var config = _ref2.config,
-                schema = _ref2.schema;
+        value: function initEditor(_ref3) {
+            var config = _ref3.config,
+                schema = _ref3.schema;
 
             var app = this;
             if ((typeof config === "undefined" ? "undefined" : _typeof(config)) !== 'object') throw new Error("config must be an object, instead got: " + (typeof config === "undefined" ? "undefined" : _typeof(config)));

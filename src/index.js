@@ -31,6 +31,25 @@ export function adjustTitle(plotParams, modifier){
     }
 }
 
+/**
+ * Use jQuery to manipulate DOM select element
+ * @param {string} select - jQuery selector for select element, i.e. '#selector'
+ * @param {Array<String>} options - array of strings for option labels (optional, but will blank previous options)
+ * @param {number} selectedOption - the index of the selected option (optional)
+ * @param {function(number)} onChange - called when user changes the selection (optional)
+ */
+
+function setSelectOptions({ select, options, selectedOption }){
+    $(select+' > option').remove();
+    if (Array.isArray(options))
+        options.forEach(
+            (o,n)=>{
+                const s = (n===selectedOption)?'selected="selected"':'';
+                $(select).append(`<option value="${n}" ${s}>${o}</option>`);
+            }
+        );
+}
+
 export class App {
 
     /**
@@ -111,6 +130,14 @@ export class App {
             $('#runError').html("Click >Run to run the simulation and see the new results");
             if (app.timeit) app.timeit(clone(config)); 
             if (app.refresh) app.refresh();
+        }
+        if (folder && app.renderPriorRunSelector){
+            (folder
+             .listFiles()
+             .then((files)=>(files.filter((f)=>(f.name.endsWith(".zip")))))
+             .then((files)=>{ app.study.zipFiles = files; })
+             .then(()=>(app.renderPriorRunSelector()))
+            );
         }
     }
 
@@ -244,17 +271,44 @@ export class App {
         }
     }
 
+    chooseRun(n){
+	const app = this;
+        alert("To Be Implemented...you chose "+n+" "+app.study.zipFiles[+n].name); // eslint-disable-line no-alert
+    }
+    
     /**
      * Render #selector if it exists, by erasing all options and reading each study .title from app.availableStudies  You should define an empty select element in index.html with id "selector"
      */
 
     renderConfigSelector(){
         const app = this;
-        $("#selector > option").remove();
-        app.availableStudyFolders.forEach((c,n)=> ($("#selector").append('<option value="'+n+'">'+c.name+'</option>')));
-        $('#selector').on('change', (evt)=>this.choose(evt.target.selectedIndex));
+        const select = '#selector';
+        const options = (
+            app.availableStudyFolders &&
+                app.availableStudyFolders.map((f)=>(f.name))
+        ) || []; // fails thru to empty set of options
+        const selectedOption = 0;
+        setSelectOptions({ select, options, selectedOption });
     }
 
+    /**
+     * Render #priorRunSelector if it exists
+     *
+     */
+
+    renderPriorRunSelector(){
+        const app = this;
+        const select = '#priorRunSelector';
+        const options = (
+            app.study &&
+                app.study.zipFiles &&
+                app.study.zipFiles.filter((f)=>(f.name.endsWith(".zip"))).map((f)=>(f.name))
+        ) || []; // fails thru to empty set of options
+        const selectedOption = 0;
+        setSelectOptions({ select, options, selectedOption });
+    }
+
+    
     /**
      * get array of visualizations appropriate to the number of periods in the current study
      * if periods<=50, returns app.Visuals.small;  if 50<periods<=500, returns app.Visuals.medium; if periods>500, returns app.Visuals.large
@@ -305,23 +359,10 @@ export class App {
     renderVisualSelector(){
         const app = this;
         const visuals = app.getVisuals();
-        function toSelectBox(v,i){
-            return [
-                '<option value="',
-                i,
-                '"',
-                ((i===app.visualIndex)? ' selected="selected" ': ''),
-                '>',
-                (v.meta.title || v.meta.f),
-                '</option>'
-            ].join('');
-        }
-        if (Array.isArray(visuals)){
-            const vizchoices = visuals.map(toSelectBox).join("");
-            $('#vizselect').html(vizchoices);
-        } else {
-            console.log("invalid visuals", visuals);
-        }       
+        const select = '#vizselect';
+        const options = (visuals && (visuals.map((v)=>(v.meta.title || v.meta.f)))) || [];
+        const selectedOption = app.visualIndex;
+        setSelectOptions({ select, options, selectedOption });
     }
 
     /**
