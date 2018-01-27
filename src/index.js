@@ -278,7 +278,7 @@ export class App {
 
     fetchChosenRun(){
         const app = this;
-        app.openZip(app.chosenRun);
+        app.openZipFile(app.chosenRun);
     }
     
     /**

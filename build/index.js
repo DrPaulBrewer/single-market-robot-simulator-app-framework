@@ -330,7 +330,7 @@ var App = exports.App = function () {
         key: "fetchChosenRun",
         value: function fetchChosenRun() {
             var app = this;
-            app.openZip(app.chosenRun);
+            app.openZipFile(app.chosenRun);
         }
 
         /**
