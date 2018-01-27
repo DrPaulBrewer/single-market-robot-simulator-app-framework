@@ -867,7 +867,7 @@ var App = exports.App = function () {
                 showProgress('<span class="red"> ERROR: ' + e + '</span>');
             }
             function restoreUI() {
-                $('button.openzip-button').removeClass('diosabled').prop('disabled', false);
+                $('button.openzip-button').removeClass('disabled').prop('disabled', false);
             }
             function showSuccess() {
                 showProgress('<span class="green"> SUCCESS.  The data in the zip file has been loaded.  You may click the "App" or "Edit" tabs now.  </span>');

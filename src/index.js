@@ -795,7 +795,7 @@ export class App {
         }
         function restoreUI(){
             ($('button.openzip-button')
-             .removeClass('diosabled')
+             .removeClass('disabled')
              .prop('disabled',false)
             );
         }
