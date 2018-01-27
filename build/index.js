@@ -324,7 +324,7 @@ var App = exports.App = function () {
         key: "chooseRun",
         value: function chooseRun(n) {
             var app = this;
-            app.chosenRun = n;
+            app.chosenRun = +n;
         }
     }, {
         key: "fetchChosenRun",
@@ -903,7 +903,7 @@ var App = exports.App = function () {
                 }
                 var n = +choice;
                 try {
-                    if (!(n > 0 && n < app.study.zipFiles.length)) return Promise.reject("zip file choice out of range in openZipFile:zipPromise");
+                    if (!(n >= 0 && n < app.study.zipFiles.length)) return Promise.reject("zip file choice out of range in openZipFile:zipPromise");
                 } catch (e) {
                     return Promise.reject("Error in openZipFile:zipPromise: " + e);
                 }
@@ -930,7 +930,7 @@ var App = exports.App = function () {
                     app.renderConfigSelector(); // app only shows one choice in config selector -- can reload to get back to imported list
                     app.choose(0); // configure app to use the loaded file as the current study
                     app.renderVisualSelector(); // can render the list of available visualization only once the study is chosen as current study           
-                }).then(showSuccess, showFailure);
+                }).then(showSuccess).catch(showFailure);
             }, 200);
         }
 
