@@ -324,7 +324,13 @@ var App = exports.App = function () {
         key: "chooseRun",
         value: function chooseRun(n) {
             var app = this;
-            alert("To Be Implemented...you chose " + n + " " + app.study.zipFiles[+n].name); // eslint-disable-line no-alert
+            app.chosenRun = n;
+        }
+    }, {
+        key: "fetchChosenRun",
+        value: function fetchChosenRun() {
+            var app = this;
+            app.openZip(app.chosenRun);
         }
 
         /**
@@ -357,6 +363,7 @@ var App = exports.App = function () {
                 return f.name + ': ' + (Number(f.size) / 1e6).toString().substr(0, 3) + ' MB';
             }) || []; // fails thru to empty set of options
             var selectedOption = 0;
+            app.chosenRun = 0;
             setSelectOptions({ select: select, options: options, selectedOption: selectedOption });
         }
 
@@ -851,7 +858,7 @@ var App = exports.App = function () {
 
     }, {
         key: "openZipFile",
-        value: function openZipFile() {
+        value: function openZipFile(chosenSavedRun) {
             var app = this;
             function showProgress(message) {
                 $('div.openzip-progress').append("<p>" + message + "</p>");
@@ -871,21 +878,47 @@ var App = exports.App = function () {
                 showProgress('<span class="red"> FAILURE. I could not use that zip file.  You may try again, choosing a different zip file');
                 restoreUI();
             }
+
+            /**
+             *
+             * return a promise resolving to a zip file of saved data
+             * if choice is numeric, download app.study.zipFiles[choice] from Google Drive
+             * if choice is undefined, use the first HTML5 File element with class .openzip-file
+             */
+
+            function zipPromise(choice) {
+                if (typeof choice === 'undefined') {
+                    return new Promise(function (resolve, reject) {
+                        var zipfile = $(".openzip-file")[0].files[0];
+                        var reader = new FileReader();
+                        reader.onload = function (event) {
+                            resolve(event.target.result);
+                        };
+                        reader.onerror = function (e) {
+                            reject(e);
+                        };
+                        showProgress("reading zip file from local filesystem...");
+                        reader.readAsArrayBuffer(zipfile);
+                    });
+                }
+                var n = +choice;
+                try {
+                    if (!(n > 0 && n < app.study.zipFiles.length)) return Promise.reject("zip file choice out of range in openZipFile:zipPromise");
+                } catch (e) {
+                    return Promise.reject("Error in openZipFile:zipPromise: " + e);
+                }
+                var zipFile = app.study.zipFiles[n];
+                showProgress("chosen zip file is:" + JSON.stringify(zipFile));
+                if (zipFile.size > 50 * 1000 * 1000) return Promise.reject("zip file exceeds 50 MB, will not download to browser");
+                showProgress("reading from Google Drive");
+                return app.study.folder.download(zipFile);
+            }
+
             $('div.openzip-progress').html('');
             $('button.openzip-button').prop('disabled', true).addClass("disabled");
             setTimeout(function () {
-                var zipPromise = new Promise(function (resolve, reject) {
-                    var zipfile = $(".openzip-file")[0].files[0];
-                    var reader = new FileReader();
-                    reader.onload = function (event) {
-                        resolve(event.target.result);
-                    };
-                    reader.onerror = function (e) {
-                        reject(e);
-                    };
-                    reader.readAsArrayBuffer(zipfile);
-                });
-                (0, _singleMarketRobotSimulatorOpenzip2.default)(zipPromise, app.SMRS, showProgress).then(function (data) {
+
+                (0, _singleMarketRobotSimulatorOpenzip2.default)(zipPromise(chosenSavedRun), app.SMRS, showProgress).then(function (data) {
                     if (!data.config) throw new Error("No master configuration file (config.json) was found in zip file.  Maybe this zip file is unrelated.");
                     if (!data.sims.length) throw new Error("No simulation configuration files (sim.json) in the zip file");
                     if (Array.isArray(data.config.configurations) && data.config.configurations.length !== data.sims.length) throw new Error("Missing files.  the number of configurations in config.json does not match the number of simulation directories and files I found");

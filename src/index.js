@@ -273,12 +273,12 @@ export class App {
 
     chooseRun(n){
         const app = this;
-	app.chosenRun = n;
+        app.chosenRun = n;
     }
 
     fetchChosenRun(){
-	const app = this;
-	app.openZip(app.chosenRun);
+        const app = this;
+        app.openZip(app.chosenRun);
     }
     
     /**
@@ -309,8 +309,8 @@ export class App {
                 app.study.zipFiles &&
                 app.study.zipFiles.map((f)=>(f.name+': '+((Number(f.size)/1e6).toString().substr(0,3))+' MB'))
         ) || []; // fails thru to empty set of options
-        const selectedOption = 0
-	app.chosenRun = 0;
+        const selectedOption = 0;
+        app.chosenRun = 0;
         setSelectOptions({ select, options, selectedOption });
     }
 
@@ -808,38 +808,38 @@ export class App {
             showProgress('<span class="red"> FAILURE. I could not use that zip file.  You may try again, choosing a different zip file');
             restoreUI();
         }
-	
-	/**
-	 *
-	 * return a promise resolving to a zip file of saved data
-	 * if choice is numeric, download app.study.zipFiles[choice] from Google Drive
-	 * if choice is undefined, use the first HTML5 File element with class .openzip-file
-	 */
+        
+        /**
+         *
+         * return a promise resolving to a zip file of saved data
+         * if choice is numeric, download app.study.zipFiles[choice] from Google Drive
+         * if choice is undefined, use the first HTML5 File element with class .openzip-file
+         */
 
-	function zipPromise(choice){
-	    if (typeof(choice)==='undefined'){
-		return new Promise(function(resolve, reject){
+        function zipPromise(choice){
+            if (typeof(choice)==='undefined'){
+                return new Promise(function(resolve, reject){
                     const zipfile = $(".openzip-file")[0].files[0];
                     const reader = new FileReader();
                     reader.onload = function(event){ resolve(event.target.result); };
                     reader.onerror = function(e){ reject(e); };
-		    showProgress("reading zip file from local filesystem...");
+                    showProgress("reading zip file from local filesystem...");
                     reader.readAsArrayBuffer(zipfile);
-		});
-	    }
-	    const n = +choice;
-	    try {
-		if (!( (n>0) && (n<app.study.zipFiles.length) ) )
-		    return Promise.reject("zip file choice out of range in openZipFile:zipPromise");
-	    } catch(e) { return Promise.reject("Error in openZipFile:zipPromise: "+e); }
-	    const zipFile = app.study.zipFiles[n];
-	    showProgress("chosen zip file is:"+JSON.stringify(zipFile));
-	    if (zipFile.size > (50*1000*1000))
-		return Promise.reject("zip file exceeds 50 MB, will not download to browser");
-	    showProgress("reading from Google Drive");
-	    return app.study.folder.download(zipFile);
-	}
-	
+                });
+            }
+            const n = +choice;
+            try {
+                if (!( (n>0) && (n<app.study.zipFiles.length) ) )
+                    return Promise.reject("zip file choice out of range in openZipFile:zipPromise");
+            } catch(e) { return Promise.reject("Error in openZipFile:zipPromise: "+e); }
+            const zipFile = app.study.zipFiles[n];
+            showProgress("chosen zip file is:"+JSON.stringify(zipFile));
+            if (zipFile.size > (50*1000*1000))
+                return Promise.reject("zip file exceeds 50 MB, will not download to browser");
+            showProgress("reading from Google Drive");
+            return app.study.folder.download(zipFile);
+        }
+        
         $('div.openzip-progress').html('');
         ($('button.openzip-button')
          .prop('disabled',true)
