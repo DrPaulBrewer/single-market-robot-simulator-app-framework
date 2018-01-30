@@ -171,6 +171,8 @@ var App = exports.App = function () {
                 if (app.refresh) app.refresh();
             }
             if (folder && app.renderPriorRunSelector) {
+                if (folder.name) $('.onSetStudyFolderNameUpdateValue').prop('value', folder.name);else $('.onSetStudyFolderNameUpdateValue').prop('value', '');
+                if (folder.id) $('.onSetStudyFolderIdUpdateValue').prop('value', folder.id);else $('.onSetStudyFolderIdUpdateValue').prop('value', '');
                 folder.listFiles().then(function (files) {
                     return files.filter(function (f) {
                         return f.mimeType === 'application/zip';
@@ -180,6 +182,9 @@ var App = exports.App = function () {
                 }).then(function () {
                     return app.renderPriorRunSelector();
                 });
+            } else {
+                $('.onSetStudyFolderNameUpdateValue').prop('value', '');
+                $('.onSetStudyFolderIdUpdateValue').prop('value', '');
             }
         }
 
