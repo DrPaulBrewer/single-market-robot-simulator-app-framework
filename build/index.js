@@ -615,9 +615,13 @@ var App = exports.App = function () {
             if (study) {
                 app.guessTime();
                 app.showParameters(study);
-                $('.configTitle').text(folder.name);
-                $('.currentStudyFolderModifiedTime').text(new Date(folder.modifiedTime).toString());
-                $('.currentStudyFolderDescription').text(folder.description);
+                var configTitle = folder && folder.name || study && study.name || 'UNTITLED';
+                $('.configTitle').text(configTitle);
+                var modifiedTime = folder && folder.modifiedTime;
+                var modifiedTimeStr = modifiedTime ? new Date(modifiedTime).toUTCString() : '';
+                $('.currentStudyFolderModifiedTime').text(modifiedTimeStr);
+                var description = folder && folder.description || study && study.description || '';
+                $('.currentStudyFolderDescription').text(description);
                 if (periods) {
                     $('input.periods').val(periods);
                     $('span.periods').text(periods);
