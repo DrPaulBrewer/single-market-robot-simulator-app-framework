@@ -120,6 +120,27 @@ export class App {
     setStudy({config, folder}){
         const app = this;
         app.study = { config, folder };
+        if (folder && app.renderPriorRunSelector){
+            if (folder.name)
+                $('.onSetStudyFolderNameUpdateValue').prop('value',folder.name);
+            else
+                $('.onSetStudyFolderNameUpdateValue').prop('value','');
+            if (folder.id)
+                $('.onSetStudyFolderIdUpdateValue').prop('value',folder.id);
+            else
+                $('.onSetStudyFolderIdUpdateValue').prop('value','');
+            if (typeof(folder.listFiles)==='function'){
+                (folder
+                 .listFiles()
+                 .then((files)=>(files.filter((f)=>(f.mimeType==='application/zip'))))
+                 .then((files)=>{ app.study.zipFiles = files; })
+                 .then(()=>(app.renderPriorRunSelector()))
+                );
+            }
+        } else {
+            $('.onSetStudyFolderNameUpdateValue').prop('value','');
+            $('.onSetStudyFolderIdUpdateValue').prop('value','');
+        }
         if (config){
             if (app.editor && app.initEditor){
                 app.initEditor({
@@ -130,25 +151,6 @@ export class App {
             $('#runError').html("Click >Run to run the simulation and see the new results");
             if (app.timeit) app.timeit(clone(config)); 
             if (app.refresh) app.refresh();
-        }
-        if (folder && app.renderPriorRunSelector){
-            if (folder.name)
-                $('.onSetStudyFolderNameUpdateValue').prop('value',folder.name);
-            else
-                $('.onSetStudyFolderNameUpdateValue').prop('value','');
-            if (folder.id)
-                $('.onSetStudyFolderIdUpdateValue').prop('value',folder.id);
-            else
-                $('.onSetStudyFolderIdUpdateValue').prop('value','');
-            (folder
-             .listFiles()
-             .then((files)=>(files.filter((f)=>(f.mimeType==='application/zip'))))
-             .then((files)=>{ app.study.zipFiles = files; })
-             .then(()=>(app.renderPriorRunSelector()))
-            );
-        } else {
-            $('.onSetStudyFolderNameUpdateValue').prop('value','');
-            $('.onSetStudyFolderIdUpdateValue').prop('value','');
         }
     }
 

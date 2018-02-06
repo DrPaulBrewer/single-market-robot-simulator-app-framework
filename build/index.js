@@ -159,6 +159,24 @@ var App = exports.App = function () {
 
             var app = this;
             app.study = { config: config, folder: folder };
+            if (folder && app.renderPriorRunSelector) {
+                if (folder.name) $('.onSetStudyFolderNameUpdateValue').prop('value', folder.name);else $('.onSetStudyFolderNameUpdateValue').prop('value', '');
+                if (folder.id) $('.onSetStudyFolderIdUpdateValue').prop('value', folder.id);else $('.onSetStudyFolderIdUpdateValue').prop('value', '');
+                if (typeof folder.listFiles === 'function') {
+                    folder.listFiles().then(function (files) {
+                        return files.filter(function (f) {
+                            return f.mimeType === 'application/zip';
+                        });
+                    }).then(function (files) {
+                        app.study.zipFiles = files;
+                    }).then(function () {
+                        return app.renderPriorRunSelector();
+                    });
+                }
+            } else {
+                $('.onSetStudyFolderNameUpdateValue').prop('value', '');
+                $('.onSetStudyFolderIdUpdateValue').prop('value', '');
+            }
             if (config) {
                 if (app.editor && app.initEditor) {
                     app.initEditor({
@@ -169,22 +187,6 @@ var App = exports.App = function () {
                 $('#runError').html("Click >Run to run the simulation and see the new results");
                 if (app.timeit) app.timeit((0, _clone2.default)(config));
                 if (app.refresh) app.refresh();
-            }
-            if (folder && app.renderPriorRunSelector) {
-                if (folder.name) $('.onSetStudyFolderNameUpdateValue').prop('value', folder.name);else $('.onSetStudyFolderNameUpdateValue').prop('value', '');
-                if (folder.id) $('.onSetStudyFolderIdUpdateValue').prop('value', folder.id);else $('.onSetStudyFolderIdUpdateValue').prop('value', '');
-                folder.listFiles().then(function (files) {
-                    return files.filter(function (f) {
-                        return f.mimeType === 'application/zip';
-                    });
-                }).then(function (files) {
-                    app.study.zipFiles = files;
-                }).then(function () {
-                    return app.renderPriorRunSelector();
-                });
-            } else {
-                $('.onSetStudyFolderNameUpdateValue').prop('value', '');
-                $('.onSetStudyFolderIdUpdateValue').prop('value', '');
             }
         }
 
