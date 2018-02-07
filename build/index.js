@@ -512,7 +512,7 @@ var App = exports.App = function () {
             var xfactor = +$('#xfactor').val();
             var config = app.getStudyConfig();
             if (xfactor) {
-                config.title += ' x' + xfactor;
+                config.name += ' x' + xfactor;
                 config.configurations.forEach(function (sim) {
                     sim.buyerValues = how(sim.buyerValues, xfactor);
                     sim.sellerCosts = how(sim.sellerCosts, xfactor);

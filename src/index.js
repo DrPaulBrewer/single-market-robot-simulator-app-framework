@@ -465,7 +465,7 @@ export class App {
         const xfactor = +$('#xfactor').val();
         const config = app.getStudyConfig();
         if (xfactor){
-            config.title += ' x'+xfactor;
+            config.name += ' x'+xfactor;
             config.configurations.forEach((sim)=>{
                 sim.buyerValues = how(sim.buyerValues, xfactor);
                 sim.sellerCosts = how(sim.sellerCosts, xfactor);
