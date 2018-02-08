@@ -33,11 +33,17 @@ var _singleMarketRobotSimulatorOpenzip2 = _interopRequireDefault(_singleMarketRo
 
 var _singleMarketRobotSimulatorStudy = require("single-market-robot-simulator-study");
 
+var Study = _interopRequireWildcard(_singleMarketRobotSimulatorStudy);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+// import { makeClassicSimulations, myDateStamp } from "single-market-robot-simulator-study";
 
 /**
  * Change Plotly plot title by prepending, appending, or replacing existing plot title
@@ -119,7 +125,7 @@ var App = exports.App = function () {
         key: "simulations",
         value: function simulations(studyConfig) {
             var app = this;
-            return (0, _singleMarketRobotSimulatorStudy.makeClassicSimulations)(studyConfig, app.SMRS.Simulation);
+            return Study.makeClassicSimulations(studyConfig, app.SMRS.Simulation);
         }
 
         /** 
@@ -499,10 +505,8 @@ var App = exports.App = function () {
         }
 
         /**
-         * Fetches current study and modifies it for expansion.
-         * If the number of buyers or sellers is 1, that number is unchanged.  Otherwise, multiplies the number of buyers and sellers by xfactor.
-         * .buyerValues and .sellerCosts arrays in the current study are updated using supplied function how.  " x"+factor is appended to study title. 
-         * @param {function(valuesOrCosts: number[], expansionFactor: number):number[]} how Function specifying how to modify the values and costs
+         *  Expand the number of buyers and sellers (unless the number is 1, which is preserved), expanding the array(s) of buyerValues and sellerCosts via the how function 
+         *   how should be callable like this how(buyerValueorSellerCostArray, xfactor) and return a new array of values or costs
          */
 
     }, {
@@ -511,16 +515,7 @@ var App = exports.App = function () {
             var app = this;
             var xfactor = +$('#xfactor').val();
             var config = app.getStudyConfig();
-            if (xfactor) {
-                config.name += ' x' + xfactor;
-                config.configurations.forEach(function (sim) {
-                    sim.buyerValues = how(sim.buyerValues, xfactor);
-                    sim.sellerCosts = how(sim.sellerCosts, xfactor);
-                    if (sim.numberOfBuyers > 1) sim.numberOfBuyers *= xfactor;
-                    if (sim.numberOfSellers > 1) sim.numberOfSellers *= xfactor;
-                });
-                app.setStudy({ config: config });
-            }
+            app.setStudy({ config: Study.expand(config, xfactor, how) });
         }
 
         /** Perform additional required initialization, NOT called by constructor. Sets up (1) app.behavior with jQuery.on; (2) JSON Editor in div with id editor; (3) begins reading database for saveList 
@@ -645,18 +640,7 @@ var App = exports.App = function () {
         key: "interpolate",
         value: function interpolate() {
             var app = this;
-            app.expand(function (a, n) {
-                var result = [];
-                for (var i = 0, l = a.length; i < l - 1; ++i) {
-                    for (var j = 0; j < n; ++j) {
-                        result.push((a[i] * (n - j) + a[i + 1] * j) / n);
-                    }
-                }
-                var last = a[a.length - 1];
-                for (var _j = 0; _j < n; ++_j) {
-                    result.push(last);
-                }return result;
-            });
+            app.expand(Study.expander.interpolate);
         }
 
         /**
@@ -667,15 +651,7 @@ var App = exports.App = function () {
         key: "duplicate",
         value: function duplicate() {
             var app = this;
-            app.expand(function (a, n) {
-                var result = [];
-                for (var i = 0, l = a.length; i < l; ++i) {
-                    for (var j = 0; j < n; ++j) {
-                        result.push(a[i]);
-                    }
-                }
-                return result;
-            });
+            app.expand(Study.expander.duplicate);
         }
 
         /**
@@ -845,7 +821,7 @@ var App = exports.App = function () {
                         sims: app.sims,
                         download: false }).then(function (zipBlob) {
                         folder.upload({
-                            name: (0, _singleMarketRobotSimulatorStudy.myDateStamp)() + '.zip',
+                            name: Study.myDateStamp() + '.zip',
                             blob: zipBlob,
                             onProgress: function onProgress(x) {
                                 return console.log(x);

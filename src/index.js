@@ -9,7 +9,8 @@
 import clone from "clone";
 import saveZip from "single-market-robot-simulator-savezip";
 import openZip from "single-market-robot-simulator-openzip";
-import { makeClassicSimulations, myDateStamp } from "single-market-robot-simulator-study";
+import * as Study from "single-market-robot-simulator-study";
+// import { makeClassicSimulations, myDateStamp } from "single-market-robot-simulator-study";
 
 /**
  * Change Plotly plot title by prepending, appending, or replacing existing plot title
@@ -89,7 +90,7 @@ export class App {
 
     simulations(studyConfig){
         const app = this;
-        return makeClassicSimulations(studyConfig, app.SMRS.Simulation);
+        return Study.makeClassicSimulations(studyConfig, app.SMRS.Simulation);
     }
 
     /** 
@@ -454,28 +455,15 @@ export class App {
     }
 
     /**
-     * Fetches current study and modifies it for expansion.
-     * If the number of buyers or sellers is 1, that number is unchanged.  Otherwise, multiplies the number of buyers and sellers by xfactor.
-     * .buyerValues and .sellerCosts arrays in the current study are updated using supplied function how.  " x"+factor is appended to study title. 
-     * @param {function(valuesOrCosts: number[], expansionFactor: number):number[]} how Function specifying how to modify the values and costs
+     *  Expand the number of buyers and sellers (unless the number is 1, which is preserved), expanding the array(s) of buyerValues and sellerCosts via the how function 
+     *   how should be callable like this how(buyerValueorSellerCostArray, xfactor) and return a new array of values or costs
      */
-    
+
     expand(how){
-        const app = this;
-        const xfactor = +$('#xfactor').val();
-        const config = app.getStudyConfig();
-        if (xfactor){
-            config.name += ' x'+xfactor;
-            config.configurations.forEach((sim)=>{
-                sim.buyerValues = how(sim.buyerValues, xfactor);
-                sim.sellerCosts = how(sim.sellerCosts, xfactor);
-                if (sim.numberOfBuyers>1) 
-                    sim.numberOfBuyers  *= xfactor;
-                if (sim.numberOfSellers>1)
-                    sim.numberOfSellers *= xfactor;
-            });
-            app.setStudy({config}); 
-        }
+	const app = this;
+	const xfactor = +$('#xfactor').val();
+	const config = app.getStudyConfig();
+	app.setStudy({ config: Study.expand(config, xfactor, how) });
     }
 
     /** Perform additional required initialization, NOT called by constructor. Sets up (1) app.behavior with jQuery.on; (2) JSON Editor in div with id editor; (3) begins reading database for saveList 
@@ -594,20 +582,7 @@ export class App {
 
     interpolate(){
         const app = this;
-        app.expand(
-            (a,n)=>{
-                const result = [];
-                for(let i=0,l=a.length;i<(l-1);++i){
-                    for(let j=0;j<n;++j){
-                        result.push((a[i]*(n-j)+a[i+1]*j)/n);
-                    }
-                }
-                const last = a[a.length-1];
-                for(let j=0;j<n;++j)
-                    result.push(last);
-                return result;
-            }
-        );
+        app.expand(Study.expander.interpolate);
     }
 
     /**
@@ -616,17 +591,7 @@ export class App {
 
     duplicate(){
         const app = this;
-        app.expand(
-            (a,n)=>{
-                const result = [];
-                for(let i=0,l=a.length;i<l;++i){
-                    for(let j=0;j<n;++j){
-                        result.push(a[i]);
-                    }
-                }
-                return result;
-            }
-        );
+        app.expand(Study.expander.duplicate);
     }
 
     /**
@@ -781,7 +746,7 @@ export class App {
                     download: false})
                     .then((zipBlob)=>{
                         (folder.upload({
-                            name: myDateStamp()+'.zip',
+                            name: Study.myDateStamp()+'.zip',
                             blob: zipBlob,
                             onProgress: (x)=>(console.log(x))
                         }).then((newfile)=>{
