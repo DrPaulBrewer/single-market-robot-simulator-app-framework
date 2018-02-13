@@ -253,8 +253,8 @@ export class App {
                      update:(sim)=>{
                          const elapsed = Date.now()-t0;
                          periodTimers[sim.period] = elapsed;
-                         // hack to end simulations if over 5 sec or 5 periods
-                         if ((elapsed>5000) || (sim.period>5))
+                         // hack to end simulations if over 2 sec or 5 periods
+                         if ((elapsed>2000) || (sim.period>5))
                              sim.config.periods = sim.period;
                          return sim;
                          
