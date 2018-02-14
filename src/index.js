@@ -89,7 +89,7 @@ export class App {
      */
 
     simulations(studyConfig, runnable){
-	function facadeSimulation(props){ this.config = props; }
+        function facadeSimulation(props){ this.config = props; }
         const app = this;
         return Study.makeClassicSimulations(studyConfig, (runnable)? app.SMRS.Simulation : facadeSimulation );
     }
@@ -243,29 +243,32 @@ export class App {
     
     timeit(studyConfig){
         const app = this;
-        const t0 = Date.now();
-        const periodTimers = app.periodTimers;
-        periodTimers.length = 0;
-        const sims = app.simulations(studyConfig);
-        const randomSim = new app.SMRS.Simulation(sims[Math.floor(Math.random()*sims.length)].config);
-        (randomSim
-         .run({
-            update:(sim)=>{
-                const elapsed = Date.now()-t0;
-                periodTimers[sim.period] = elapsed;
-                // hack to end simulations if over 2 sec or 5 periods
-                if ((elapsed>2000) || (sim.period>5))
-                    sim.config.periods = sim.period;
-                return sim;
-                
-            }
-         })
-         .then(
-            ()=>{
-                app.guessTime();
-            })
-         .catch((e)=>(console.log(e)))
-             );
+        // delay running timeit by 1 sec as seems to be blocking screen refresh of description, etc.
+        setTimeout(function(){
+            const t0 = Date.now();
+            const periodTimers = app.periodTimers;
+            periodTimers.length = 0;
+            const sims = app.simulations(studyConfig);
+            const randomSim = new app.SMRS.Simulation(sims[Math.floor(Math.random()*sims.length)].config);
+            (randomSim
+             .run({
+                 update:(sim)=>{
+                     const elapsed = Date.now()-t0;
+                     periodTimers[sim.period] = elapsed;
+                     // hack to end simulations if over 2 sec or 5 periods
+                     if ((elapsed>2000) || (sim.period>5))
+                         sim.config.periods = sim.period;
+                     return sim;
+                     
+                 }
+             })
+             .then(
+                 ()=>{
+                     app.guessTime();
+                 })
+             .catch((e)=>(console.log(e)))
+                 );
+        }, 1000);
     }
 
     /**

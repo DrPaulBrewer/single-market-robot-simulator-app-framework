@@ -300,24 +300,27 @@ var App = exports.App = function () {
         key: "timeit",
         value: function timeit(studyConfig) {
             var app = this;
-            var t0 = Date.now();
-            var periodTimers = app.periodTimers;
-            periodTimers.length = 0;
-            var sims = app.simulations(studyConfig);
-            var randomSim = new app.SMRS.Simulation(sims[Math.floor(Math.random() * sims.length)].config);
-            randomSim.run({
-                update: function update(sim) {
-                    var elapsed = Date.now() - t0;
-                    periodTimers[sim.period] = elapsed;
-                    // hack to end simulations if over 2 sec or 5 periods
-                    if (elapsed > 2000 || sim.period > 5) sim.config.periods = sim.period;
-                    return sim;
-                }
-            }).then(function () {
-                app.guessTime();
-            }).catch(function (e) {
-                return console.log(e);
-            });
+            // delay running timeit by 1 sec as seems to be blocking screen refresh of description, etc.
+            setTimeout(function () {
+                var t0 = Date.now();
+                var periodTimers = app.periodTimers;
+                periodTimers.length = 0;
+                var sims = app.simulations(studyConfig);
+                var randomSim = new app.SMRS.Simulation(sims[Math.floor(Math.random() * sims.length)].config);
+                randomSim.run({
+                    update: function update(sim) {
+                        var elapsed = Date.now() - t0;
+                        periodTimers[sim.period] = elapsed;
+                        // hack to end simulations if over 2 sec or 5 periods
+                        if (elapsed > 2000 || sim.period > 5) sim.config.periods = sim.period;
+                        return sim;
+                    }
+                }).then(function () {
+                    app.guessTime();
+                }).catch(function (e) {
+                    return console.log(e);
+                });
+            }, 1000);
         }
 
         /**
