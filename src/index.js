@@ -219,7 +219,7 @@ export class App {
         const l = sims.length;
         let i = 0;
         function loop(){
-            app.plotParameters(sims[i]);
+            app.plotParameters(sims[i],i);
             i += 1;
             if (i<l){
                 setTimeout(loop,100);

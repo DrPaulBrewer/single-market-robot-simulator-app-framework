@@ -272,7 +272,7 @@ var App = exports.App = function () {
             var l = sims.length;
             var i = 0;
             function loop() {
-                app.plotParameters(sims[i]);
+                app.plotParameters(sims[i], i);
                 i += 1;
                 if (i < l) {
                     setTimeout(loop, 100);
