@@ -640,8 +640,6 @@ var App = exports.App = function () {
             var periods = app.getPeriods();
             console.log("in refresh, elapsed after get study, folder, periods: " + (Date.now() - t0));
             if (study) {
-                app.guessTime();
-                console.log("in refresh, elapsed after guessTime: " + (Date.now() - t0));
                 app.showParameters(study);
                 console.log("in refresh, elapsed after app.showParameters: " + (Date.now() - t0));
                 var configTitle = folder && folder.name || study && study.name || 'UNTITLED';
