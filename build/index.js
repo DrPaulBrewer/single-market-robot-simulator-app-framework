@@ -269,13 +269,14 @@ var App = exports.App = function () {
             var app = this;
             var periodTimers = this.periodTimers;
             var periods = app.getPeriods();
+            var configurations = app.getStudyConfig().configurations;
             var l = periodTimers.length;
             var guess = 0;
             if (periods) {
                 if (l > 2) {
-                    guess = periods * (periodTimers[l - 1] - periodTimers[1]) / (l - 2) + periodTimers[1];
+                    guess = periods * configurations * (periodTimers[l - 1] - periodTimers[1]) / (l - 2) + periodTimers[1];
                 } else if (l === 2) {
-                    guess = periods * periodTimers[1];
+                    guess = periods * configurations * periodTimers[1];
                 }
                 if (guess) {
                     var seconds = Math.round(guess / 1000.0);
@@ -300,17 +301,17 @@ var App = exports.App = function () {
             var periodTimers = app.periodTimers;
             periodTimers.length = 0;
             var studyConfig2p = (0, _clone2.default)(studyConfig);
-            Promise.all(app.simulations(studyConfig2p).map(function (s) {
-                return s.run({
-                    update: function update(sim) {
-                        var elapsed = Date.now() - t0;
-                        periodTimers[sim.period] = elapsed;
-                        // hack to end simulations if over 2 sec or 5 periods
-                        if (elapsed > 2000 || sim.period > 5) sim.config.periods = sim.period;
-                        return sim;
-                    }
-                });
-            })).then(function () {
+            var sims = app.simulations(studyConfig2p);
+            var randomSim = sims[Math.floor(Math.random() * sims.length)];
+            randomSim.run({
+                update: function update(sim) {
+                    var elapsed = Date.now() - t0;
+                    periodTimers[sim.period] = elapsed;
+                    // hack to end simulations if over 2 sec or 5 periods
+                    if (elapsed > 2000 || sim.period > 5) sim.config.periods = sim.period;
+                    return sim;
+                }
+            }).then(function () {
                 app.guessTime();
             }).catch(function (e) {
                 return console.log(e);

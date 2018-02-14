@@ -216,13 +216,14 @@ export class App {
         const app = this;
         const periodTimers = this.periodTimers;
         const periods = app.getPeriods();
+        const configurations = app.getStudyConfig().configurations;
         const l = periodTimers.length;
         let guess = 0;
         if (periods){
             if (l>2){ 
-                guess = (periods*(periodTimers[l-1]-periodTimers[1])/(l-2))+periodTimers[1];
+                guess = (periods*configurations*(periodTimers[l-1]-periodTimers[1])/(l-2))+periodTimers[1];
             } else if (l===2){
-                guess = periods*periodTimers[1];
+                guess = periods*configurations*periodTimers[1];
             }
             if (guess){
                 const seconds = Math.round(guess/1000.0);
@@ -245,29 +246,24 @@ export class App {
         const periodTimers = app.periodTimers;
         periodTimers.length = 0;
         const studyConfig2p = clone(studyConfig);
-        (Promise.all(
-            (app
-             .simulations(studyConfig2p)
-             .map(
-                 (s)=>(s.run({
-                     update:(sim)=>{
-                         const elapsed = Date.now()-t0;
-                         periodTimers[sim.period] = elapsed;
-                         // hack to end simulations if over 2 sec or 5 periods
-                         if ((elapsed>2000) || (sim.period>5))
-                             sim.config.periods = sim.period;
-                         return sim;
-                         
-                     }
-                 })
-                      )
-             )
-            )
-        ).then(
+        const sims = app.simulations(studyConfig2p);
+        const randomSim = sims[Math.floor(Math.random()*sims.length)];
+        (randomSim
+         .run({
+            update:(sim)=>{
+                const elapsed = Date.now()-t0;
+                periodTimers[sim.period] = elapsed;
+                // hack to end simulations if over 2 sec or 5 periods
+                if ((elapsed>2000) || (sim.period>5))
+                    sim.config.periods = sim.period;
+                return sim;
+                
+            }
+         })
+         .then(
             ()=>{
                 app.guessTime();
-            }
-        )
+            })
          .catch((e)=>(console.log(e)))
              );
     }
@@ -460,10 +456,10 @@ export class App {
      */
 
     expand(how){
-	const app = this;
-	const xfactor = +$('#xfactor').val();
-	const config = app.getStudyConfig();
-	app.setStudy({ config: Study.expand(config, xfactor, how) });
+        const app = this;
+        const xfactor = +$('#xfactor').val();
+        const config = app.getStudyConfig();
+        app.setStudy({ config: Study.expand(config, xfactor, how) });
     }
 
     /** Perform additional required initialization, NOT called by constructor. Sets up (1) app.behavior with jQuery.on; (2) JSON Editor in div with id editor; (3) begins reading database for saveList 
