@@ -304,7 +304,7 @@ var App = exports.App = function () {
             var periodTimers = app.periodTimers;
             periodTimers.length = 0;
             var sims = app.simulations(studyConfig);
-            var randomSim = new app.SMRS.Simulation(sims[Math.floor(Math.random() * sims.length)]);
+            var randomSim = new app.SMRS.Simulation(sims[Math.floor(Math.random() * sims.length)].config);
             randomSim.run({
                 update: function update(sim) {
                     var elapsed = Date.now() - t0;

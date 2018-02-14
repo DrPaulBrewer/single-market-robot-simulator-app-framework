@@ -247,7 +247,7 @@ export class App {
         const periodTimers = app.periodTimers;
         periodTimers.length = 0;
         const sims = app.simulations(studyConfig);
-        const randomSim = new app.SMRS.Simulation(sims[Math.floor(Math.random()*sims.length)]);
+        const randomSim = new app.SMRS.Simulation(sims[Math.floor(Math.random()*sims.length)].config);
         (randomSim
          .run({
             update:(sim)=>{
