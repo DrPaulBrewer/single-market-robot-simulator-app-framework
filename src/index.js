@@ -88,9 +88,9 @@ export class App {
      * @return {Array<Object>} array of new SMRS.Simulation - each simulation will be initialized but not running
      */
 
-    simulations(studyConfig){
+    simulations(studyConfig, runnable){
         const app = this;
-        return Study.makeClassicSimulations(studyConfig, app.SMRS.Simulation);
+        return Study.makeClassicSimulations(studyConfig, (runnable)? app.SMRS.Simulation : Object );
     }
 
     /** 
@@ -245,9 +245,8 @@ export class App {
         const t0 = Date.now();
         const periodTimers = app.periodTimers;
         periodTimers.length = 0;
-        const studyConfig2p = clone(studyConfig);
-        const sims = app.simulations(studyConfig2p);
-        const randomSim = sims[Math.floor(Math.random()*sims.length)];
+        const sims = app.simulations(studyConfig);
+        const randomSim = new app.SMRS.Simulation(sims[Math.floor(Math.random()*sims.length)]);
         (randomSim
          .run({
             update:(sim)=>{
@@ -541,8 +540,8 @@ export class App {
     
     refresh(){
         const app = this;
-        const study = clone(app.getStudyConfig());
-        const folder = clone(app.getStudyFolder());
+        const study = app.getStudyConfig();
+        const folder = app.getStudyFolder();
         const periods = app.getPeriods();
         if (study){
             app.guessTime();
@@ -636,7 +635,7 @@ export class App {
         app.renderVisualSelector();
         setTimeout(()=>{
             const studyConfig = clone(app.getStudyConfig());
-            app.sims = (app.simulations(studyConfig)
+            app.sims = (app.simulations(studyConfig, true)
                          .map((s,i)=>app.runSimulation(s,i))
                         );
         }, 200);

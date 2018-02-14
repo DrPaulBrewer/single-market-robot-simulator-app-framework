@@ -123,9 +123,9 @@ var App = exports.App = function () {
 
     _createClass(App, [{
         key: "simulations",
-        value: function simulations(studyConfig) {
+        value: function simulations(studyConfig, runnable) {
             var app = this;
-            return Study.makeClassicSimulations(studyConfig, app.SMRS.Simulation);
+            return Study.makeClassicSimulations(studyConfig, runnable ? app.SMRS.Simulation : Object);
         }
 
         /** 
@@ -300,9 +300,8 @@ var App = exports.App = function () {
             var t0 = Date.now();
             var periodTimers = app.periodTimers;
             periodTimers.length = 0;
-            var studyConfig2p = (0, _clone2.default)(studyConfig);
-            var sims = app.simulations(studyConfig2p);
-            var randomSim = sims[Math.floor(Math.random() * sims.length)];
+            var sims = app.simulations(studyConfig);
+            var randomSim = new app.SMRS.Simulation(sims[Math.floor(Math.random() * sims.length)]);
             randomSim.run({
                 update: function update(sim) {
                     var elapsed = Date.now() - t0;
@@ -607,8 +606,8 @@ var App = exports.App = function () {
         key: "refresh",
         value: function refresh() {
             var app = this;
-            var study = (0, _clone2.default)(app.getStudyConfig());
-            var folder = (0, _clone2.default)(app.getStudyFolder());
+            var study = app.getStudyConfig();
+            var folder = app.getStudyFolder();
             var periods = app.getPeriods();
             if (study) {
                 app.guessTime();
@@ -706,7 +705,7 @@ var App = exports.App = function () {
             app.renderVisualSelector();
             setTimeout(function () {
                 var studyConfig = (0, _clone2.default)(app.getStudyConfig());
-                app.sims = app.simulations(studyConfig).map(function (s, i) {
+                app.sims = app.simulations(studyConfig, true).map(function (s, i) {
                     return app.runSimulation(s, i);
                 });
             }, 200);
