@@ -121,6 +121,8 @@ export class App {
 
     setStudy({config, folder}){
         const app = this;
+	const t0 = Date.now();
+	console.log("called setStudy at "+t0);
         app.study = { config, folder };
         if (folder && app.renderPriorRunSelector){
             if (folder.name)
@@ -143,6 +145,7 @@ export class App {
             $('.onSetStudyFolderNameUpdateValue').prop('value','');
             $('.onSetStudyFolderIdUpdateValue').prop('value','');
         }
+	console.log("finished setStudy folder portion, elapsed = "+(Date.now()-t0));
         if (config){
             if (app.editor && app.initEditor){
                 app.initEditor({
@@ -154,6 +157,8 @@ export class App {
             if (app.timeit) app.timeit(clone(config)); 
             if (app.refresh) app.refresh();
         }
+	const elapsed = Date.now()-t0;
+	console.log("finish setConfig, elapsed = "+elapsed);
     }
 
     /**
@@ -278,6 +283,7 @@ export class App {
     
     choose(n){
         const app = this;
+	console.log("chose at "+Date.now());
         if (Array.isArray(app.availableStudyFolders)){
             app.chosenStudyIndex = Math.max(0, Math.min(Math.floor(n),app.availableStudyFolders.length-1));
             app.availableStudyFolders[app.chosenStudyIndex].getConfig().then((choice)=>(app.setStudy(choice)));

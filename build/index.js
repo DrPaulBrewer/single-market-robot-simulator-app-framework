@@ -167,6 +167,8 @@ var App = exports.App = function () {
                 folder = _ref2.folder;
 
             var app = this;
+            var t0 = Date.now();
+            console.log("called setStudy at " + t0);
             app.study = { config: config, folder: folder };
             if (folder && app.renderPriorRunSelector) {
                 if (folder.name) $('.onSetStudyFolderNameUpdateValue').prop('value', folder.name);else $('.onSetStudyFolderNameUpdateValue').prop('value', '');
@@ -186,6 +188,7 @@ var App = exports.App = function () {
                 $('.onSetStudyFolderNameUpdateValue').prop('value', '');
                 $('.onSetStudyFolderIdUpdateValue').prop('value', '');
             }
+            console.log("finished setStudy folder portion, elapsed = " + (Date.now() - t0));
             if (config) {
                 if (app.editor && app.initEditor) {
                     app.initEditor({
@@ -197,6 +200,8 @@ var App = exports.App = function () {
                 if (app.timeit) app.timeit((0, _clone2.default)(config));
                 if (app.refresh) app.refresh();
             }
+            var elapsed = Date.now() - t0;
+            console.log("finish setConfig, elapsed = " + elapsed);
         }
 
         /**
@@ -332,6 +337,7 @@ var App = exports.App = function () {
         key: "choose",
         value: function choose(n) {
             var app = this;
+            console.log("chose at " + Date.now());
             if (Array.isArray(app.availableStudyFolders)) {
                 app.chosenStudyIndex = Math.max(0, Math.min(Math.floor(n), app.availableStudyFolders.length - 1));
                 app.availableStudyFolders[app.chosenStudyIndex].getConfig().then(function (choice) {
