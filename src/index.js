@@ -207,16 +207,25 @@ export class App {
     }
 
     /**
-     * Clears all class .paramPlot UI elements and plots all parameters of simulations in a study. Calls app.simulations and app.plotParameters
+     * Clears all class .paramPlot UI elements and plots all parameters of simulations in a study. Calls app.simulations and app.plotParameters.
+     * completes updates to UI asynchronously, with 100ms pause between plots.
      * @param {Object} conf A study configuration compatible with app.simulations()
      */
 
     showParameters(conf){
         const app = this;
         $('.paramPlot').html("");
-        (app.simulations(conf)
-         .forEach((sim,slot)=>(app.plotParameters(sim,slot)))
-        );
+        const sims = app.simulations(conf);
+        const l = sims.length;
+        let i = 0;
+        function loop(){
+            app.plotParameters(sims[i]);
+            i += 1;
+            if (i<l){
+                setTimeout(loop,100);
+            }
+        }
+        setTimeout(loop,100);
     }
 
     /**

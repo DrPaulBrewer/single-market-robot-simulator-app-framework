@@ -258,7 +258,8 @@ var App = exports.App = function () {
         }
 
         /**
-         * Clears all class .paramPlot UI elements and plots all parameters of simulations in a study. Calls app.simulations and app.plotParameters
+         * Clears all class .paramPlot UI elements and plots all parameters of simulations in a study. Calls app.simulations and app.plotParameters.
+         * completes updates to UI asynchronously, with 100ms pause between plots.
          * @param {Object} conf A study configuration compatible with app.simulations()
          */
 
@@ -267,9 +268,17 @@ var App = exports.App = function () {
         value: function showParameters(conf) {
             var app = this;
             $('.paramPlot').html("");
-            app.simulations(conf).forEach(function (sim, slot) {
-                return app.plotParameters(sim, slot);
-            });
+            var sims = app.simulations(conf);
+            var l = sims.length;
+            var i = 0;
+            function loop() {
+                app.plotParameters(sims[i]);
+                i += 1;
+                if (i < l) {
+                    setTimeout(loop, 100);
+                }
+            }
+            setTimeout(loop, 100);
         }
 
         /**
