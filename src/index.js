@@ -89,8 +89,9 @@ export class App {
      */
 
     simulations(studyConfig, runnable){
+	function facadeSimulation(props){ this.config = props; }
         const app = this;
-        return Study.makeClassicSimulations(studyConfig, (runnable)? app.SMRS.Simulation : Object );
+        return Study.makeClassicSimulations(studyConfig, (runnable)? app.SMRS.Simulation : facadeSimulation );
     }
 
     /** 

@@ -124,8 +124,11 @@ var App = exports.App = function () {
     _createClass(App, [{
         key: "simulations",
         value: function simulations(studyConfig, runnable) {
+            function facadeSimulation(props) {
+                this.config = props;
+            }
             var app = this;
-            return Study.makeClassicSimulations(studyConfig, runnable ? app.SMRS.Simulation : Object);
+            return Study.makeClassicSimulations(studyConfig, runnable ? app.SMRS.Simulation : facadeSimulation);
         }
 
         /** 
