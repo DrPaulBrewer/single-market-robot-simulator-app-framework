@@ -121,8 +121,24 @@ export class App {
 
     setStudy({config, folder}){
         const app = this;
-	const t0 = Date.now();
-	console.log("called setStudy at "+t0);
+        function updateSavedListTask(){
+            (folder
+             .listFiles()
+             .then((files)=>(files.filter((f)=>(f.mimeType==='application/zip'))))
+             .then((files)=>{ app.study.zipFiles = files; })
+             .then(()=>(app.renderPriorRunSelector()))
+            );
+        }
+        function updateEditorTask(){
+            if (app.editor && app.initEditor){
+                app.initEditor({
+                    config: clone(config),
+                    schema: app.editorConfigSchema
+                });
+            }
+        }
+        const t0 = Date.now();
+        console.log("called setStudy at "+t0);
         app.study = { config, folder };
         if (folder && app.renderPriorRunSelector){
             if (folder.name)
@@ -134,31 +150,21 @@ export class App {
             else
                 $('.onSetStudyFolderIdUpdateValue').prop('value','');
             if (typeof(folder.listFiles)==='function'){
-                (folder
-                 .listFiles()
-                 .then((files)=>(files.filter((f)=>(f.mimeType==='application/zip'))))
-                 .then((files)=>{ app.study.zipFiles = files; })
-                 .then(()=>(app.renderPriorRunSelector()))
-                );
+                setTimeout(updateSavedListTask, 1000);
             }
         } else {
             $('.onSetStudyFolderNameUpdateValue').prop('value','');
             $('.onSetStudyFolderIdUpdateValue').prop('value','');
         }
-	console.log("finished setStudy folder portion, elapsed = "+(Date.now()-t0));
+        console.log("finished setStudy folder portion, elapsed = "+(Date.now()-t0));
         if (config){
-            if (app.editor && app.initEditor){
-                app.initEditor({
-                    config: clone(config),
-                    schema: app.editorConfigSchema
-                });
-            }
+            setTimeout(updateEditorTask, 1000);
             $('#runError').html("Click >Run to run the simulation and see the new results");
             if (app.timeit) app.timeit(clone(config)); 
             if (app.refresh) app.refresh();
         }
-	const elapsed = Date.now()-t0;
-	console.log("finish setConfig, elapsed = "+elapsed);
+        const elapsed = Date.now()-t0;
+        console.log("finish setConfig, elapsed = "+elapsed);
     }
 
     /**
@@ -283,7 +289,7 @@ export class App {
     
     choose(n){
         const app = this;
-	console.log("chose at "+Date.now());
+        console.log("chose at "+Date.now());
         if (Array.isArray(app.availableStudyFolders)){
             app.chosenStudyIndex = Math.max(0, Math.min(Math.floor(n),app.availableStudyFolders.length-1));
             app.availableStudyFolders[app.chosenStudyIndex].getConfig().then((choice)=>(app.setStudy(choice)));
@@ -550,12 +556,17 @@ export class App {
     
     refresh(){
         const app = this;
+        const t0 = Date.now();
+        console.log("refresh started at: "+t0);
         const study = app.getStudyConfig();
         const folder = app.getStudyFolder();
         const periods = app.getPeriods();
+        console.log("in refresh, elapsed after get study, folder, periods: "+(Date.now()-t0));
         if (study){
             app.guessTime();
+            console.log("in refresh, elapsed after guessTime: "+(Date.now()-t0));
             app.showParameters(study);
+            console.log("in refresh, elapsed after app.showParameters: "+(Date.now()-t0));
             const configTitle = (folder && folder.name) || (study && study.name) || 'UNTITLED';
             $('.configTitle').text(configTitle);
             const modifiedTime = folder && folder.modifiedTime;
@@ -567,7 +578,9 @@ export class App {
                 $('input.periods').val(periods);
                 $('span.periods').text(periods);
             }
+            console.log("in refresh, elapsed after setting title, modtime, description, periods: "+(Date.now()-t0));
             const sims = app.simulations(study);
+            console.log("in refresh, elapsed after creating sims for xsimbs table: "+(Date.now()-t0));
             $('#xsimbs').html(
                 "<tr>"+(sims
                         .map(
@@ -577,7 +590,9 @@ export class App {
                             })
                         .join('</tr><tr>')
                        )+"</tr>");
+            console.log("in refresh, elapsed after creating xsimbs table: "+(Date.now()-t0));
             app.plotParameters(sims[0], "ScaleUp");
+            console.log("in refresh, elapsed after plotting supply/demand in xsimbs, finished all refresh: "+(Date.now()-t0));
         }
     }
 
