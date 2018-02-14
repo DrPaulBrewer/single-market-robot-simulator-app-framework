@@ -233,9 +233,10 @@ var App = exports.App = function () {
         value: function setPeriods(n) {
             var app = this;
             var config = app.getStudyConfig();
-            if (config && config.common && +n > 0 && +n <= 200) {
+            if (config && config.common && +n > 0) {
                 config.common.periods = +n;
-                app.refresh();
+                app.showPeriods(n);
+                app.timeit((0, _clone2.default)(config));
             }
         }
 
@@ -290,9 +291,9 @@ var App = exports.App = function () {
         key: "guessTime",
         value: function guessTime() {
             var app = this;
-            var periodTimers = this.periodTimers;
+            var periodTimers = app.periodTimers;
             var periods = app.getPeriods();
-            var configurations = app.getStudyConfig().configurations;
+            var configurations = app.getStudyConfig().configurations.length;
             var l = periodTimers.length;
             var guess = 0;
             if (periods) {
@@ -615,14 +616,18 @@ var App = exports.App = function () {
         }
 
         /**
-         * updates running time estimate in span.estimated-running-time , using the current study
+         * show the number of periods as indicated
+         *
+         * @param {number} number of periods to indicate
+         * @return {number} the same number passed
          */
 
     }, {
-        key: "estimateTime",
-        value: function estimateTime() {
-            var app = this;
-            app.timeit((0, _clone2.default)(app.getStudyConfig()));
+        key: "showPeriods",
+        value: function showPeriods(periods) {
+            $('input.periods').val(periods);
+            $('span.periods').text(periods);
+            return periods;
         }
 
         /**
@@ -638,6 +643,7 @@ var App = exports.App = function () {
             var study = app.getStudyConfig();
             var folder = app.getStudyFolder();
             var periods = app.getPeriods();
+            app.showPeriods(periods);
             console.log("in refresh, elapsed after get study, folder, periods: " + (Date.now() - t0));
             if (study) {
                 app.showParameters(study);
@@ -649,10 +655,6 @@ var App = exports.App = function () {
                 $('.currentStudyFolderModifiedTime').text(modifiedTimeStr);
                 var description = folder && folder.description || study && study.description || '';
                 $('.currentStudyFolderDescription').text(description);
-                if (periods) {
-                    $('input.periods').val(periods);
-                    $('span.periods').text(periods);
-                }
                 console.log("in refresh, elapsed after setting title, modtime, description, periods: " + (Date.now() - t0));
                 var sims = app.simulations(study);
                 console.log("in refresh, elapsed after creating sims for xsimbs table: " + (Date.now() - t0));

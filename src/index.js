@@ -186,9 +186,10 @@ export class App {
     setPeriods(n){
         const app = this;
         const config = app.getStudyConfig();
-        if (config && config.common && (+n>0) && (+n <= 200)) {
+        if (config && config.common && (+n>0)) {
             config.common.periods = +n;
-            app.refresh();
+            app.showPeriods(n);
+            app.timeit(clone(config));
         }
     }
     
@@ -235,9 +236,9 @@ export class App {
     
     guessTime(){
         const app = this;
-        const periodTimers = this.periodTimers;
+        const periodTimers = app.periodTimers;
         const periods = app.getPeriods();
-        const configurations = app.getStudyConfig().configurations;
+        const configurations = app.getStudyConfig().configurations.length;
         const l = periodTimers.length;
         let guess = 0;
         if (periods){
@@ -245,7 +246,7 @@ export class App {
                 guess = (periods*configurations*(periodTimers[l-1]-periodTimers[1])/(l-2))+periodTimers[1];
             } else if (l===2){
                 guess = periods*configurations*periodTimers[1];
-            }
+            } 
             if (guess){
                 const seconds = Math.round(guess/1000.0);
                 const minutes = Math.ceil(seconds/60);
@@ -549,15 +550,20 @@ export class App {
              })
                  );
     }
-        
+
     /**
-     * updates running time estimate in span.estimated-running-time , using the current study
+     * show the number of periods as indicated
+     *
+     * @param {number} number of periods to indicate
+     * @return {number} the same number passed
      */
-    
-    estimateTime(){
-        const app = this;
-        app.timeit(clone(app.getStudyConfig()));
+
+    showPeriods(periods){
+        $('input.periods').val(periods);
+        $('span.periods').text(periods);            
+        return periods;
     }
+    
     
     /**
      * refreshes a number of UI elements
@@ -570,6 +576,7 @@ export class App {
         const study = app.getStudyConfig();
         const folder = app.getStudyFolder();
         const periods = app.getPeriods();
+        app.showPeriods(periods);
         console.log("in refresh, elapsed after get study, folder, periods: "+(Date.now()-t0));
         if (study){
             app.showParameters(study);
@@ -581,10 +588,6 @@ export class App {
             $('.currentStudyFolderModifiedTime').text(modifiedTimeStr);
             const description = (folder && folder.description) || (study && study.description) || '';
             $('.currentStudyFolderDescription').text(description);
-            if (periods){
-                $('input.periods').val(periods);
-                $('span.periods').text(periods);
-            }
             console.log("in refresh, elapsed after setting title, modtime, description, periods: "+(Date.now()-t0));
             const sims = app.simulations(study);
             console.log("in refresh, elapsed after creating sims for xsimbs table: "+(Date.now()-t0));
