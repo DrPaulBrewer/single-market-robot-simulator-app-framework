@@ -43,8 +43,6 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-// import { makeClassicSimulations, myDateStamp } from "single-market-robot-simulator-study";
-
 /**
  * Change Plotly plot title by prepending, appending, or replacing existing plot title
  * @param {Array<Object>} plotParams The plot to be modified -- a two element Array of [PlotlyTraces, PlotlyLayout]
@@ -199,12 +197,18 @@ var App = exports.App = function () {
                 $('.onSetStudyFolderNameUpdateValue').prop('value', '');
                 $('.onSetStudyFolderIdUpdateValue').prop('value', '');
             }
-            console.log("finished setStudy folder portion, elapsed = " + (Date.now() - t0));
+            var configTitle = folder && folder.name || config && config.name || 'UNTITLED';
+            $('.configTitle').text(configTitle);
+            var modifiedTime = folder && folder.modifiedTime;
+            var modifiedTimeStr = modifiedTime ? new Date(modifiedTime).toUTCString() : '';
+            $('.currentStudyFolderModifiedTime').text(modifiedTimeStr);
+            var description = folder && folder.description || config && config.description || '';
+            $('.currentStudyFolderDescription').text(description);
             if (config) {
                 setTimeout(updateEditorTask, 1000);
                 $('#runError').html("Click >Run to run the simulation and see the new results");
                 if (app.timeit) app.timeit((0, _clone2.default)(config));
-                if (app.refresh) app.refresh();
+                if (config && config.configurations && config.configurations.length <= 4) app.refresh();
             }
             var elapsed = Date.now() - t0;
             console.log("finish setConfig, elapsed = " + elapsed);
@@ -353,7 +357,7 @@ var App = exports.App = function () {
         key: "choose",
         value: function choose(n) {
             var app = this;
-            console.log("chose at " + Date.now());
+            console.log("chose " + n + " at " + Date.now());
             if (Array.isArray(app.availableStudyFolders)) {
                 app.chosenStudyIndex = Math.max(0, Math.min(Math.floor(n), app.availableStudyFolders.length - 1));
                 app.availableStudyFolders[app.chosenStudyIndex].getConfig().then(function (choice) {
@@ -641,21 +645,12 @@ var App = exports.App = function () {
             var t0 = Date.now();
             console.log("refresh started at: " + t0);
             var study = app.getStudyConfig();
-            var folder = app.getStudyFolder();
             var periods = app.getPeriods();
             app.showPeriods(periods);
             console.log("in refresh, elapsed after get study, folder, periods: " + (Date.now() - t0));
             if (study) {
                 app.showParameters(study);
                 console.log("in refresh, elapsed after app.showParameters: " + (Date.now() - t0));
-                var configTitle = folder && folder.name || study && study.name || 'UNTITLED';
-                $('.configTitle').text(configTitle);
-                var modifiedTime = folder && folder.modifiedTime;
-                var modifiedTimeStr = modifiedTime ? new Date(modifiedTime).toUTCString() : '';
-                $('.currentStudyFolderModifiedTime').text(modifiedTimeStr);
-                var description = folder && folder.description || study && study.description || '';
-                $('.currentStudyFolderDescription').text(description);
-                console.log("in refresh, elapsed after setting title, modtime, description, periods: " + (Date.now() - t0));
                 var sims = app.simulations(study);
                 console.log("in refresh, elapsed after creating sims for xsimbs table: " + (Date.now() - t0));
                 $('#xsimbs').html("<tr>" + sims.map(function (sim, j) {
