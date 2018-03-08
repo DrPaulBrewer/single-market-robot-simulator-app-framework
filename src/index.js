@@ -149,7 +149,7 @@ export class App {
             else
                 $('.onSetStudyFolderIdUpdateValue').prop('value','');
             if (typeof(folder.listFiles)==='function'){
-                setTimeout(updateSavedListTask, 1000);
+                setTimeout(updateSavedListTask, 200);
             }
         } else {
             $('.onSetStudyFolderNameUpdateValue').prop('value','');
@@ -163,7 +163,7 @@ export class App {
         const description = (folder && folder.description) || (config && config.description) || '';
         $('.currentStudyFolderDescription').text(description);
         if (config){
-            setTimeout(updateEditorTask, 1000);
+            setTimeout(updateEditorTask, 200);
             $('#runError').html("Click >Run to run the simulation and see the new results");
             if (app.timeit) app.timeit(clone(config));
             if (config && config.configurations && (config.configurations.length<=4))
@@ -520,6 +520,18 @@ export class App {
         });
         $('.postrun').prop('disabled',true);
     }
+
+    createJSONEditor({div, clear, options}){
+	const editorElement = document.getElementById(div);
+	if (editorElement && window.JSONEditor){
+	    if (clear){
+		while (editorElement.firstChild){
+                    editorElement.removeChild(editorElement.firstChild);
+		}
+	    }
+	    return window.JSONEditor(editorElement, options);
+	}
+    }
                    
     initEditor({config, schema}){
         const app = this;
@@ -527,17 +539,15 @@ export class App {
             throw new Error("config must be an object, instead got: "+typeof(config));
         if (typeof(schema)!=='object')
             throw new Error("schema must be an object, instead got: "+typeof(schema));
-        let editorElement = document.getElementById('editor');
-        if (editorElement && window.JSONEditor ){
-            while (editorElement.firstChild){
-                editorElement.removeChild(editorElement.firstChild);
-            }
-            let editorOptions = {
-                schema,
-                startval: config
-            };
-            app.editor = new window.JSONEditor(editorElement, editorOptions);
-        }
+	const editorOptions = {
+            schema,
+            startval: config
+        };
+	app.editor = app.createJSONEditor({
+	    div: 'editor',
+	    clear: true,
+	    options: editorOptions
+	});
     }
 
     initDB(){
@@ -555,6 +565,48 @@ export class App {
                  console.log("app-framework initDB() Error accessing simulation configuration database:"+e);
              })
                  );
+    }
+
+    /** 
+     * renderMorph
+     * setup UI for Morph after tab click
+     */
+
+    renderMorphEditor(){
+	if (app.editor){
+	    const config = app.editor.getValue();
+	    const l = config && config.configurations && config.configurations.length;
+	    if (!l || (l<2))
+		throw new Error("app.renderMorph morph requires at least 2 configurations");
+	    if (!(Study.isMorphable(A,B)))
+		throw new Error("app.renderMorph morph requires configurations that pass Study.isMorphable");
+	    const A = config.configurations[0];
+	    const B = config.configurations[l-1];
+	    const schema = Study.morphSchema(A,B);
+	    const startval = schema.default;
+	    app.morphEditor = app.createJSONEditor({
+		div: 'morphEditor',
+		clear: true,
+		options: {
+		    schema,
+		    startval
+		}
+	    });
+	}
+    }
+
+    /**
+     * morphs the edited configuration and stuffs it back in the editor
+     */
+
+    doMorph(){
+	if (app.editor && app.morphEditor){
+	    const config = app.editor.getValue();
+	    const morphConfig = app.morphEditor.getValue();
+	    const morphed = Study.morph(config, morphConfig);
+	    app.editor.setValue(morphed);
+	    $('#editLink').click(); // send user to Editor tab to rename/edit/save
+	}
     }
 
     /**
