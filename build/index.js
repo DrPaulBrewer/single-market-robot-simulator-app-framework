@@ -191,7 +191,7 @@ var App = exports.App = function () {
                 if (folder.name) $('.onSetStudyFolderNameUpdateValue').prop('value', folder.name);else $('.onSetStudyFolderNameUpdateValue').prop('value', '');
                 if (folder.id) $('.onSetStudyFolderIdUpdateValue').prop('value', folder.id);else $('.onSetStudyFolderIdUpdateValue').prop('value', '');
                 if (typeof folder.listFiles === 'function') {
-                    setTimeout(updateSavedListTask, 1000);
+                    setTimeout(updateSavedListTask, 200);
                 }
             } else {
                 $('.onSetStudyFolderNameUpdateValue').prop('value', '');
@@ -205,7 +205,7 @@ var App = exports.App = function () {
             var description = folder && folder.description || config && config.description || '';
             $('.currentStudyFolderDescription').text(description);
             if (config) {
-                setTimeout(updateEditorTask, 1000);
+                setTimeout(updateEditorTask, 200);
                 $('#runError').html("Click >Run to run the simulation and see the new results");
                 if (app.timeit) app.timeit((0, _clone2.default)(config));
                 if (config && config.configurations && config.configurations.length <= 4) app.refresh();
@@ -584,25 +584,40 @@ var App = exports.App = function () {
             $('.postrun').prop('disabled', true);
         }
     }, {
+        key: "createJSONEditor",
+        value: function createJSONEditor(_ref3) {
+            var div = _ref3.div,
+                clear = _ref3.clear,
+                options = _ref3.options;
+
+            var editorElement = document.getElementById(div);
+            if (editorElement && window.JSONEditor) {
+                if (clear) {
+                    while (editorElement.firstChild) {
+                        editorElement.removeChild(editorElement.firstChild);
+                    }
+                }
+                return new window.JSONEditor(editorElement, options);
+            }
+        }
+    }, {
         key: "initEditor",
-        value: function initEditor(_ref3) {
-            var config = _ref3.config,
-                schema = _ref3.schema;
+        value: function initEditor(_ref4) {
+            var config = _ref4.config,
+                schema = _ref4.schema;
 
             var app = this;
             if ((typeof config === "undefined" ? "undefined" : _typeof(config)) !== 'object') throw new Error("config must be an object, instead got: " + (typeof config === "undefined" ? "undefined" : _typeof(config)));
             if ((typeof schema === "undefined" ? "undefined" : _typeof(schema)) !== 'object') throw new Error("schema must be an object, instead got: " + (typeof schema === "undefined" ? "undefined" : _typeof(schema)));
-            var editorElement = document.getElementById('editor');
-            if (editorElement && window.JSONEditor) {
-                while (editorElement.firstChild) {
-                    editorElement.removeChild(editorElement.firstChild);
-                }
-                var editorOptions = {
-                    schema: schema,
-                    startval: config
-                };
-                app.editor = new window.JSONEditor(editorElement, editorOptions);
-            }
+            var editorOptions = {
+                schema: schema,
+                startval: config
+            };
+            app.editor = app.createJSONEditor({
+                div: 'editor',
+                clear: true,
+                options: editorOptions
+            });
         }
     }, {
         key: "initDB",
@@ -617,6 +632,52 @@ var App = exports.App = function () {
             }).catch(function (e) {
                 console.log("app-framework initDB() Error accessing simulation configuration database:" + e);
             });
+        }
+
+        /** 
+         * renderMorph
+         * setup UI for Morph after tab click
+         */
+
+    }, {
+        key: "renderMorphEditor",
+        value: function renderMorphEditor() {
+            var app = this;
+            if (app.editor) {
+                var config = app.editor.getValue();
+                var l = config && config.configurations && config.configurations.length;
+                if (!l || l < 2) throw new Error("app.renderMorph morph requires at least 2 configurations");
+                var A = config.configurations[0];
+                var B = config.configurations[l - 1];
+                if (!Study.isMorphable(A, B)) throw new Error("app.renderMorph morph requires configurations that pass Study.isMorphable");
+                var schema = Study.morphSchema(A, B);
+                var startval = schema.default;
+                app.morphEditor = app.createJSONEditor({
+                    div: 'morphEditor',
+                    clear: true,
+                    options: {
+                        schema: schema,
+                        startval: startval
+                    }
+                });
+            }
+        }
+
+        /**
+         * morphs the edited configuration and stuffs it back in the editor
+         */
+
+    }, {
+        key: "doMorph",
+        value: function doMorph() {
+            var app = this;
+            if (app.editor && app.morphEditor) {
+                var config = app.editor.getValue();
+                var morphConfig = app.morphEditor.getValue();
+                var morphed = Study.morph(config, morphConfig);
+                app.editor.setValue(morphed);
+                $('#editLink').click(); // send user to Editor tab to rename/edit/save
+            }
         }
 
         /**

@@ -522,15 +522,15 @@ export class App {
     }
 
     createJSONEditor({div, clear, options}){
-	const editorElement = document.getElementById(div);
-	if (editorElement && window.JSONEditor){
-	    if (clear){
-		while (editorElement.firstChild){
+        const editorElement = document.getElementById(div);
+        if (editorElement && window.JSONEditor){
+            if (clear){
+                while (editorElement.firstChild){
                     editorElement.removeChild(editorElement.firstChild);
-		}
-	    }
-	    return window.JSONEditor(editorElement, options);
-	}
+                }
+            }
+            return new window.JSONEditor(editorElement, options);
+        }
     }
                    
     initEditor({config, schema}){
@@ -539,15 +539,15 @@ export class App {
             throw new Error("config must be an object, instead got: "+typeof(config));
         if (typeof(schema)!=='object')
             throw new Error("schema must be an object, instead got: "+typeof(schema));
-	const editorOptions = {
+        const editorOptions = {
             schema,
             startval: config
         };
-	app.editor = app.createJSONEditor({
-	    div: 'editor',
-	    clear: true,
-	    options: editorOptions
-	});
+        app.editor = app.createJSONEditor({
+            div: 'editor',
+            clear: true,
+            options: editorOptions
+        });
     }
 
     initDB(){
@@ -573,26 +573,27 @@ export class App {
      */
 
     renderMorphEditor(){
-	if (app.editor){
-	    const config = app.editor.getValue();
-	    const l = config && config.configurations && config.configurations.length;
-	    if (!l || (l<2))
-		throw new Error("app.renderMorph morph requires at least 2 configurations");
-	    if (!(Study.isMorphable(A,B)))
-		throw new Error("app.renderMorph morph requires configurations that pass Study.isMorphable");
-	    const A = config.configurations[0];
-	    const B = config.configurations[l-1];
-	    const schema = Study.morphSchema(A,B);
-	    const startval = schema.default;
-	    app.morphEditor = app.createJSONEditor({
-		div: 'morphEditor',
-		clear: true,
-		options: {
-		    schema,
-		    startval
-		}
-	    });
-	}
+        const app = this;
+        if (app.editor){
+            const config = app.editor.getValue();
+            const l = config && config.configurations && config.configurations.length;
+            if (!l || (l<2))
+                throw new Error("app.renderMorph morph requires at least 2 configurations");
+            const A = config.configurations[0];
+            const B = config.configurations[l-1];
+            if (!(Study.isMorphable(A,B)))
+                throw new Error("app.renderMorph morph requires configurations that pass Study.isMorphable");
+            const schema = Study.morphSchema(A,B);
+            const startval = schema.default;
+            app.morphEditor = app.createJSONEditor({
+                div: 'morphEditor',
+                clear: true,
+                options: {
+                    schema,
+                    startval
+                }
+            });
+        }
     }
 
     /**
@@ -600,13 +601,14 @@ export class App {
      */
 
     doMorph(){
-	if (app.editor && app.morphEditor){
-	    const config = app.editor.getValue();
-	    const morphConfig = app.morphEditor.getValue();
-	    const morphed = Study.morph(config, morphConfig);
-	    app.editor.setValue(morphed);
-	    $('#editLink').click(); // send user to Editor tab to rename/edit/save
-	}
+        const app = this;
+        if (app.editor && app.morphEditor){
+            const config = app.editor.getValue();
+            const morphConfig = app.morphEditor.getValue();
+            const morphed = Study.morph(config, morphConfig);
+            app.editor.setValue(morphed);
+            $('#editLink').click(); // send user to Editor tab to rename/edit/save
+        }
     }
 
     /**
