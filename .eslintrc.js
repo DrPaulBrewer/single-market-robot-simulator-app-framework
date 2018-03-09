@@ -31,7 +31,7 @@ module.exports = {
         "comma-dangle": "error",
         "comma-spacing": "off",
         "comma-style": "error",
-        "complexity": "error",
+        "complexity": "off",
         "computed-property-spacing": [
             "error",
             "never"
