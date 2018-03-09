@@ -334,7 +334,7 @@ var App = exports.App = function () {
         var periodTimers = app.periodTimers;
         periodTimers.length = 0;
         var randomSim = app.simulations(studyConfig, app.SMRS.Simulation, [Math.floor(Math.random() * studyConfig.configurations.length)])[0];
-        var agents = randomSim.numberOfBuyers + randomSim.numberOfSellers;
+        var agents = randomSim.config.numberOfBuyers + randomSim.config.numberOfSellers;
         if (agents > 200) return;
         randomSim.run({
           update: function update(sim) {

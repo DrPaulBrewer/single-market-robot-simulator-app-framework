@@ -279,7 +279,7 @@ export class App {
       const periodTimers = app.periodTimers;
       periodTimers.length = 0;
       const randomSim = app.simulations(studyConfig, app.SMRS.Simulation, [Math.floor(Math.random()*studyConfig.configurations.length)])[0];
-      const agents = randomSim.numberOfBuyers+randomSim.numberOfSellers;
+      const agents = randomSim.config.numberOfBuyers+randomSim.config.numberOfSellers;
       if (agents>200) return;
       (randomSim
         .run({
