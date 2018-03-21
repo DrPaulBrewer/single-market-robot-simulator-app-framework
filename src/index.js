@@ -16,16 +16,16 @@ import * as Study from "single-market-robot-simulator-study";
  * @param {Array<Object>} plotParams The plot to be modified -- a two element Array of [PlotlyTraces, PlotlyLayout]
  * @param {{prepend: ?string, append: ?string, replace: ?string}} modifier modifications to title
  */
-
-export function adjustTitle(plotParams, modifier){
+ 
+export function adjustTitle(plotParams, modifier) {
     const layout = plotParams[1];
-    if (layout){
-        if (modifier.replace && (modifier.replace.length>0))
+    if (layout) {
+        if (modifier.replace && (modifier.replace.length > 0))
             layout.title = modifier.replace;
-        if (layout.title){
-            if (modifier.prepend && (modifier.prepend.length>0))
+        if (layout.title) {
+            if (modifier.prepend && (modifier.prepend.length > 0))
                 layout.title = modifier.prepend + layout.title;
-            if (modifier.append && (modifier.append.length>0))
+            if (modifier.append && (modifier.append.length > 0))
                 layout.title += modifier.append;
         }
     }
@@ -39,12 +39,16 @@ export function adjustTitle(plotParams, modifier){
  * @param {function(number)} onChange - called when user changes the selection (optional)
  */
 
-function setSelectOptions({ select, options, selectedOption }){
-    $(select+' > option').remove();
+function setSelectOptions({
+    select,
+    options,
+    selectedOption
+}) {
+    $(select + ' > option').remove();
     if (Array.isArray(options))
         options.forEach(
-            (o,n)=>{
-                const s = (n===selectedOption)?'selected="selected"':'';
+            (o, n) => {
+                const s = (n === selectedOption) ? 'selected="selected"' : '';
                 $(select).append(`<option value="${n}" ${s}>${o}</option>`);
             }
         );
@@ -63,7 +67,7 @@ export class App {
      * @param {Array<Array<string>>} options.behavior click and eventmap stored as Array of 2 or 3 element arrays [jqSelector, appMethodName, [ eventType = click ] ]
      */
 
-    constructor(options){
+    constructor(options) {
         this.SMRS = options.SMRS;
         this.DB = options.DB;
         this.Visuals = options.Visuals;
@@ -71,7 +75,7 @@ export class App {
         this.editorStartValue = options.editorStartValue;
         this.behavior = options.behavior;
         this.editor = 0;
-        this.periodTimers  = [];
+        this.periodTimers = [];
         this.study = 0;
         this.availableStudies = [];
         this.chosenStudyIndex = 0;
@@ -89,10 +93,13 @@ export class App {
      * @return {Array<Object>} array of new SMRS.Simulation - each simulation will be initialized but not running
      */
 
-    simulations(studyConfig, runnable, subset){
+    simulations(studyConfig, runnable, subset) {
         const app = this;
-        function facadeSimulation(props){ this.config = props; }
-        return Study.makeClassicSimulations(studyConfig, (runnable)? app.SMRS.Simulation : facadeSimulation, subset );
+
+        function facadeSimulation(props) {
+            this.config = props;
+        }
+        return Study.makeClassicSimulations(studyConfig, (runnable) ? app.SMRS.Simulation : facadeSimulation, subset);
     }
 
     /**
@@ -100,7 +107,7 @@ export class App {
      * @return {Object} study configuration
      */
 
-    getStudyConfig(){
+    getStudyConfig() {
         const app = this;
         return app.study && app.study.config;
     }
@@ -110,7 +117,7 @@ export class App {
      * @return {Object} an instance implementing the StudyFolder interface
      */
 
-    getStudyFolder(){
+    getStudyFolder() {
         const app = this;
         return app.study && app.study.folder;
     }
@@ -120,18 +127,25 @@ export class App {
      * @param {Object} studyConfig study configuraion
      */
 
-    setStudy({config, folder}){
+    setStudy({
+        config,
+        folder
+    }) {
         const app = this;
-        function updateSavedListTask(){
+
+        function updateSavedListTask() {
             (folder
-             .listFiles()
-             .then((files)=>(files.filter((f)=>(f.mimeType==='application/zip'))))
-             .then((files)=>{ app.study.zipFiles = files; })
-             .then(()=>(app.renderPriorRunSelector()))
+                .listFiles()
+                .then((files) => (files.filter((f) => (f.mimeType === 'application/zip'))))
+                .then((files) => {
+                    app.study.zipFiles = files;
+                })
+                .then(() => (app.renderPriorRunSelector()))
             );
         }
-        function updateEditorTask(){
-            if (app.editor && app.initEditor){
+
+        function updateEditorTask() {
+            if (app.editor && app.initEditor) {
                 app.initEditor({
                     config: clone(config),
                     schema: app.editorConfigSchema
@@ -139,39 +153,42 @@ export class App {
             }
         }
         const t0 = Date.now();
-        console.log("called setStudy at "+t0);
-        app.study = { config, folder };
-        if (folder && app.renderPriorRunSelector){
+        console.log("called setStudy at " + t0);
+        app.study = {
+            config,
+            folder
+        };
+        if (folder && app.renderPriorRunSelector) {
             if (folder.name)
-                $('.onSetStudyFolderNameUpdateValue').prop('value',folder.name);
+                $('.onSetStudyFolderNameUpdateValue').prop('value', folder.name);
             else
-                $('.onSetStudyFolderNameUpdateValue').prop('value','');
+                $('.onSetStudyFolderNameUpdateValue').prop('value', '');
             if (folder.id)
-                $('.onSetStudyFolderIdUpdateValue').prop('value',folder.id);
+                $('.onSetStudyFolderIdUpdateValue').prop('value', folder.id);
             else
-                $('.onSetStudyFolderIdUpdateValue').prop('value','');
-            if (typeof(folder.listFiles)==='function'){
+                $('.onSetStudyFolderIdUpdateValue').prop('value', '');
+            if (typeof(folder.listFiles) === 'function') {
                 setTimeout(updateSavedListTask, 200);
             }
         } else {
-            $('.onSetStudyFolderNameUpdateValue').prop('value','');
-            $('.onSetStudyFolderIdUpdateValue').prop('value','');
+            $('.onSetStudyFolderNameUpdateValue').prop('value', '');
+            $('.onSetStudyFolderIdUpdateValue').prop('value', '');
         }
         const configTitle = (folder && folder.name) || (config && config.name) || 'UNTITLED';
         $('.configTitle').text(configTitle);
         const modifiedTime = folder && folder.modifiedTime;
-        const modifiedTimeStr = (modifiedTime)? (new Date(modifiedTime).toUTCString()) : '';
+        const modifiedTimeStr = (modifiedTime) ? (new Date(modifiedTime).toUTCString()) : '';
         $('.currentStudyFolderModifiedTime').text(modifiedTimeStr);
         const description = (folder && folder.description) || (config && config.description) || '';
         $('.currentStudyFolderDescription').text(description);
-        if (config){
+        if (config) {
             setTimeout(updateEditorTask, 200);
             $('#runError').html("Click >Run to run the simulation and see the new results");
             if (app.timeit) app.timeit(clone(config));
-            if (config && config.configurations && (config.configurations.length<=4)) app.refresh();
+            if (config && config.configurations && (config.configurations.length <= 4)) app.refresh();
         }
-        const elapsed = Date.now()-t0;
-        console.log("finish setConfig, elapsed = "+elapsed);
+        const elapsed = Date.now() - t0;
+        console.log("finish setConfig, elapsed = " + elapsed);
     }
 
     /**
@@ -179,7 +196,7 @@ export class App {
      * @return {number} number of periods
      */
 
-    getPeriods(){
+    getPeriods() {
         const app = this;
         const config = app.getStudyConfig();
         return config && config.common.periods;
@@ -190,10 +207,10 @@ export class App {
      * @param {number} n number of periods
      */
 
-    setPeriods(n){
+    setPeriods(n) {
         const app = this;
         const config = app.getStudyConfig();
-        if (config && config.common && (+n>0)) {
+        if (config && config.common && (+n > 0)) {
             config.common.periods = +n;
             app.showPeriods(n);
             app.timeit(clone(config));
@@ -207,10 +224,10 @@ export class App {
      * @param {number} slot - slot number, appended to "paramPlot" to get DOM id
      */
 
-    plotParameters(sim, slot){
+    plotParameters(sim, slot) {
         const app = this;
         const plotlyParams = app.Visuals.params(sim);
-        plotlyParams.unshift("paramPlot"+slot);
+        plotlyParams.unshift("paramPlot" + slot);
         Plotly.newPlot(...plotlyParams);
     }
 
@@ -220,20 +237,21 @@ export class App {
      * @param {Object} conf A study configuration compatible with app.simulations()
      */
 
-    showParameters(conf){
+    showParameters(conf) {
         const app = this;
         $('.paramPlot').html("");
         const sims = app.simulations(conf);
         const l = sims.length;
         let i = 0;
-        function loop(){
-            app.plotParameters(sims[i],i);
+
+        function loop() {
+            app.plotParameters(sims[i], i);
             i += 1;
-            if (i<l){
-                setTimeout(loop,100);
+            if (i < l) {
+                setTimeout(loop, 100);
             }
         }
-        setTimeout(loop,100);
+        setTimeout(loop, 100);
     }
 
     /**
@@ -241,23 +259,23 @@ export class App {
      *
      */
 
-    guessTime(){
+    guessTime() {
         const app = this;
         const periodTimers = app.periodTimers;
         const periods = app.getPeriods();
         const configurations = app.getStudyConfig().configurations.length;
         const l = periodTimers.length;
         let guess = 0;
-        if (periods){
-            if (l>2){
-                guess = (periods*configurations*(periodTimers[l-1]-periodTimers[1])/(l-2))+periodTimers[1];
-            } else if (l===2){
-                guess = periods*configurations*periodTimers[1];
+        if (periods) {
+            if (l > 2) {
+                guess = (periods * configurations * (periodTimers[l - 1] - periodTimers[1]) / (l - 2)) + periodTimers[1];
+            } else if (l === 2) {
+                guess = periods * configurations * periodTimers[1];
             }
-            if (guess){
-                const seconds = Math.round(guess/1000.0);
-                const minutes = Math.ceil(seconds/60);
-                $('span.estimated-running-time').text((minutes>1)? ('~'+minutes+'min'): ('~'+seconds+'sec'));
+            if (guess) {
+                const seconds = Math.round(guess / 1000.0);
+                const minutes = Math.ceil(seconds / 60);
+                $('span.estimated-running-time').text((minutes > 1) ? ('~' + minutes + 'min') : ('~' + seconds + 'sec'));
             } else {
                 $('span.estimated-running-time').text("?");
             }
@@ -269,34 +287,34 @@ export class App {
      * @param {Object} studyConfig - A studyConfig as defined by app.simulations
      */
 
-    timeit(studyConfig){
+    timeit(studyConfig) {
         const app = this;
         // delay running timeit by 1 sec as seems to be blocking screen refresh of description, etc.
         if (!studyConfig || !(Array.isArray(studyConfig.configurations))) return;
-        setTimeout(function(){
+        setTimeout(function() {
             const t0 = Date.now();
             const periodTimers = app.periodTimers;
             periodTimers.length = 0;
-            const randomSim = app.simulations(studyConfig, app.SMRS.Simulation, [Math.floor(Math.random()*studyConfig.configurations.length)])[0];
-            const agents = randomSim.config.numberOfBuyers+randomSim.config.numberOfSellers;
-            if (agents>200) return;
+            const randomSim = app.simulations(studyConfig, app.SMRS.Simulation, [Math.floor(Math.random() * studyConfig.configurations.length)])[0];
+            const agents = randomSim.config.numberOfBuyers + randomSim.config.numberOfSellers;
+            if (agents > 200) return;
             (randomSim
-             .run({
-                 update:(sim)=>{
-                     const elapsed = Date.now()-t0;
-                     periodTimers[sim.period] = elapsed;
-                     // hack to end simulations if over 2 sec or 5 periods
-                     if ((elapsed>2000) || (sim.period>5))
-                         sim.config.periods = sim.period;
-                     return sim;
-                 }
-             })
-             .then(
-                 ()=>{
-                     app.guessTime();
-                 })
-             .catch((e)=>(console.log(e)))
-                 );
+                .run({
+                    update: (sim) => {
+                        const elapsed = Date.now() - t0;
+                        periodTimers[sim.period] = elapsed;
+                        // hack to end simulations if over 2 sec or 5 periods
+                        if ((elapsed > 2000) || (sim.period > 5))
+                            sim.config.periods = sim.period;
+                        return sim;
+                    }
+                })
+                .then(
+                    () => {
+                        app.guessTime();
+                    })
+                .catch((e) => (console.log(e)))
+            );
         }, 1000);
     }
 
@@ -305,21 +323,21 @@ export class App {
      * @param {number} n index of chosen study in app.availableStudies[]
      */
 
-    choose(n){
+    choose(n) {
         const app = this;
-        console.log("chose "+n+" at "+Date.now());
-        if (Array.isArray(app.availableStudyFolders)){
-            app.chosenStudyIndex = Math.max(0, Math.min(Math.floor(n),app.availableStudyFolders.length-1));
-            app.availableStudyFolders[app.chosenStudyIndex].getConfig().then((choice)=>(app.setStudy(choice)));
+        console.log("chose " + n + " at " + Date.now());
+        if (Array.isArray(app.availableStudyFolders)) {
+            app.chosenStudyIndex = Math.max(0, Math.min(Math.floor(n), app.availableStudyFolders.length - 1));
+            app.availableStudyFolders[app.chosenStudyIndex].getConfig().then((choice) => (app.setStudy(choice)));
         }
     }
 
-    chooseRun(n){
+    chooseRun(n) {
         const app = this;
         app.chosenRun = +n;
     }
 
-    fetchChosenRun(){
+    fetchChosenRun() {
         const app = this;
         app.openZipFile(app.chosenRun);
     }
@@ -328,15 +346,19 @@ export class App {
      * Render #selector if it exists, by erasing all options and reading each study .title from app.availableStudies  You should define an empty select element in index.html with id "selector"
      */
 
-    renderConfigSelector(){
+    renderConfigSelector() {
         const app = this;
         const select = '#selector';
         const options = (
             app.availableStudyFolders &&
-                app.availableStudyFolders.map((f)=>(f.name))
+            app.availableStudyFolders.map((f) => (f.name))
         ) || []; // fails thru to empty set of options
         const selectedOption = 0;
-        setSelectOptions({ select, options, selectedOption });
+        setSelectOptions({
+            select,
+            options,
+            selectedOption
+        });
     }
 
     /**
@@ -344,17 +366,21 @@ export class App {
      *
      */
 
-    renderPriorRunSelector(){
+    renderPriorRunSelector() {
         const app = this;
         const select = '#priorRunSelector';
         const options = (
             app.study &&
-                app.study.zipFiles &&
-                app.study.zipFiles.map((f)=>(f.name+': '+((Number(f.size)/1e6).toString().substr(0,3))+' MB'))
+            app.study.zipFiles &&
+            app.study.zipFiles.map((f) => (f.name + ': ' + ((Number(f.size) / 1e6).toString().substr(0, 3)) + ' MB'))
         ) || []; // fails thru to empty set of options
         const selectedOption = 0;
         app.chosenRun = 0;
-        setSelectOptions({ select, options, selectedOption });
+        setSelectOptions({
+            select,
+            options,
+            selectedOption
+        });
     }
 
 
@@ -364,13 +390,13 @@ export class App {
      * @return {Array<function>} array of visualization functions generated from single-market-robot-simulator-viz-plotly
      */
 
-    getVisuals(){
+    getVisuals() {
         const app = this;
         let visuals = [];
         const periods = app.getPeriods();
-        if (periods<=50)
+        if (periods <= 50)
             visuals = app.Visuals.small;
-        else if (periods<=500)
+        else if (periods <= 500)
             visuals = app.Visuals.medium;
         else
             visuals = app.Visuals.large;
@@ -384,20 +410,19 @@ export class App {
      * @param {number} slot
      */
 
-    showSimulation(simConfig, slot){
+    showSimulation(simConfig, slot) {
         const app = this;
         const visuals = app.getVisuals();
-        const plotParams = visuals[app.visualIndex%visuals.length](simConfig);
+        const plotParams = visuals[app.visualIndex % visuals.length](simConfig);
         const config = simConfig.config;
         adjustTitle(
-            plotParams,
-            {
+            plotParams, {
                 prepend: config.titlePrepend,
-                append:  config.titleAppend,
+                append: config.titleAppend,
                 replace: config.titleReplace
             }
         );
-        plotParams.unshift('resultPlot'+slot);
+        plotParams.unshift('resultPlot' + slot);
         Plotly.newPlot(...plotParams);
     }
 
@@ -405,13 +430,17 @@ export class App {
      * Render visualization options for current app.study into DOM select existing at id #vizselect
      */
 
-    renderVisualSelector(){
+    renderVisualSelector() {
         const app = this;
         const visuals = app.getVisuals();
         const select = '#vizselect';
-        const options = (visuals && (visuals.map((v)=>(v.meta.title || v.meta.f)))) || [];
+        const options = (visuals && (visuals.map((v) => (v.meta.title || v.meta.f)))) || [];
         const selectedOption = app.visualIndex;
-        setSelectOptions({ select, options, selectedOption });
+        setSelectOptions({
+            select,
+            options,
+            selectedOption
+        });
     }
 
     /**
@@ -421,9 +450,9 @@ export class App {
      * @param {number} slot Location for showing message
      */
 
-    progress(message, slot){
-        const hmsg = (message && (message.length>0))? ("<h1>"+message+"</h1>") : '';
-        $('#resultPlot'+slot).html(hmsg);
+    progress(message, slot) {
+        const hmsg = (message && (message.length > 0)) ? ("<h1>" + message + "</h1>") : '';
+        $('#resultPlot' + slot).html(hmsg);
     }
 
     /**
@@ -434,45 +463,47 @@ export class App {
      */
 
 
-    runSimulation(simConfig, slot){
+    runSimulation(simConfig, slot) {
         // set up and run simulation
 
         const app = this;
 
-        function onPeriod(sim){
-            if (sim.period<sim.config.periods){
-                app.progress(Math.round(100*sim.period/sim.config.periods)+"% complete", slot);
+        function onPeriod(sim) {
+            if (sim.period < sim.config.periods) {
+                app.progress(Math.round(100 * sim.period / sim.config.periods) + "% complete", slot);
             } else {
                 app.progress('', slot);
             }
             return sim;
         }
 
-        function uiDone(){
+        function uiDone() {
             $('.spinning').removeClass('spinning'); // this is perhaps needessly done multiple times
-            $('.postrun').removeClass('disabled');  // same here
-            $('.postrun').prop('disabled',false);   // and here
+            $('.postrun').removeClass('disabled'); // same here
+            $('.postrun').prop('disabled', false); // and here
         }
 
-        function onDone(sim){
+        function onDone(sim) {
             app.showSimulation(sim, slot);
             uiDone();
         }
 
-        let mysim = simConfig;  // this line used to call new Simulation based on simConfig... but that is done in .simulations already
+        let mysim = simConfig; // this line used to call new Simulation based on simConfig... but that is done in .simulations already
 
         app.plotParameters(mysim, slot);
 
         (mysim
-         .run({update: onPeriod})
-         .then(onDone)
-         .catch((e)=>{
-             console.log(e);
-             app.progress('<span class="error">'+e+'</span>', slot);
-             uiDone();
-         })
-             );
-        if (mysim.config.periods>500){
+            .run({
+                update: onPeriod
+            })
+            .then(onDone)
+            .catch((e) => {
+                console.log(e);
+                app.progress('<span class="error">' + e + '</span>', slot);
+                uiDone();
+            })
+        );
+        if (mysim.config.periods > 500) {
             delete mysim.logs.buyorder;
             delete mysim.logs.sellorder;
             delete mysim.logs.rejectbuyorder;
@@ -488,17 +519,19 @@ export class App {
      *   how should be callable like this how(buyerValueorSellerCostArray, xfactor) and return a new array of values or costs
      */
 
-    expand(how){
+    expand(how) {
         const app = this;
         const xfactor = +$('#xfactor').val();
         const config = app.getStudyConfig();
-        app.setStudy({ config: Study.expand(config, xfactor, how) });
+        app.setStudy({
+            config: Study.expand(config, xfactor, how)
+        });
     }
 
     /** Perform additional required initialization, NOT called by constructor. Sets up (1) app.behavior with jQuery.on; (2) JSON Editor in div with id editor; (3) begins reading database for saveList
      */
 
-    init(){
+    init() {
         const app = this;
         app.initBehavior();
         if (app.editorStartValue && app.editorConfigSchema)
@@ -509,25 +542,29 @@ export class App {
         app.initDB();
     }
 
-    initBehavior(){
+    initBehavior() {
         const app = this;
-        app.behavior.forEach((v)=>{
+        app.behavior.forEach((v) => {
             let [jqSelector, appMethod, eventName] = v;
-            if (typeof(app[appMethod])!=='function')
-                throw new Error("Error initializing app behavior - method "+appMethod+" specified in event map for selector "+jqSelector+" does not exist");
+            if (typeof(app[appMethod]) !== 'function')
+                throw new Error("Error initializing app behavior - method " + appMethod + " specified in event map for selector " + jqSelector + " does not exist");
             let selection = $(jqSelector);
-            if (selection.length===0)
-                throw new Error("Error initializing app behavior - selector "+jqSelector+" not found in app's web page");
-            selection.on(eventName || 'click', ((evt)=>app[appMethod](evt && evt.target && evt.target.value)));
+            if (selection.length === 0)
+                throw new Error("Error initializing app behavior - selector " + jqSelector + " not found in app's web page");
+            selection.on(eventName || 'click', ((evt) => app[appMethod](evt && evt.target && evt.target.value)));
         });
-        $('.postrun').prop('disabled',true);
+        $('.postrun').prop('disabled', true);
     }
 
-    createJSONEditor({div, clear, options}){
+    createJSONEditor({
+        div,
+        clear,
+        options
+    }) {
         const editorElement = document.getElementById(div);
-        if (editorElement && window.JSONEditor){
-            if (clear){
-                while (editorElement.firstChild){
+        if (editorElement && window.JSONEditor) {
+            if (clear) {
+                while (editorElement.firstChild) {
                     editorElement.removeChild(editorElement.firstChild);
                 }
             }
@@ -535,12 +572,15 @@ export class App {
         }
     }
 
-    initEditor({config, schema}){
+    initEditor({
+        config,
+        schema
+    }) {
         const app = this;
-        if (typeof(config)!=='object')
-            throw new Error("config must be an object, instead got: "+typeof(config));
-        if (typeof(schema)!=='object')
-            throw new Error("schema must be an object, instead got: "+typeof(schema));
+        if (typeof(config) !== 'object')
+            throw new Error("config must be an object, instead got: " + typeof(config));
+        if (typeof(schema) !== 'object')
+            throw new Error("schema must be an object, instead got: " + typeof(schema));
         const editorOptions = {
             schema,
             startval: config
@@ -552,21 +592,23 @@ export class App {
         });
     }
 
-    initDB(){
+    initDB() {
         const app = this;
         if (app.DB)
-            (app.DB.listStudyFolders({trashed:false})
-             .then((items)=>{
-                 if (Array.isArray(items) && (items.length)){
-                     app.availableStudyFolders = items;
-                     app.renderConfigSelector();
-                     app.choose(0);
-                 }
-             })
-             .catch((e)=>{
-                 console.log("app-framework initDB() Error accessing simulation configuration database:"+e);
-             })
-                 );
+            (app.DB.listStudyFolders({
+                    trashed: false
+                })
+                .then((items) => {
+                    if (Array.isArray(items) && (items.length)) {
+                        app.availableStudyFolders = items;
+                        app.renderConfigSelector();
+                        app.choose(0);
+                    }
+                })
+                .catch((e) => {
+                    console.log("app-framework initDB() Error accessing simulation configuration database:" + e);
+                })
+            );
     }
 
     /**
@@ -574,18 +616,18 @@ export class App {
      * setup UI for Morph after tab click
      */
 
-    renderMorphEditor(){
+    renderMorphEditor() {
         const app = this;
-        if (app.editor){
+        if (app.editor) {
             const config = app.editor.getValue();
             const l = config && config.configurations && config.configurations.length;
-            if (!l || (l<2))
+            if (!l || (l < 2))
                 throw new Error("app.renderMorph morph requires at least 2 configurations");
             const A = config.configurations[0];
-            const B = config.configurations[l-1];
-            if (!(Study.isMorphable(A,B)))
+            const B = config.configurations[l - 1];
+            if (!(Study.isMorphable(A, B)))
                 throw new Error("app.renderMorph morph requires configurations that pass Study.isMorphable");
-            const schema = Study.morphSchema(A,B);
+            const schema = Study.morphSchema(A, B);
             const startval = schema.default;
             app.morphEditor = app.createJSONEditor({
                 div: 'morphEditor',
@@ -602,9 +644,9 @@ export class App {
      * morphs the edited configuration and stuffs it back in the editor
      */
 
-    doMorph(){
+    doMorph() {
         const app = this;
-        if (app.editor && app.morphEditor){
+        if (app.editor && app.morphEditor) {
             const config = app.editor.getValue();
             const morphConfig = app.morphEditor.getValue();
             const morphed = Study.morph(config, morphConfig);
@@ -620,7 +662,7 @@ export class App {
      * @return {number} the same number passed
      */
 
-    showPeriods(periods){
+    showPeriods(periods) {
         $('input.periods').val(periods);
         $('span.periods').text(periods);
         return periods;
@@ -631,31 +673,31 @@ export class App {
      * refreshes a number of UI elements
      */
 
-    refresh(){
+    refresh() {
         const app = this;
         const t0 = Date.now();
-        console.log("refresh started at: "+t0);
+        console.log("refresh started at: " + t0);
         const study = app.getStudyConfig();
         const periods = app.getPeriods();
         app.showPeriods(periods);
-        console.log("in refresh, elapsed after get study, folder, periods: "+(Date.now()-t0));
-        if (study){
+        console.log("in refresh, elapsed after get study, folder, periods: " + (Date.now() - t0));
+        if (study) {
             app.showParameters(study);
-            console.log("in refresh, elapsed after app.showParameters: "+(Date.now()-t0));
+            console.log("in refresh, elapsed after app.showParameters: " + (Date.now() - t0));
             const sims = app.simulations(study);
-            console.log("in refresh, elapsed after creating sims for xsimbs table: "+(Date.now()-t0));
+            console.log("in refresh, elapsed after creating sims for xsimbs table: " + (Date.now() - t0));
             $('#xsimbs').html(
-                "<tr>"+(sims
-                        .map(
-                            (sim,j)=>{
-                                const data = [j,sim.numberOfBuyers,sim.numberOfSellers];
-                                return "<td>"+data.join("</td><td>")+"</td>";
-                            })
-                        .join('</tr><tr>')
-                       )+"</tr>");
-            console.log("in refresh, elapsed after creating xsimbs table: "+(Date.now()-t0));
+                "<tr>" + (sims
+                    .map(
+                        (sim, j) => {
+                            const data = [j, sim.numberOfBuyers, sim.numberOfSellers];
+                            return "<td>" + data.join("</td><td>") + "</td>";
+                        })
+                    .join('</tr><tr>')
+                ) + "</tr>");
+            console.log("in refresh, elapsed after creating xsimbs table: " + (Date.now() - t0));
             app.plotParameters(sims[0], "ScaleUp");
-            console.log("in refresh, elapsed after plotting supply/demand in xsimbs, finished all refresh: "+(Date.now()-t0));
+            console.log("in refresh, elapsed after plotting supply/demand in xsimbs, finished all refresh: " + (Date.now() - t0));
         }
     }
 
@@ -663,7 +705,7 @@ export class App {
      * expands the current study by creating new values and costs by interpolation
      */
 
-    interpolate(){
+    interpolate() {
         const app = this;
         app.expand(Study.expander.interpolate);
     }
@@ -672,7 +714,7 @@ export class App {
      * expands the current study by duplicating unit costs and values
      */
 
-    duplicate(){
+    duplicate() {
         const app = this;
         app.expand(Study.expander.duplicate);
     }
@@ -681,7 +723,7 @@ export class App {
      * abandon edits to the current study by refreshing the UI and editor from the cache
      */
 
-    undo(){
+    undo() {
         const app = this;
         app.choose(app.chosenStudyIndex);
     }
@@ -690,20 +732,23 @@ export class App {
      * move the current study to the trash list
      */
 
-    moveToTrash(){
+    moveToTrash() {
         const app = this;
-        const { availableStudyFolders, chosenStudyIndex } = app;
-        if (app.DB){
+        const {
+            availableStudyFolders,
+            chosenStudyIndex
+        } = app;
+        if (app.DB) {
             (availableStudyFolders[chosenStudyIndex].trash()
-             .then(()=>{
-                 availableStudyFolders.splice(chosenStudyIndex,1);
-                 app.renderConfigSelector();
-                 app.choose(0);
-             })
-             .catch((e)=>{
-                 console.log(e);
-             })
-                 );
+                .then(() => {
+                    availableStudyFolders.splice(chosenStudyIndex, 1);
+                    app.renderConfigSelector();
+                    app.choose(0);
+                })
+                .catch((e) => {
+                    console.log(e);
+                })
+            );
         }
     }
 
@@ -711,21 +756,21 @@ export class App {
      * run the current study and display a visualization
      */
 
-    run(){
+    run() {
         const app = this;
         $('#runError').html("");
         $('.postrun').removeClass("disabled");
         $('.postrun').addClass("disabled");
-        $('.postrun').prop('disabled',true);
+        $('.postrun').prop('disabled', true);
         $('.paramPlot').html("");
         $('.resultPlot').html("");
         $('#runButton .glyphicon').addClass("spinning");
         app.renderVisualSelector();
-        setTimeout(()=>{
+        setTimeout(() => {
             const studyConfig = clone(app.getStudyConfig());
             app.sims = (app.simulations(studyConfig, true)
-                        .map((s,i)=>app.runSimulation(s,i))
-                       );
+                .map((s, i) => app.runSimulation(s, i))
+            );
         }, 200);
     }
 
@@ -734,10 +779,12 @@ export class App {
      * should have no effect unless study is running
      */
 
-    stop(){
+    stop() {
         const app = this;
         // trigger normal completion
-        app.sims.forEach((sim)=>{ sim.config.periods = sim.period; });
+        app.sims.forEach((sim) => {
+            sim.config.periods = sim.period;
+        });
     }
 
     /**
@@ -748,7 +795,7 @@ export class App {
      *
      */
 
-    save(){
+    save() {
         const app = this;
         const myStudyFolder = app.getStudyFolder();
         const config = app.editor.getValue();
@@ -761,8 +808,10 @@ export class App {
         if (myStudyFolder && (config.name === myStudyFolder.name))
             return (
                 myStudyFolder
-                    .setConfig({config})
-                    .then(()=>(window.location.reload()))
+                .setConfig({
+                    config
+                })
+                .then(() => (window.location.reload()))
             );
 
         /*
@@ -770,10 +819,14 @@ export class App {
          *
          */
 
-        return (app.DB.createStudyFolder({name: config.name})
-                .then((folder)=>(folder.setConfig({config})))
-                .then(()=>(window.location.reload()))
-               );
+        return (app.DB.createStudyFolder({
+                name: config.name
+            })
+            .then((folder) => (folder.setConfig({
+                config
+            })))
+            .then(() => (window.location.reload()))
+        );
 
     }
 
@@ -782,30 +835,30 @@ export class App {
      * @param {number} n Visualization index in Visuals array
      */
 
-    setVisualNumber(n){
+    setVisualNumber(n) {
         const app = this;
         app.visualIndex = n;
-        app.sims.forEach((s,j)=>app.showSimulation(s,j));
+        app.sims.forEach((s, j) => app.showSimulation(s, j));
     }
 
     /**
      * Create  .zip file containing study and simulation configurations and data and give it to the user
      */
 
-    downloadData(){
+    downloadData() {
         const app = this;
-        $('#downloadButton').prop('disabled',true);
+        $('#downloadButton').prop('disabled', true);
         $('#downloadButton').addClass("disabled");
         $('#downloadButton .glyphicon').addClass("spinning");
-        setTimeout(()=>{
+        setTimeout(() => {
             saveZip({
                 config: clone(app.getStudyConfig()),
                 sims: app.sims,
                 download: true
-            }).then(()=>{
+            }).then(() => {
                 $('#downloadButton .spinning').removeClass("spinning");
                 $('#downloadButton').removeClass("disabled");
-                $('#downloadButton').prop('disabled',false);
+                $('#downloadButton').prop('disabled', false);
             });
         }, 200);
     }
@@ -814,33 +867,34 @@ export class App {
      * Create .zip file containing study and simulation configurations and data and upload it to the cloud
      */
 
-    uploadData(){
+    uploadData() {
         const app = this;
         const study = clone(app.getStudyConfig());
         const folder = app.getStudyFolder();
-        if (folder){
-            $('#uploadButton').prop('disabled',true);
+        if (folder) {
+            $('#uploadButton').prop('disabled', true);
             $('#uploadButton').addClass('disabled');
             $('#uploadButton .glyphicon').addClass("spinning");
-            setTimeout(()=>{
+            setTimeout(() => {
                 saveZip({
-                    config: study,
-                    sims: app.sims,
-                    download: false})
-                    .then((zipBlob)=>{
+                        config: study,
+                        sims: app.sims,
+                        download: false
+                    })
+                    .then((zipBlob) => {
                         (folder.upload({
-                            name: Study.myDateStamp()+'.zip',
-                            blob: zipBlob,
-                            onProgress: (x)=>(console.log(x))
-                        }).then((newfile)=>{
-                            if (Array.isArray(app.study.zipfiles))
-                                app.study.zipfiles.unshift(newfile);
-                            $('#uploadButton .spinning').removeClass("spinning");
-                            $('#uploadButton').removeClass("disabled");
-                            $('#uploadButton').prop('disabled',false);
-                        })
-                         .catch((e)=>(console.log(e)))
-                             );
+                                name: Study.myDateStamp() + '.zip',
+                                blob: zipBlob,
+                                onProgress: (x) => (console.log(x))
+                            }).then((newfile) => {
+                                if (Array.isArray(app.study.zipfiles))
+                                    app.study.zipfiles.unshift(newfile);
+                                $('#uploadButton .spinning').removeClass("spinning");
+                                $('#uploadButton').removeClass("disabled");
+                                $('#uploadButton').prop('disabled', false);
+                            })
+                            .catch((e) => (console.log(e)))
+                        );
                     });
             }, 200);
         }
@@ -850,25 +904,30 @@ export class App {
      * open a .zip file previously generated by app.downloadData() and load data and configurations as current study.  Check validity.  Hackish in places.
      */
 
-    openZipFile(chosenSavedRun){
+    openZipFile(chosenSavedRun) {
         const app = this;
-        function showProgress(message){
-            $('div.openzip-progress').append("<p>"+message+"</p>");
+
+        function showProgress(message) {
+            $('div.openzip-progress').append("<p>" + message + "</p>");
         }
-        function showError(e){
-            showProgress('<span class="red"> ERROR: '+e+'</span>');
+
+        function showError(e) {
+            showProgress('<span class="red"> ERROR: ' + e + '</span>');
         }
-        function restoreUI(){
+
+        function restoreUI() {
             ($('button.openzip-button')
-             .removeClass('disabled')
-             .prop('disabled',false)
+                .removeClass('disabled')
+                .prop('disabled', false)
             );
         }
-        function showSuccess(){
+
+        function showSuccess() {
             showProgress('<span class="green"> SUCCESS.  The data in the zip file has been loaded.  You may click the "App" or "Edit" tabs now.  </span>');
             restoreUI();
         }
-        function showFailure(e){
+
+        function showFailure(e) {
             if (e) showError(e);
             showProgress('<span class="red"> FAILURE. I could not use that zip file.  You may try again, choosing a different zip file');
             restoreUI();
@@ -881,25 +940,31 @@ export class App {
          * if choice is undefined, use the first HTML5 File element with class .openzip-file
          */
 
-        function zipPromise(choice){
-            if (typeof(choice)==='undefined'){
-                return new Promise(function(resolve, reject){
+        function zipPromise(choice) {
+            if (typeof(choice) === 'undefined') {
+                return new Promise(function(resolve, reject) {
                     const zipfile = $(".openzip-file")[0].files[0];
                     const reader = new FileReader();
-                    reader.onload = function(event){ resolve(event.target.result); };
-                    reader.onerror = function(e){ reject(e); };
+                    reader.onload = function(event) {
+                        resolve(event.target.result);
+                    };
+                    reader.onerror = function(e) {
+                        reject(e);
+                    };
                     showProgress("reading zip file from local filesystem...");
                     reader.readAsArrayBuffer(zipfile);
                 });
             }
             const n = +choice;
             try {
-                if (!( (n>=0) && (n<app.study.zipFiles.length) ) )
+                if (!((n >= 0) && (n < app.study.zipFiles.length)))
                     return Promise.reject("zip file choice out of range in openZipFile:zipPromise");
-            } catch(e) { return Promise.reject("Error in openZipFile:zipPromise: "+e); }
+            } catch (e) {
+                return Promise.reject("Error in openZipFile:zipPromise: " + e);
+            }
             const zipFile = app.study.zipFiles[n];
-            showProgress("chosen zip file is:"+JSON.stringify(zipFile));
-            if (zipFile.size > (50*1000*1000))
+            showProgress("chosen zip file is:" + JSON.stringify(zipFile));
+            if (zipFile.size > (50 * 1000 * 1000))
                 return Promise.reject("zip file exceeds 50 MB, will not download to browser");
             showProgress("reading from Google Drive");
             return app.study.folder.download(zipFile);
@@ -907,31 +972,31 @@ export class App {
 
         $('div.openzip-progress').html('');
         ($('button.openzip-button')
-         .prop('disabled',true)
-         .addClass("disabled")
+            .prop('disabled', true)
+            .addClass("disabled")
         );
-        setTimeout(()=>{
+        setTimeout(() => {
 
             (openZip(zipPromise(chosenSavedRun), app.SMRS, showProgress)
-             .then(function(data){
-                 if (!(data.config)) throw new Error("No master configuration file (config.json) was found in zip file.  Maybe this zip file is unrelated.");
-                 if (!(data.sims.length)) throw new Error("No simulation configuration files (sim.json) in the zip file");
-                 if ( (Array.isArray(data.config.configurations)) &&  (data.config.configurations.length !== data.sims.length) )
-                     throw new Error("Missing files.  the number of configurations in config.json does not match the number of simulation directories and files I found");
-                 if (data.sims.includes(undefined))
-                     throw new Error("It seems a folder has been deleted from the zip file or I could not read it. ");
-                 return data;
-             })
-             .then(function(data){
-                 app.sims = data.sims;
-                 app.availableStudies = [data.config];  // deletes local cache of DB - pulled studiess. app only sees the loaded file.
-                 app.renderConfigSelector(); // app only shows one choice in config selector -- can reload to get back to imported list
-                 app.choose(0); // configure app to use the loaded file as the current study
-                 app.renderVisualSelector();  // can render the list of available visualization only once the study is chosen as current study
-             })
-             .then(showSuccess)
-             .catch(showFailure)
-                 );
+                .then(function(data) {
+                    if (!(data.config)) throw new Error("No master configuration file (config.json) was found in zip file.  Maybe this zip file is unrelated.");
+                    if (!(data.sims.length)) throw new Error("No simulation configuration files (sim.json) in the zip file");
+                    if ((Array.isArray(data.config.configurations)) && (data.config.configurations.length !== data.sims.length))
+                        throw new Error("Missing files.  the number of configurations in config.json does not match the number of simulation directories and files I found");
+                    if (data.sims.includes(undefined))
+                        throw new Error("It seems a folder has been deleted from the zip file or I could not read it. ");
+                    return data;
+                })
+                .then(function(data) {
+                    app.sims = data.sims;
+                    app.availableStudies = [data.config]; // deletes local cache of DB - pulled studiess. app only sees the loaded file.
+                    app.renderConfigSelector(); // app only shows one choice in config selector -- can reload to get back to imported list
+                    app.choose(0); // configure app to use the loaded file as the current study
+                    app.renderVisualSelector(); // can render the list of available visualization only once the study is chosen as current study
+                })
+                .then(showSuccess)
+                .catch(showFailure)
+            );
         }, 200);
     }
 
@@ -939,31 +1004,35 @@ export class App {
      * render into the div with id "trashList" the study folders found in Trash. Trash items can be clicked to restore to editor.
      */
 
-    renderTrash(){
+    renderTrash() {
         const app = this;
         const StudyFolder = app.DB.studyFolder;
         $('#trashList').html("");
-        if (app.DB){
-            (app.DB.listStudyFolders({trashed:true})
-             .then((items)=>{
-                 items.forEach((item)=>{
-                     $('#trashList').append('<pre class="pre-scrollable trash-item">'+JSON.stringify(item,null,2)+'</pre>');
-                 });
-                 $('pre.trash-item').click(function(){
+        if (app.DB) {
+            (app.DB.listStudyFolders({
+                    trashed: true
+                })
+                .then((items) => {
+                    items.forEach((item) => {
+                        $('#trashList').append('<pre class="pre-scrollable trash-item">' + JSON.stringify(item, null, 2) + '</pre>');
+                    });
+                    $('pre.trash-item').click(function() {
 
-                     // this click function needs to be a full function with its own "this", not an anonymous ()=>{block}
+                        // this click function needs to be a full function with its own "this", not an anonymous ()=>{block}
 
-                     const folder = new StudyFolder(JSON.parse($(this).text()));
-                     if ((typeof(folder)==='object') && (folder.id) && (folder.name)) {
-                         (folder.untrash()
-                          .then(()=>(folder.getConfig()))
-                          .then((response)=>(app.setStudy(response)))
-                          .then(()=>{ $('#editLink').click(); })
-                          .catch((e)=>(console.log(e)))
-                              );
-                     }
-                 });
-             })
+                        const folder = new StudyFolder(JSON.parse($(this).text()));
+                        if ((typeof(folder) === 'object') && (folder.id) && (folder.name)) {
+                            (folder.untrash()
+                                .then(() => (folder.getConfig()))
+                                .then((response) => (app.setStudy(response)))
+                                .then(() => {
+                                    $('#editLink').click();
+                                })
+                                .catch((e) => (console.log(e)))
+                            );
+                        }
+                    });
+                })
             );
         }
     }
