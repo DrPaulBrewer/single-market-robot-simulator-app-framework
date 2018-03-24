@@ -707,12 +707,8 @@ var App = exports.App = function () {
     value: function doMorph() {
       var app = this;
       if (app.editor && app.morphEditor) {
-        var configMorphEditor = app.editor.getEditor('root.morph');
-        if (configMorphEditor) {
-          configMorphEditor.setValue(app.morphEditor.getValue());
-        } else {
-          throw new Error("can not set .morph, getEditor('root.morph') undefined ");
-        }
+        var config = Object.assign({}, Study.simplify(app.editor.getValue()), { morph: app.morphEditor.getValue() });
+        app.editor.setValue(config);
         $('#editLink').click(); // send user to Editor tab to rename/edit/save
       }
     }
