@@ -657,7 +657,8 @@ export class App {
       if (!(Study.isMorphable(A, B)))
         throw new Error("app.renderMorph morph requires configurations that pass Study.isMorphable");
       const schema = Study.morphSchema(A, B);
-      const startval = schema.default;
+      const hasConfigMorph = config.morph && (Object.keys(config.morph).length>0);
+      const startval = (hasConfigMorph && config.morph) || schema.default;
       app.morphEditor = app.createJSONEditor({
         div: 'morphEditor',
         clear: true,
