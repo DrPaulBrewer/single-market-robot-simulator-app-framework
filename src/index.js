@@ -843,7 +843,10 @@ export class App {
   save() {
     const app = this;
     const myStudyFolder = app.getStudyFolder();
-    const config = app.editor.getValue();
+    let config = app.editor.getValue();
+    if (config.simplify){
+      config = Study.simplify(config);
+    }
 
     /*
      * if name is unchanged, try to save in place
