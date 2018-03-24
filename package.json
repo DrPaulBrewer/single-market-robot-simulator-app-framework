@@ -34,8 +34,9 @@
   },
   "dependencies": {
     "clone": "^2.1.1",
+    "p-each-series": "^1.0.0",
     "single-market-robot-simulator-openzip": "^3.1.1",
     "single-market-robot-simulator-savezip": "^3.0.1",
-    "single-market-robot-simulator-study": "^3.10.0"
+    "single-market-robot-simulator-study": "^4.0.2"
   }
 }
