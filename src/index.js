@@ -98,10 +98,10 @@ export class App {
   simulations(studyConfig, runnable, subset) {
     const app = this;
 
-    function facadeSimulation(props) {
+    function FacadeSimulation(props) {
       this.config = props;
     }
-    return Study.makeClassicSimulations(studyConfig, (runnable) ? app.SMRS.Simulation : facadeSimulation, subset);
+    return Study.makeSimulations(studyConfig, (runnable) ? app.SMRS.Simulation : FacadeSimulation, subset);
   }
 
   /**
