@@ -846,6 +846,10 @@ export class App {
     const app = this;
     const myStudyFolder = app.getStudyFolder();
     let config = app.editor.getValue();
+    if (!config.customcaseids) {
+      delete config.common.caseid;
+      config.configurations.forEach((c)=>{ delete c.caseid; });
+    }
     if (config.simplify){
       config = Study.simplify(config);
     }

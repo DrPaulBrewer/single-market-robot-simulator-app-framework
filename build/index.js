@@ -866,6 +866,12 @@ var App = exports.App = function () {
       var app = this;
       var myStudyFolder = app.getStudyFolder();
       var config = app.editor.getValue();
+      if (!config.customcaseids) {
+        delete config.common.caseid;
+        config.configurations.forEach(function (c) {
+          delete c.caseid;
+        });
+      }
       if (config.simplify) {
         config = Study.simplify(config);
       }
