@@ -7,6 +7,7 @@
 /* eslint consistent-this: ["error", "app", "that"] */
 
 import clone from "clone";
+import pEachSeries from "p-each-series";
 import saveZip from "single-market-robot-simulator-savezip";
 import openZip from "single-market-robot-simulator-openzip";
 import * as Study from "single-market-robot-simulator-study";
@@ -811,8 +812,9 @@ export class App {
     app.renderVisualSelector();
     setTimeout(() => {
       const studyConfig = clone(app.getStudyConfig());
-      app.sims = (app.simulations(studyConfig, true)
-        .map((s, i) => app.runSimulation(s, i))
+      app.sims = app.simulations(studyConfig, true);
+      ( pEachSeries(app.sims, app.runSimulation)
+        .then(()=>(console.log("finished run")))
       );
     }, 200);
   }
