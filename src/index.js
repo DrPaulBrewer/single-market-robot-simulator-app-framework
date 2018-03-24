@@ -677,10 +677,12 @@ export class App {
   doMorph() {
     const app = this;
     if (app.editor && app.morphEditor) {
-      const config = app.editor.getValue();
-      const morphConfig = app.morphEditor.getValue();
-      const morphed = Study.morph(config, morphConfig);
-      app.editor.setValue(morphed);
+      const configMorphEditor = app.editor.getEditor('root.morph');
+      if (configMorphEditor){
+        configMorphEditor.setValue(app.morphEditor.getValue());
+      } else {
+        throw new Error("can not set .morph, getEditor('root.morph') undefined ");
+      }
       $('#editLink')
         .click(); // send user to Editor tab to rename/edit/save
     }
