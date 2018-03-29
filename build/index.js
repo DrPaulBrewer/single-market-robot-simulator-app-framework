@@ -219,7 +219,7 @@ var App = exports.App = function () {
       if (config) {
         setTimeout(updateEditorTask, 200);
         $('#runError').html("Click >Run to run the simulation and see the new results");
-        if (app.timeit) app.timeit((0, _clone2.default)(config));
+        if (app.timeit) app.timeit(config);
         if (Study.numberOfSimulations(config) <= 4) app.refresh();
       }
       var elapsed = Date.now() - t0;
@@ -252,7 +252,7 @@ var App = exports.App = function () {
       if (config && config.common && +n > 0) {
         config.common.periods = +n;
         app.showPeriods(n);
-        app.timeit((0, _clone2.default)(config));
+        app.timeit(config);
       }
     }
 
@@ -828,13 +828,11 @@ var App = exports.App = function () {
       $('.resultPlot').html("");
       $('#runButton .glyphicon').addClass("spinning");
       app.renderVisualSelector();
-      setTimeout(function () {
-        var studyConfig = (0, _clone2.default)(app.getStudyConfig());
-        app.sims = app.simulations(studyConfig, true);
-        (0, _pEachSeries2.default)(app.sims, app.runSimulation.bind(app)).then(function () {
-          return console.log("finished run");
-        });
-      }, 200);
+      var studyConfig = app.getStudyConfig();
+      app.sims = app.simulations(studyConfig, true);
+      (0, _pEachSeries2.default)(app.sims, app.runSimulation.bind(app)).then(function () {
+        return console.log("finished run");
+      });
     }
 
     /**
@@ -956,28 +954,27 @@ var App = exports.App = function () {
         $('#uploadButton').prop('disabled', true);
         $('#uploadButton').addClass('disabled');
         $('#uploadButton .glyphicon').addClass("spinning");
-        setTimeout(function () {
-          (0, _singleMarketRobotSimulatorSavezip2.default)({
-            config: study,
-            sims: app.sims,
-            download: false
-          }).then(function (zipBlob) {
-            folder.upload({
-              name: Study.myDateStamp() + '.zip',
-              blob: zipBlob,
-              onProgress: function onProgress(x) {
-                return console.log(x);
-              }
-            }).then(function (newfile) {
-              if (Array.isArray(app.study.zipfiles)) app.study.zipfiles.unshift(newfile);
-              $('#uploadButton .spinning').removeClass("spinning");
-              $('#uploadButton').removeClass("disabled");
-              $('#uploadButton').prop('disabled', false);
-            }).catch(function (e) {
-              return console.log(e);
-            });
+        (0, _singleMarketRobotSimulatorSavezip2.default)({
+          config: study,
+          sims: app.sims,
+          download: false
+        }).then(function (zipBlob) {
+          folder.upload({
+            name: Study.myDateStamp() + '.zip',
+            blob: zipBlob,
+            onProgress: function onProgress(x) {
+              return console.log(x);
+            }
+          }).then(function (newfile) {
+            if (Array.isArray(app.study.zipfiles)) app.study.zipfiles.unshift(newfile);
+          }).catch(function (e) {
+            return console.log(e);
+          }).finally(function () {
+            $('#uploadButton .spinning').removeClass("spinning");
+            $('#uploadButton').removeClass("disabled");
+            $('#uploadButton').prop('disabled', false);
           });
-        }, 200);
+        });
       }
     }
 
