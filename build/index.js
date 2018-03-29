@@ -831,7 +831,7 @@ var App = exports.App = function () {
       setTimeout(function () {
         var studyConfig = (0, _clone2.default)(app.getStudyConfig());
         app.sims = app.simulations(studyConfig, true);
-        (0, _pEachSeries2.default)(app.sims, app.runSimulation).then(function () {
+        (0, _pEachSeries2.default)(app.sims, app.runSimulation.bind(app)).then(function () {
           return console.log("finished run");
         });
       }, 200);
