@@ -515,7 +515,7 @@ var App = exports.App = function () {
      * asynchronously start running a simulation and when done show its plots in a slot.  stops spinning run animation when done. Deletes logs buyorder,sellorder if periods>500 to prevent out-of-memory.
      * @param {Object} simConfig An initialized SMRS.Simulation
      * @param {number} slot A slot number.  Plots appear in div with id resultPlot+slot and paramPlot+slot
-     * @return {Object} running SMRS.Simulations
+     * @return {Promise} resolves to finished sim
      */
 
   }, {
@@ -543,13 +543,14 @@ var App = exports.App = function () {
       function onDone(sim) {
         app.showSimulation(sim, slot);
         uiDone();
+        return sim;
       }
 
       var mysim = simConfig; // this line used to call new Simulation based on simConfig... but that is done in .simulations already
 
       app.plotParameters(mysim, slot);
 
-      mysim.run({
+      var promiseSim = mysim.run({
         update: onPeriod
       }).then(onDone).catch(function (e) {
         console.log(e);
@@ -563,7 +564,7 @@ var App = exports.App = function () {
         delete mysim.logs.rejectsellorder;
       }
 
-      return mysim;
+      return promiseSim;
     }
 
     /**
