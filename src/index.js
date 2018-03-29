@@ -815,7 +815,7 @@ export class App {
     setTimeout(() => {
       const studyConfig = clone(app.getStudyConfig());
       app.sims = app.simulations(studyConfig, true);
-      ( pEachSeries(app.sims, app.runSimulation)
+      ( pEachSeries(app.sims, app.runSimulation.bind(app))
         .then(()=>(console.log("finished run")))
       );
     }, 200);
