@@ -57,6 +57,21 @@ function setSelectOptions({
     );
 }
 
+
+function createJSONEditor({
+  div,
+  clear,
+  options
+}) {
+  const editorElement = document.getElementById(div);
+  if (editorElement && window.JSONEditor) {
+    if (clear) {
+      $('#'+div).empty();
+    }
+    return new window.JSONEditor(editorElement, options);
+  }
+}
+
 export class App {
 
   /**
@@ -588,21 +603,7 @@ export class App {
       .prop('disabled', true);
   }
 
-  createJSONEditor({
-    div,
-    clear,
-    options
-  }) {
-    const editorElement = document.getElementById(div);
-    if (editorElement && window.JSONEditor) {
-      if (clear) {
-        while (editorElement.firstChild) {
-          editorElement.removeChild(editorElement.firstChild);
-        }
-      }
-      return new window.JSONEditor(editorElement, options);
-    }
-  }
+
 
   initEditor({
     config,
@@ -617,7 +618,7 @@ export class App {
       schema,
       startval: config
     };
-    app.editor = app.createJSONEditor({
+    app.editor = createJSONEditor({
       div: 'editor',
       clear: true,
       options: editorOptions
@@ -662,7 +663,7 @@ export class App {
       const schema = Study.morphSchema(A, B);
       const hasConfigMorph = config.morph && (Object.keys(config.morph).length>0);
       const startval = (hasConfigMorph && config.morph) || schema.default;
-      app.morphEditor = app.createJSONEditor({
+      app.morphEditor = createJSONEditor({
         div: 'morphEditor',
         clear: true,
         options: {
@@ -892,7 +893,7 @@ export class App {
   setVisualNumber(n) {
     const app = this;
     app.visualIndex = n;
-    app.sims.forEach((s, j) => app.showSimulation(s, j));
+    app.sims.forEach((s, j) => app.(s, j));
   }
 
   /**
