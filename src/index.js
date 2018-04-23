@@ -603,8 +603,6 @@ export class App {
       .prop('disabled', true);
   }
 
-
-
   initEditor({
     config,
     schema
@@ -893,7 +891,7 @@ export class App {
   setVisualNumber(n) {
     const app = this;
     app.visualIndex = n;
-    app.sims.forEach((s, j) => app.(s, j));
+    app.sims.forEach((s, j) => app.showSimulation(s, j));
   }
 
   /**
