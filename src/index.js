@@ -72,6 +72,18 @@ function createJSONEditor({
   }
 }
 
+/**
+ * show progress message in resultPlot slot with h1 header tag
+ *
+ * @param {string} message text to show as heading in div resultPlot+slot
+ * @param {number} slot Location for showing message
+ */
+
+function resultPlotProgress(message, slot) {
+  $('#resultPlot' + slot)
+    .html(`<h1>${message}</h1>`);
+}
+
 export class App {
 
   /**
@@ -482,18 +494,6 @@ export class App {
     });
   }
 
-  /**
-   * show progress message in resultPlot slot with h1 header tag; blank message clears (no h1)
-   *
-   * @param {string} message text to show as heading in div resultPlot+slot
-   * @param {number} slot Location for showing message
-   */
-
-  progress(message, slot) {
-    const hmsg = (message && (message.length > 0)) ? ("<h1>" + message + "</h1>") : '';
-    $('#resultPlot' + slot)
-      .html(hmsg);
-  }
 
   /**
    * asynchronously start running a simulation and when done show its plots in a slot.  stops spinning run animation when done. Deletes logs buyorder,sellorder if periods>500 to prevent out-of-memory.
@@ -510,9 +510,9 @@ export class App {
 
     function onPeriod(sim) {
       if (sim.period < sim.config.periods) {
-        app.progress(Math.round(100 * sim.period / sim.config.periods) + "% complete", slot);
+        resultPlotProgress(Math.round(100 * sim.period / sim.config.periods) + "% complete", slot);
       } else {
-        app.progress('', slot);
+        resultPlotProgress('', slot);
       }
       return sim;
     }
@@ -544,7 +544,7 @@ export class App {
       .then(onDone)
       .catch((e) => {
         console.log(e);
-        app.progress('<span class="error">' + e + '</span>', slot);
+        resultPlotProgress(e.toString(), slot);
         uiDone();
       })
     );
