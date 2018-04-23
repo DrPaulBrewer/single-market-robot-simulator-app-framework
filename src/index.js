@@ -269,7 +269,7 @@ export class App {
   showParameters(conf) {
     const app = this;
     $('.paramPlot')
-      .html("");
+      .empty();
     const sims = app.simulations(conf);
     const l = sims.length;
     let i = 0;
@@ -799,7 +799,7 @@ export class App {
   run() {
     const app = this;
     $('#runError')
-      .html("");
+      .empty();
     $('.postrun')
       .removeClass("disabled");
     $('.postrun')
@@ -807,9 +807,9 @@ export class App {
     $('.postrun')
       .prop('disabled', true);
     $('.paramPlot')
-      .html("");
+      .empty();
     $('.resultPlot')
-      .html("");
+      .empty();
     $('#runButton .glyphicon')
       .addClass("spinning");
     app.renderVisualSelector();
@@ -1078,7 +1078,7 @@ export class App {
     const app = this;
     const StudyFolder = app.DB.studyFolder;
     $('#trashList')
-      .html("");
+      .empty();
     if (app.DB) {
       (app.DB.listStudyFolders({
           trashed: true
