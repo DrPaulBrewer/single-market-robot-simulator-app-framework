@@ -143,10 +143,10 @@ var VizMaster = function () {
       var i = 0;
       this.empty();
       while (i < n) {
-        i += 1;
         var $row = $("<div>").addClass("row").appendTo(this.div);
         $("<div>", { id: "paramPlot" + i }).addClass("paramPlot col-xs-12 col-md-4").appendTo($row);
         $("<div>", { id: "resultPlot" + i }).addClass("resultPlot col-xs-12 col-md-7").appendTo($row);
+        i += 1;
       }
     }
   }]);
