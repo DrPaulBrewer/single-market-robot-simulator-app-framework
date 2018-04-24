@@ -356,7 +356,6 @@ var App = exports.App = function () {
       var app = this;
       var sims = app.simulations(conf);
       var l = sims.length;
-      app.vizMaster.scaffold(l);
       var i = 0;
 
       function loop() {
@@ -849,12 +848,11 @@ var App = exports.App = function () {
       $('.postrun').removeClass("disabled");
       $('.postrun').addClass("disabled");
       $('.postrun').prop('disabled', true);
-      $('.paramPlot').empty();
-      $('.resultPlot').empty();
       $('#runButton .glyphicon').addClass("spinning");
       app.renderVisualSelector();
       var studyConfig = app.getStudyConfig();
       app.sims = app.simulations(studyConfig, true);
+      app.vizMaster.scaffold(app.sims.length);
       (0, _pEachSeries2.default)(app.sims, app.runSimulation.bind(app)).then(function () {
         return console.log("finished run");
       });
