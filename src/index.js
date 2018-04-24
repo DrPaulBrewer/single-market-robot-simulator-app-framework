@@ -113,7 +113,6 @@ class VizMaster {
     let i=0;
     this.empty();
     while(i<n){
-      i += 1;
       let $row = $("<div>")
         .addClass("row")
         .appendTo(this.div);
@@ -123,6 +122,7 @@ class VizMaster {
       $("<div>", { id: `resultPlot${i}`})
         .addClass("resultPlot col-xs-12 col-md-7")
         .appendTo($row);
+      i += 1;
     }
   }
 }
