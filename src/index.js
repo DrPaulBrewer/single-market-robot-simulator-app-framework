@@ -325,7 +325,6 @@ export class App {
     const app = this;
     const sims = app.simulations(conf);
     const l = sims.length;
-    app.vizMaster.scaffold(l);
     let i = 0;
 
     function loop() {
@@ -833,15 +832,12 @@ export class App {
       .addClass("disabled");
     $('.postrun')
       .prop('disabled', true);
-    $('.paramPlot')
-      .empty();
-    $('.resultPlot')
-      .empty();
     $('#runButton .glyphicon')
       .addClass("spinning");
     app.renderVisualSelector();
     const studyConfig = app.getStudyConfig();
     app.sims = app.simulations(studyConfig, true);
+    app.vizMaster.scaffold(app.sims.length);
     ( pEachSeries(app.sims, app.runSimulation.bind(app))
         .then(()=>(console.log("finished run")))
     );
