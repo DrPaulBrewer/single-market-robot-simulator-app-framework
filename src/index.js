@@ -101,9 +101,8 @@ function showPeriods(periods) {
 
 class VizMaster {
   constructor(div){
-    this.div = '#div';
+    this.div = `#${div}`;
     this.empty();
-    $('#'+div).empty();
   }
   empty(){
     $(this.div).empty();
