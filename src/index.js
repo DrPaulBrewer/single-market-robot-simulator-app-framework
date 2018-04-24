@@ -415,6 +415,7 @@ export class App {
   choose(n) {
     const app = this;
     console.log("chose " + n + " at " + Date.now());
+    app.vizMaster.empty();
     if (Array.isArray(app.availableStudyFolders)) {
       app.chosenStudyIndex = Math.max(0, Math.min(Math.floor(n), app.availableStudyFolders.length - 1));
       app.availableStudyFolders[app.chosenStudyIndex].getConfig()
@@ -424,6 +425,7 @@ export class App {
 
   chooseRun(n) {
     const app = this;
+    app.vizMaster.empty();
     app.chosenRun = +n;
   }
 
