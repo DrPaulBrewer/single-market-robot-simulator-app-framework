@@ -443,6 +443,7 @@ var App = exports.App = function () {
     value: function choose(n) {
       var app = this;
       console.log("chose " + n + " at " + Date.now());
+      app.vizMaster.empty();
       if (Array.isArray(app.availableStudyFolders)) {
         app.chosenStudyIndex = Math.max(0, Math.min(Math.floor(n), app.availableStudyFolders.length - 1));
         app.availableStudyFolders[app.chosenStudyIndex].getConfig().then(function (choice) {
@@ -454,6 +455,7 @@ var App = exports.App = function () {
     key: "chooseRun",
     value: function chooseRun(n) {
       var app = this;
+      app.vizMaster.empty();
       app.chosenRun = +n;
     }
   }, {
