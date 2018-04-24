@@ -1085,9 +1085,10 @@ export class App {
         })
         .then(function (data) {
           app.sims = data.sims;
-          app.availableStudies = [data.config]; // deletes local cache of DB - pulled studiess. app only sees the loaded file.
-          app.renderConfigSelector(); // app only shows one choice in config selector -- can reload to get back to imported list
-          app.choose(0); // configure app to use the loaded file as the current study
+          // disabled legacy code
+          // NOOP app.availableStudies = [data.config]; // deletes local cache of DB - pulled studiess. app only sees the loaded file.
+          // NOT NEEDED app.renderConfigSelector(); // app only shows one choice in config selector -- can reload to get back to imported list
+          // WHY? would empty vizMaster... app.choose(0); // configure app to use the loaded file as the current study
           app.renderVisualSelector(); // can render the list of available visualization only once the study is chosen as current study
         })
         .then(showSuccess)
