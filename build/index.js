@@ -126,9 +126,8 @@ var VizMaster = function () {
   function VizMaster(div) {
     _classCallCheck(this, VizMaster);
 
-    this.div = '#div';
+    this.div = "#" + div;
     this.empty();
-    $('#' + div).empty();
   }
 
   _createClass(VizMaster, [{
