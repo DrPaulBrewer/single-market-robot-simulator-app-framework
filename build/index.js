@@ -84,6 +84,76 @@ function setSelectOptions(_ref) {
   });
 }
 
+function createJSONEditor(_ref2) {
+  var div = _ref2.div,
+      clear = _ref2.clear,
+      options = _ref2.options;
+
+  var editorElement = document.getElementById(div);
+  if (editorElement && window.JSONEditor) {
+    if (clear) {
+      $('#' + div).empty();
+    }
+    return new window.JSONEditor(editorElement, options);
+  }
+}
+
+/**
+ * show progress message in resultPlot slot with h1 header tag
+ *
+ * @param {string} message text to show as heading in div resultPlot+slot
+ * @param {number} slot Location for showing message
+ */
+
+function resultPlotProgress(message, slot) {
+  $('#resultPlot' + slot).html("<h1>" + message + "</h1>");
+}
+
+/**
+ * show the number of periods as indicated
+ *
+ * @param {number} number of periods to indicate
+ * @return {number} the same number passed
+ */
+
+function showPeriods(periods) {
+  $('input.periods').val(periods);
+  $('span.periods').text(periods);
+  return periods;
+}
+
+var VizMaster = function () {
+  function VizMaster(div) {
+    _classCallCheck(this, VizMaster);
+
+    this.div = '#div';
+    this.empty();
+    $('#' + div).empty();
+  }
+
+  _createClass(VizMaster, [{
+    key: "empty",
+    value: function empty() {
+      $(this.div).empty();
+      return this;
+    }
+  }, {
+    key: "scaffold",
+    value: function scaffold(n) {
+      var i = 0;
+      this.empty();
+      while (i < n) {
+        i += 1;
+        var $row = $("<div>").addClass("row").appendTo(this.div);
+        $("<div>", { id: "paramPlot" + i }).addClass("paramPlot col-xs-12 col-md-4").appendTo($row);
+        $("<div>", { id: "resultPlot" + i }).addClass("resultPlot col-xs-12 col-md-7").appendTo($row);
+      }
+    }
+  }]);
+
+  return VizMaster;
+}();
+
 var App = exports.App = function () {
 
   /**
@@ -113,6 +183,7 @@ var App = exports.App = function () {
     this.chosenStudyIndex = 0;
     this.sims = [];
     this.visualIndex = 0;
+    this.vizMaster = new VizMaster('study-results');
   }
 
   /**
@@ -167,9 +238,9 @@ var App = exports.App = function () {
 
   }, {
     key: "setStudy",
-    value: function setStudy(_ref2) {
-      var config = _ref2.config,
-          folder = _ref2.folder;
+    value: function setStudy(_ref3) {
+      var config = _ref3.config,
+          folder = _ref3.folder;
 
       var app = this;
 
@@ -251,7 +322,7 @@ var App = exports.App = function () {
       var config = app.getStudyConfig();
       if (config && config.common && +n > 0) {
         config.common.periods = +n;
-        app.showPeriods(n);
+        showPeriods(n);
         app.timeit(config);
       }
     }
@@ -284,9 +355,9 @@ var App = exports.App = function () {
     key: "showParameters",
     value: function showParameters(conf) {
       var app = this;
-      $('.paramPlot').html("");
       var sims = app.simulations(conf);
       var l = sims.length;
+      app.vizMaster.scaffold(l);
       var i = 0;
 
       function loop() {
@@ -498,20 +569,6 @@ var App = exports.App = function () {
     }
 
     /**
-     * show progress message in resultPlot slot with h1 header tag; blank message clears (no h1)
-     *
-     * @param {string} message text to show as heading in div resultPlot+slot
-     * @param {number} slot Location for showing message
-     */
-
-  }, {
-    key: "progress",
-    value: function progress(message, slot) {
-      var hmsg = message && message.length > 0 ? "<h1>" + message + "</h1>" : '';
-      $('#resultPlot' + slot).html(hmsg);
-    }
-
-    /**
      * asynchronously start running a simulation and when done show its plots in a slot.  stops spinning run animation when done. Deletes logs buyorder,sellorder if periods>500 to prevent out-of-memory.
      * @param {Object} simConfig An initialized SMRS.Simulation
      * @param {number} slot A slot number.  Plots appear in div with id resultPlot+slot and paramPlot+slot
@@ -527,9 +584,9 @@ var App = exports.App = function () {
 
       function onPeriod(sim) {
         if (sim.period < sim.config.periods) {
-          app.progress(Math.round(100 * sim.period / sim.config.periods) + "% complete", slot);
+          resultPlotProgress(Math.round(100 * sim.period / sim.config.periods) + "% complete", slot);
         } else {
-          app.progress('', slot);
+          resultPlotProgress('', slot);
         }
         return sim;
       }
@@ -554,7 +611,7 @@ var App = exports.App = function () {
         update: onPeriod
       }).then(onDone).catch(function (e) {
         console.log(e);
-        app.progress('<span class="error">' + e + '</span>', slot);
+        resultPlotProgress(e.toString(), slot);
         uiDone();
       });
       if (mysim.config.periods > 500) {
@@ -617,23 +674,6 @@ var App = exports.App = function () {
       $('.postrun').prop('disabled', true);
     }
   }, {
-    key: "createJSONEditor",
-    value: function createJSONEditor(_ref3) {
-      var div = _ref3.div,
-          clear = _ref3.clear,
-          options = _ref3.options;
-
-      var editorElement = document.getElementById(div);
-      if (editorElement && window.JSONEditor) {
-        if (clear) {
-          while (editorElement.firstChild) {
-            editorElement.removeChild(editorElement.firstChild);
-          }
-        }
-        return new window.JSONEditor(editorElement, options);
-      }
-    }
-  }, {
     key: "initEditor",
     value: function initEditor(_ref4) {
       var config = _ref4.config,
@@ -646,7 +686,7 @@ var App = exports.App = function () {
         schema: schema,
         startval: config
       };
-      app.editor = app.createJSONEditor({
+      app.editor = createJSONEditor({
         div: 'editor',
         clear: true,
         options: editorOptions
@@ -688,7 +728,7 @@ var App = exports.App = function () {
         var schema = Study.morphSchema(A, B);
         var hasConfigMorph = config.morph && Object.keys(config.morph).length > 0;
         var startval = hasConfigMorph && config.morph || schema.default;
-        app.morphEditor = app.createJSONEditor({
+        app.morphEditor = createJSONEditor({
           div: 'morphEditor',
           clear: true,
           options: {
@@ -715,21 +755,6 @@ var App = exports.App = function () {
     }
 
     /**
-     * show the number of periods as indicated
-     *
-     * @param {number} number of periods to indicate
-     * @return {number} the same number passed
-     */
-
-  }, {
-    key: "showPeriods",
-    value: function showPeriods(periods) {
-      $('input.periods').val(periods);
-      $('span.periods').text(periods);
-      return periods;
-    }
-
-    /**
      * refreshes a number of UI elements
      */
 
@@ -741,7 +766,7 @@ var App = exports.App = function () {
       console.log("refresh started at: " + t0);
       var study = app.getStudyConfig();
       var periods = app.getPeriods();
-      app.showPeriods(periods);
+      showPeriods(periods);
       console.log("in refresh, elapsed after get study, folder, periods: " + (Date.now() - t0));
       if (study) {
         app.showParameters(study);
@@ -821,12 +846,12 @@ var App = exports.App = function () {
     key: "run",
     value: function run() {
       var app = this;
-      $('#runError').html("");
+      $('#runError').empty();
       $('.postrun').removeClass("disabled");
       $('.postrun').addClass("disabled");
       $('.postrun').prop('disabled', true);
-      $('.paramPlot').html("");
-      $('.resultPlot').html("");
+      $('.paramPlot').empty();
+      $('.resultPlot').empty();
       $('#runButton .glyphicon').addClass("spinning");
       app.renderVisualSelector();
       var studyConfig = app.getStudyConfig();
@@ -1053,6 +1078,7 @@ var App = exports.App = function () {
         (0, _singleMarketRobotSimulatorOpenzip2.default)(zipPromise(chosenSavedRun), app.SMRS, showProgress).then(function (data) {
           if (!data.config) throw new Error("No master configuration file (config.json) was found in zip file.  Maybe this zip file is unrelated.");
           if (!data.sims.length) throw new Error("No simulation configuration files (sim.json) in the zip file");
+          app.vizMaster.scaffold(data.sims.length);
           if (Array.isArray(data.config.configurations) && Study.numberOfSimulations(data.config) !== data.sims.length) throw new Error("Missing files.  the number of configurations generated by config.json does not match the number of simulation directories and files I found");
           if (data.sims.includes(undefined)) throw new Error("It seems a folder has been deleted from the zip file or I could not read it. ");
           return data;
@@ -1075,7 +1101,7 @@ var App = exports.App = function () {
     value: function renderTrash() {
       var app = this;
       var StudyFolder = app.DB.studyFolder;
-      $('#trashList').html("");
+      $('#trashList').empty();
       if (app.DB) {
         app.DB.listStudyFolders({
           trashed: true
