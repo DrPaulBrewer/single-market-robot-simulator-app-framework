@@ -1000,8 +1000,10 @@ export class App {
     const app = this;
 
     function showProgress(message) {
+      // see https://stackoverflow.com/q/10776085/103081
       $('div.openzip-progress')
-        .append("<p>" + message + "</p>");
+        .append("<p>" + message + "</p>")
+        .animate({scrollTop: $('div.openzip-progress').prop("scrollHeight")}, 100);
     }
 
     function showError(e) {

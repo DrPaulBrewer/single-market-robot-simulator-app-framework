@@ -1013,7 +1013,8 @@ var App = exports.App = function () {
       var app = this;
 
       function showProgress(message) {
-        $('div.openzip-progress').append("<p>" + message + "</p>");
+        // see https://stackoverflow.com/q/10776085/103081
+        $('div.openzip-progress').append("<p>" + message + "</p>").animate({ scrollTop: $('div.openzip-progress').prop("scrollHeight") }, 100);
       }
 
       function showError(e) {
