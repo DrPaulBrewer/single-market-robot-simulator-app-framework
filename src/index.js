@@ -269,8 +269,6 @@ export class App {
       .text(description);
     if (config) {
       setTimeout(updateEditorTask, 200);
-      $('#runError')
-        .html("Click >Run to run the simulation and see the new results");
       if (app.timeit) app.timeit(config);
       if (Study.numberOfSimulations(config) <= 4) app.refresh();
     }
