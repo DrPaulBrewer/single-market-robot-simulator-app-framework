@@ -1002,6 +1002,10 @@ export class App {
   openZipFile(chosenSavedRun) {
     const app = this;
 
+    function emptyProgress(){
+      $('div.openzip-progresss').empty();
+    }
+
     function showProgress(message) {
       // see https://stackoverflow.com/q/10776085/103081
       $('div.openzip-progress')
@@ -1021,7 +1025,8 @@ export class App {
     }
 
     function showSuccess() {
-      showProgress('<span class="green"> SUCCESS.  The data in the zip file has been loaded.  You may click the "App" or "Edit" tabs now.  </span>');
+      emptyProgress();
+      showProgress('<span class="green"> SUCCESS.  The data in the zip file has been loaded. Scroll down to interact with this data. </span>');
       restoreUI();
     }
 
