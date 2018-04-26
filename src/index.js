@@ -1006,6 +1006,8 @@ export class App {
       $('div.openzip-progress').empty();
     }
 
+    emptyProgress();
+
     function showProgress(message) {
       // see https://stackoverflow.com/q/10776085/103081
       $('div.openzip-progress')
@@ -1073,8 +1075,6 @@ export class App {
       return app.study.folder.download(zipFile);
     }
 
-    $('div.openzip-progress')
-      .html('');
     ($('button.openzip-button')
       .prop('disabled', true)
       .addClass("disabled")
