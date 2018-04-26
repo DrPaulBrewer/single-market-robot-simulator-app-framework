@@ -73,6 +73,9 @@ function createJSONEditor({
 }
 
 /**
+  * scroll a div to the bottom
+
+/**
  * show progress message in resultPlot slot with h1 header tag
  *
  * @param {string} message text to show as heading in div resultPlot+slot
@@ -1003,7 +1006,7 @@ export class App {
       // see https://stackoverflow.com/q/10776085/103081
       $('div.openzip-progress')
         .append("<p>" + message + "</p>")
-        .animate({scrollTop: $('div.openzip-progress').prop("scrollHeight")}, 100);
+        .scrollTop($('div.openzip-progress').prop("scrollHeight"));
     }
 
     function showError(e) {
