@@ -1019,6 +1019,8 @@ var App = exports.App = function () {
         $('div.openzip-progress').empty();
       }
 
+      emptyProgress();
+
       function showProgress(message) {
         // see https://stackoverflow.com/q/10776085/103081
         $('div.openzip-progress').append("<p>" + message + "</p>").scrollTop($('div.openzip-progress').prop("scrollHeight"));
@@ -1079,7 +1081,6 @@ var App = exports.App = function () {
         return app.study.folder.download(zipFile);
       }
 
-      $('div.openzip-progress').html('');
       $('button.openzip-button').prop('disabled', true).addClass("disabled");
       setTimeout(function () {
 
