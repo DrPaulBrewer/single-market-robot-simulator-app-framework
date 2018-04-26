@@ -1003,7 +1003,7 @@ export class App {
     const app = this;
 
     function emptyProgress(){
-      $('div.openzip-progresss').empty();
+      $('div.openzip-progress').empty();
     }
 
     function showProgress(message) {

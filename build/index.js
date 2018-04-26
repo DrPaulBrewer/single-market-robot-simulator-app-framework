@@ -1016,7 +1016,7 @@ var App = exports.App = function () {
       var app = this;
 
       function emptyProgress() {
-        $('div.openzip-progresss').empty();
+        $('div.openzip-progress').empty();
       }
 
       function showProgress(message) {
