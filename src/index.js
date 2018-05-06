@@ -1068,7 +1068,7 @@ export class App {
       const zipFile = app.study.zipFiles[n];
       showProgress("chosen zip file is:" + JSON.stringify(zipFile));
       if (zipFile.size > (100 * 1000 * 1000)){
-        const ask = "Fetching this large file might crash, deplete bandwidth, run up your mobile data bill, or cause other issues.  Proceed?";
+        const ask = "Fetching this large file might crash, deplete bandwidth, increase your mobile data bill, or cause other issues.  Proceed?";
         if (!confirm(ask)){    // eslint-disable-line no-alert
             return Promise.reject("zip file exceeds 100 MB, will not download to browser"); 
         }
