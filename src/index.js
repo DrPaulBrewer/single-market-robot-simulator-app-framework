@@ -416,7 +416,9 @@ export class App {
   choose(n) {
     const app = this;
     console.log("chose " + n + " at " + Date.now());
+    $('div.openzip-progress').empty();
     app.vizMaster.empty();
+    app.sims = [];
     if (Array.isArray(app.availableStudyFolders)) {
       app.chosenStudyIndex = Math.max(0, Math.min(Math.floor(n), app.availableStudyFolders.length - 1));
       app.availableStudyFolders[app.chosenStudyIndex].getConfig()
@@ -426,7 +428,9 @@ export class App {
 
   chooseRun(n) {
     const app = this;
+    $('div.openzip-progress').empty();
     app.vizMaster.empty();
+    app.sims = [];
     app.chosenRun = +n;
   }
 
@@ -1070,7 +1074,7 @@ export class App {
       if (zipFile.size > (100 * 1000 * 1000)){
         const ask = "Fetching this large file might crash, deplete bandwidth, increase your mobile data bill, or cause other issues.  Proceed?";
         if (!confirm(ask)){    // eslint-disable-line no-alert
-            return Promise.reject("zip file exceeds 100 MB, will not download to browser"); 
+            return Promise.reject("zip file exceeds 100 MB, will not download to browser");
         }
       }
       showProgress("reading from Google Drive");
@@ -1097,11 +1101,7 @@ export class App {
         })
         .then(function (data) {
           app.sims = data.sims;
-          // disabled legacy code
-          // NOOP app.availableStudies = [data.config]; // deletes local cache of DB - pulled studiess. app only sees the loaded file.
-          // NOT NEEDED app.renderConfigSelector(); // app only shows one choice in config selector -- can reload to get back to imported list
-          // WHY? would empty vizMaster... app.choose(0); // configure app to use the loaded file as the current study
-          app.renderVisualSelector(); // can render the list of available visualization only once the study is chosen as current study
+          app.renderVisualSelector();
         })
         .then(showSuccess)
         .catch(showFailure)

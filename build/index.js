@@ -445,7 +445,9 @@ var App = exports.App = function () {
     value: function choose(n) {
       var app = this;
       console.log("chose " + n + " at " + Date.now());
+      $('div.openzip-progress').empty();
       app.vizMaster.empty();
+      app.sims = [];
       if (Array.isArray(app.availableStudyFolders)) {
         app.chosenStudyIndex = Math.max(0, Math.min(Math.floor(n), app.availableStudyFolders.length - 1));
         app.availableStudyFolders[app.chosenStudyIndex].getConfig().then(function (choice) {
@@ -457,7 +459,9 @@ var App = exports.App = function () {
     key: "chooseRun",
     value: function chooseRun(n) {
       var app = this;
+      $('div.openzip-progress').empty();
       app.vizMaster.empty();
+      app.sims = [];
       app.chosenRun = +n;
     }
   }, {
@@ -1098,11 +1102,7 @@ var App = exports.App = function () {
           return data;
         }).then(function (data) {
           app.sims = data.sims;
-          // disabled legacy code
-          // NOOP app.availableStudies = [data.config]; // deletes local cache of DB - pulled studiess. app only sees the loaded file.
-          // NOT NEEDED app.renderConfigSelector(); // app only shows one choice in config selector -- can reload to get back to imported list
-          // WHY? would empty vizMaster... app.choose(0); // configure app to use the loaded file as the current study
-          app.renderVisualSelector(); // can render the list of available visualization only once the study is chosen as current study
+          app.renderVisualSelector();
         }).then(showSuccess).catch(showFailure);
       }, 200);
     }
