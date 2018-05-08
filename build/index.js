@@ -48,6 +48,16 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 /**
+ * Return size as an integer number of Megabytes + ' MB' rounded up 
+ * @param {string|number} nBytes  number of Bytes
+ * @return {string} size description string "123 MB"
+ */
+
+function megaByteSizeStringRoundedUp(nBytes) {
+  return Math.ceil(+nBytes / 1e6) + ' MB';
+}
+
+/**
  * Change Plotly plot title by prepending, appending, or replacing existing plot title
  * @param {Array<Object>} plotParams The plot to be modified -- a two element Array of [PlotlyTraces, PlotlyLayout]
  * @param {{prepend: ?string, append: ?string, replace: ?string}} modifier modifications to title
@@ -502,7 +512,7 @@ var App = exports.App = function () {
       var app = this;
       var select = '#priorRunSelector';
       var options = app.study && app.study.zipFiles && app.study.zipFiles.map(function (f) {
-        return f.name + ': ' + (Number(f.size) / 1e6).toString().substr(0, 3) + ' MB';
+        return f.name + ': ' + megaByteSizeStringRoundedUp(f.size);
       }) || []; // fails thru to empty set of options
       var selectedOption = 0;
       app.chosenRun = 0;
