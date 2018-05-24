@@ -476,7 +476,7 @@ export class App {
 
     renderPriorRunSelector() {
         const app = this;
-        const select = '#priorRunSelector';
+        const select = 'select.priorRunSelector';
         const options = (
             app.study &&
                 app.study.zipFiles &&
