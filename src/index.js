@@ -54,7 +54,8 @@ export function adjustTitle(plotParams, modifier) {
 function setSelectOptions({
   select,
   options,
-  selectedOption
+  selectedOption,
+  values
 }) {
   $(select + ' > option')
     .remove();
@@ -62,8 +63,9 @@ function setSelectOptions({
     options.forEach(
       (o, n) => {
         const s = (n === selectedOption) ? 'selected="selected"' : '';
+        const v = (Array.isArray(values))? values[n]: n;
         $(select)
-          .append(`<option value="${n}" ${s}>${o}</option>`);
+          .append(`<option value="${v}" ${s}>${o}</option>`);
       }
     );
 }
@@ -476,18 +478,28 @@ export class App {
 
     renderPriorRunSelector() {
         const app = this;
-        const select = 'select.priorRunSelector';
         const options = (
             app.study &&
                 app.study.zipFiles &&
                 app.study.zipFiles.map((f) => (f.name + ': ' + megaByteSizeStringRoundedUp(f.size)))
         ) || []; // fails thru to empty set of options
+        const values = (
+          app.study &&
+          app.study.zipFiles &&
+          app.study.zipFiles.map((f)=>(f.id))
+        ) || [];
         const selectedOption = 0;
-        app.chosenRun = 0;
+        app.chosenRun = 0;  
         setSelectOptions({
-            select,
+            select: 'select.numericRunSelector',
             options,
             selectedOption
+        });
+        setSelectOptions({
+          select: 'select.fileidRunSelector',
+          options,
+          selectedOption,
+          values
         });
     }
 

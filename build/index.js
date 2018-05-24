@@ -85,12 +85,14 @@ function adjustTitle(plotParams, modifier) {
 function setSelectOptions(_ref) {
   var select = _ref.select,
       options = _ref.options,
-      selectedOption = _ref.selectedOption;
+      selectedOption = _ref.selectedOption,
+      values = _ref.values;
 
   $(select + ' > option').remove();
   if (Array.isArray(options)) options.forEach(function (o, n) {
     var s = n === selectedOption ? 'selected="selected"' : '';
-    $(select).append("<option value=\"" + n + "\" " + s + ">" + o + "</option>");
+    var v = Array.isArray(values) ? values[n] : n;
+    $(select).append("<option value=\"" + v + "\" " + s + ">" + o + "</option>");
   });
 }
 
@@ -510,16 +512,24 @@ var App = exports.App = function () {
     key: "renderPriorRunSelector",
     value: function renderPriorRunSelector() {
       var app = this;
-      var select = 'select.priorRunSelector';
       var options = app.study && app.study.zipFiles && app.study.zipFiles.map(function (f) {
         return f.name + ': ' + megaByteSizeStringRoundedUp(f.size);
       }) || []; // fails thru to empty set of options
+      var values = app.study && app.study.zipFiles && app.study.zipFiles.map(function (f) {
+        return f.id;
+      }) || [];
       var selectedOption = 0;
       app.chosenRun = 0;
       setSelectOptions({
-        select: select,
+        select: 'select.numericRunSelector',
         options: options,
         selectedOption: selectedOption
+      });
+      setSelectOptions({
+        select: 'select.fileidRunSelector',
+        options: options,
+        selectedOption: selectedOption,
+        values: values
       });
     }
 
