@@ -510,7 +510,7 @@ var App = exports.App = function () {
     key: "renderPriorRunSelector",
     value: function renderPriorRunSelector() {
       var app = this;
-      var select = '#priorRunSelector';
+      var select = 'select.priorRunSelector';
       var options = app.study && app.study.zipFiles && app.study.zipFiles.map(function (f) {
         return f.name + ': ' + megaByteSizeStringRoundedUp(f.size);
       }) || []; // fails thru to empty set of options
