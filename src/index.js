@@ -1,7 +1,7 @@
 /* Copyright 2016- Paul Brewer, Economic and Financial Technology Consulting LLC */
 /* This file is open source software.  The MIT License applies to this software.  */
 
-/* global Plotly:true, window:true, $:true */
+/* global Plotly:true, $:true */
 
 /* eslint no-console: "off" */
 /* eslint consistent-this: ["error", "app", "that"] */
