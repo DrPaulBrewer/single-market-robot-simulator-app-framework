@@ -48,7 +48,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 /**
- * Return size as an integer number of Megabytes + ' MB' rounded up 
+ * Return size as an integer number of Megabytes + ' MB' rounded up
  * @param {string|number} nBytes  number of Bytes
  * @return {string} size description string "123 MB"
  */
@@ -879,10 +879,22 @@ var App = exports.App = function () {
       $('#runButton .glyphicon').addClass("spinning");
       app.renderVisualSelector();
       var studyConfig = app.getStudyConfig();
+      var periodsRequested = studyConfig.periods;
       app.sims = app.simulations(studyConfig, true);
       app.vizMaster.scaffold(app.sims.length);
       (0, _pEachSeries2.default)(app.sims, app.runSimulation.bind(app)).then(function () {
         return console.log("finished run");
+      }).then(function () {
+        var canUpload = $('#canUploadAfterRun').prop('checked');
+        if (!canUpload) return;
+        var ok = app.sims.all(function (s) {
+          return s.period === periodsRequested;
+        });
+        if (!ok) {
+          return console.log("aborting save for incomplete run");
+        }
+        console.log("saving to Google Drive");
+        app.uploadData();
       });
     }
 
@@ -1002,9 +1014,6 @@ var App = exports.App = function () {
       var study = (0, _clone2.default)(app.getStudyConfig());
       var folder = app.getStudyFolder();
       if (folder) {
-        $('#uploadButton').prop('disabled', true);
-        $('#uploadButton').addClass('disabled');
-        $('#uploadButton .glyphicon').addClass("spinning");
         (0, _singleMarketRobotSimulatorSavezip2.default)({
           config: study,
           sims: app.sims,
@@ -1020,10 +1029,6 @@ var App = exports.App = function () {
             if (Array.isArray(app.study.zipfiles)) app.study.zipfiles.unshift(newfile);
           }).catch(function (e) {
             return console.log(e);
-          }).finally(function () {
-            $('#uploadButton .spinning').removeClass("spinning");
-            $('#uploadButton').removeClass("disabled");
-            $('#uploadButton').prop('disabled', false);
           });
         });
       }

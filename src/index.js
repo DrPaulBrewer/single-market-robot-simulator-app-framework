@@ -13,7 +13,7 @@ import openZip from "single-market-robot-simulator-openzip";
 import * as Study from "single-market-robot-simulator-study";
 
 /**
- * Return size as an integer number of Megabytes + ' MB' rounded up 
+ * Return size as an integer number of Megabytes + ' MB' rounded up
  * @param {string|number} nBytes  number of Bytes
  * @return {string} size description string "123 MB"
  */
@@ -489,7 +489,7 @@ export class App {
           app.study.zipFiles.map((f)=>(f.id))
         ) || [];
         const selectedOption = 0;
-        app.chosenRun = 0;  
+        app.chosenRun = 0;
         setSelectOptions({
             select: 'select.numericRunSelector',
             options,
@@ -864,10 +864,21 @@ export class App {
       .addClass("spinning");
     app.renderVisualSelector();
     const studyConfig = app.getStudyConfig();
+    const periodsRequested = studyConfig.periods;
     app.sims = app.simulations(studyConfig, true);
     app.vizMaster.scaffold(app.sims.length);
     ( pEachSeries(app.sims, app.runSimulation.bind(app))
         .then(()=>(console.log("finished run")))
+        .then(()=>{
+          const canUpload = $('#canUploadAfterRun').prop('checked');
+          if (!canUpload) return;
+          const ok = (app.sims.all((s)=>(s.period===periodsRequested)));
+          if (!ok) {
+            return console.log("aborting save for incomplete run");
+          }
+          console.log("saving to Google Drive");
+          app.uploadData();
+        })
     );
   }
 
@@ -983,12 +994,6 @@ export class App {
     const study = clone(app.getStudyConfig());
     const folder = app.getStudyFolder();
     if (folder) {
-      $('#uploadButton')
-        .prop('disabled', true);
-      $('#uploadButton')
-        .addClass('disabled');
-      $('#uploadButton .glyphicon')
-        .addClass("spinning");
       saveZip({
             config: study,
             sims: app.sims,
@@ -1005,14 +1010,6 @@ export class App {
                   app.study.zipfiles.unshift(newfile);
               })
               .catch((e) => (console.log(e)))
-              .finally(()=>{
-                $('#uploadButton .spinning')
-                  .removeClass("spinning");
-                $('#uploadButton')
-                  .removeClass("disabled");
-                $('#uploadButton')
-                  .prop('disabled', false);
-              })
             );
         });
     }
