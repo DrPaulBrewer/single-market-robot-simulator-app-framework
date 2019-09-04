@@ -872,7 +872,7 @@ export class App {
         .then(()=>{
           const canUpload = $('#canUploadAfterRun').prop('checked');
           if (!canUpload) return;
-          const ok = (app.sims.all((s)=>(s.period===periodsRequested)));
+          const ok = (app.sims.every((s)=>(s.period===periodsRequested)));
           if (!ok) {
             return console.log("aborting save for incomplete run");
           }
