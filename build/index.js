@@ -887,7 +887,7 @@ var App = exports.App = function () {
       }).then(function () {
         var canUpload = $('#canUploadAfterRun').prop('checked');
         if (!canUpload) return;
-        var ok = app.sims.all(function (s) {
+        var ok = app.sims.every(function (s) {
           return s.period === periodsRequested;
         });
         if (!ok) {
