@@ -864,17 +864,16 @@ export class App {
       .addClass("spinning");
     app.renderVisualSelector();
     const studyConfig = app.getStudyConfig();
-    const periodsRequested = studyConfig.periods;
     app.sims = app.simulations(studyConfig, true);
     app.vizMaster.scaffold(app.sims.length);
+    app.stopped = false;
     ( pEachSeries(app.sims, app.runSimulation.bind(app))
         .then(()=>(console.log("finished run")))
         .then(()=>{
           const canUpload = $('#canUploadAfterRun').prop('checked');
           if (!canUpload) return;
-          const ok = (app.sims.every((s)=>(s.period===periodsRequested)));
-          if (!ok) {
-            return console.log("aborting save for incomplete run");
+          if (app.stopped) {
+            return console.log("run aborted by user -- aborting save");
           }
           console.log("saving to Google Drive");
           app.uploadData();
@@ -890,6 +889,7 @@ export class App {
   stop() {
     const app = this;
     // trigger normal completion
+    app.stopped = true;
     app.sims.forEach((sim) => {
       sim.config.periods = sim.period;
     });
