@@ -1006,8 +1006,8 @@ export class App {
                 onProgress: (x) => (console.log(x))
               })
               .then((newfile) => {
-                if (Array.isArray(app.study.zipfiles))
-                  app.study.zipfiles.unshift(newfile);
+                if (Array.isArray(app.study.zipFiles))
+                  app.study.zipFiles.unshift(newfile);
                   app.renderPriorRunSelector();
               })
               .catch((e) => (console.log(e)))
