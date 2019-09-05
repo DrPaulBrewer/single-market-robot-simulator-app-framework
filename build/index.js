@@ -1024,7 +1024,7 @@ var App = exports.App = function () {
               return console.log(x);
             }
           }).then(function (newfile) {
-            if (Array.isArray(app.study.zipfiles)) app.study.zipfiles.unshift(newfile);
+            if (Array.isArray(app.study.zipFiles)) app.study.zipFiles.unshift(newfile);
             app.renderPriorRunSelector();
           }).catch(function (e) {
             return console.log(e);
