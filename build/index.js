@@ -879,19 +879,16 @@ var App = exports.App = function () {
       $('#runButton .glyphicon').addClass("spinning");
       app.renderVisualSelector();
       var studyConfig = app.getStudyConfig();
-      var periodsRequested = studyConfig.periods;
       app.sims = app.simulations(studyConfig, true);
       app.vizMaster.scaffold(app.sims.length);
+      app.stopped = false;
       (0, _pEachSeries2.default)(app.sims, app.runSimulation.bind(app)).then(function () {
         return console.log("finished run");
       }).then(function () {
         var canUpload = $('#canUploadAfterRun').prop('checked');
         if (!canUpload) return;
-        var ok = app.sims.every(function (s) {
-          return s.period === periodsRequested;
-        });
-        if (!ok) {
-          return console.log("aborting save for incomplete run");
+        if (app.stopped) {
+          return console.log("run aborted by user -- aborting save");
         }
         console.log("saving to Google Drive");
         app.uploadData();
@@ -908,6 +905,7 @@ var App = exports.App = function () {
     value: function stop() {
       var app = this;
       // trigger normal completion
+      app.stopped = true;
       app.sims.forEach(function (sim) {
         sim.config.periods = sim.period;
       });
