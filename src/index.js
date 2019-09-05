@@ -1008,6 +1008,7 @@ export class App {
               .then((newfile) => {
                 if (Array.isArray(app.study.zipfiles))
                   app.study.zipfiles.unshift(newfile);
+                  app.renderPriorRunSelector();
               })
               .catch((e) => (console.log(e)))
             );
