@@ -926,7 +926,10 @@ export class App {
         .setConfig({
           config
         })
-        .then(() => (window.location.reload()))
+        .then(
+          () => (window.location.reload()),
+          (e) => (window.alert(e)) // eslint-disable-line no-alert
+        )
       );
 
     /*
@@ -940,7 +943,10 @@ export class App {
       .then((folder) => (folder.setConfig({
         config
       })))
-      .then(() => (window.location.reload()))
+      .then(
+        () => (window.location.reload()),
+        (e) => (window.alert(e)) // eslint-disable-line no-alert
+      )
     );
 
   }

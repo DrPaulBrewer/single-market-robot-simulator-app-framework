@@ -944,7 +944,10 @@ var App = exports.App = function () {
         config: config
       }).then(function () {
         return window.location.reload();
-      });
+      }, function (e) {
+        return window.alert(e);
+      } // eslint-disable-line no-alert
+      );
 
       /*
        * name is different, or no myStudyFolder, so create a new Study Folder then save
@@ -959,7 +962,10 @@ var App = exports.App = function () {
         });
       }).then(function () {
         return window.location.reload();
-      });
+      }, function (e) {
+        return window.alert(e);
+      } // eslint-disable-line no-alert
+      );
     }
 
     /**
