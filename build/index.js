@@ -354,6 +354,9 @@ var App = exports.App = function () {
 
       var app = this;
       var plotlyParams = app.Visuals.params(sim);
+      var useStaticCharts = $('#useStaticCharts').prop('checked');
+      if (!plotlyParams[2]) plotlyParams[2] = {};
+      plotlyParams[2].staticPlot = useStaticCharts;
       plotlyParams.unshift("paramPlot" + slot);
       (_Plotly = Plotly).newPlot.apply(_Plotly, _toConsumableArray(plotlyParams));
     }
@@ -562,15 +565,18 @@ var App = exports.App = function () {
 
       var app = this;
       var visuals = app.getVisuals();
-      var plotParams = visuals[app.visualIndex % visuals.length](simConfig);
+      var plotlyParams = visuals[app.visualIndex % visuals.length](simConfig);
       var config = simConfig.config;
-      adjustTitle(plotParams, {
+      adjustTitle(plotlyParams, {
         prepend: config.titlePrepend,
         append: config.titleAppend,
         replace: config.titleReplace
       });
-      plotParams.unshift('resultPlot' + slot);
-      (_Plotly2 = Plotly).newPlot.apply(_Plotly2, _toConsumableArray(plotParams));
+      var useStaticCharts = $('#useStaticCharts').prop('checked');
+      if (!plotlyParams[2]) plotlyParams[2] = {};
+      plotlyParams[2].staticPlot = useStaticCharts;
+      plotlyParams.unshift('resultPlot' + slot);
+      (_Plotly2 = Plotly).newPlot.apply(_Plotly2, _toConsumableArray(plotlyParams));
     }
 
     /**
