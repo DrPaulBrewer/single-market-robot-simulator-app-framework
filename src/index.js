@@ -325,6 +325,10 @@ export class App {
   plotParameters(sim, slot) {
     const app = this;
     const plotlyParams = app.Visuals.params(sim);
+    const useStaticCharts = $('#useStaticCharts').prop('checked');
+    if (!plotlyParams[2])
+      plotlyParams[2] = {};
+    plotlyParams[2].staticPlot = useStaticCharts;
     plotlyParams.unshift("paramPlot" + slot);
     Plotly.newPlot(...plotlyParams);
   }
@@ -533,17 +537,21 @@ export class App {
   showSimulation(simConfig, slot) {
     const app = this;
     const visuals = app.getVisuals();
-    const plotParams = visuals[app.visualIndex % visuals.length](simConfig);
+    const plotlyParams = visuals[app.visualIndex % visuals.length](simConfig);
     const config = simConfig.config;
     adjustTitle(
-      plotParams, {
+      plotlyParams, {
         prepend: config.titlePrepend,
         append: config.titleAppend,
         replace: config.titleReplace
       }
     );
-    plotParams.unshift('resultPlot' + slot);
-    Plotly.newPlot(...plotParams);
+    const useStaticCharts = $('#useStaticCharts').prop('checked');
+    if (!plotlyParams[2])
+      plotlyParams[2] = {};
+    plotlyParams[2].staticPlot = useStaticCharts;
+    plotlyParams.unshift('resultPlot' + slot);
+    Plotly.newPlot(...plotlyParams);
   }
 
   /**
