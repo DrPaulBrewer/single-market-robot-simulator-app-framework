@@ -794,24 +794,17 @@ var App = exports.App = function () {
     key: "refresh",
     value: function refresh() {
       var app = this;
-      var t0 = Date.now();
-      console.log("refresh started at: " + t0);
       var study = app.getStudyConfig();
       var periods = app.getPeriods();
       showPeriods(periods);
-      console.log("in refresh, elapsed after get study, folder, periods: " + (Date.now() - t0));
       if (study) {
         app.showParameters(study);
-        console.log("in refresh, elapsed after app.showParameters: " + (Date.now() - t0));
         var sims = app.simulations(study);
-        console.log("in refresh, elapsed after creating sims for xsimbs table: " + (Date.now() - t0));
         $('#xsimbs').html("<tr>" + sims.map(function (sim, j) {
           var data = [j, sim.numberOfBuyers, sim.numberOfSellers];
           return "<td>" + data.join("</td><td>") + "</td>";
         }).join('</tr><tr>') + "</tr>");
-        console.log("in refresh, elapsed after creating xsimbs table: " + (Date.now() - t0));
         app.plotParameters(sims[0], "ScaleUp");
-        console.log("in refresh, elapsed after plotting supply/demand in xsimbs, finished all refresh: " + (Date.now() - t0));
       }
     }
 
@@ -975,7 +968,7 @@ var App = exports.App = function () {
     }
 
     /**
-     * Select a visualization from the visualization list and refresh the UI.
+     * Select a visualization from the visualization list but don't draw it yet.
      * @param {number} n Visualization index in Visuals array
      */
 
@@ -984,6 +977,17 @@ var App = exports.App = function () {
     value: function setVisualNumber(n) {
       var app = this;
       app.visualIndex = n;
+    }
+
+    /**
+    *
+    * Draw the selected visualization
+    */
+
+  }, {
+    key: "drawVisuals",
+    value: function drawVisuals() {
+      var app = this;
       app.sims.forEach(function (s, j) {
         return app.showSimulation(s, j);
       });
