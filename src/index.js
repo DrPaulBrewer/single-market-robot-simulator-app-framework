@@ -776,17 +776,12 @@ export class App {
 
   refresh() {
     const app = this;
-    const t0 = Date.now();
-    console.log("refresh started at: " + t0);
     const study = app.getStudyConfig();
     const periods = app.getPeriods();
     showPeriods(periods);
-    console.log("in refresh, elapsed after get study, folder, periods: " + (Date.now() - t0));
     if (study) {
       app.showParameters(study);
-      console.log("in refresh, elapsed after app.showParameters: " + (Date.now() - t0));
       const sims = app.simulations(study);
-      console.log("in refresh, elapsed after creating sims for xsimbs table: " + (Date.now() - t0));
       $('#xsimbs')
         .html(
           "<tr>" + (sims
@@ -797,9 +792,7 @@ export class App {
               })
             .join('</tr><tr>')
           ) + "</tr>");
-      console.log("in refresh, elapsed after creating xsimbs table: " + (Date.now() - t0));
       app.plotParameters(sims[0], "ScaleUp");
-      console.log("in refresh, elapsed after plotting supply/demand in xsimbs, finished all refresh: " + (Date.now() - t0));
     }
   }
 
@@ -960,13 +953,22 @@ export class App {
   }
 
   /**
-   * Select a visualization from the visualization list and refresh the UI.
+   * Select a visualization from the visualization list but don't draw it yet.
    * @param {number} n Visualization index in Visuals array
    */
 
   setVisualNumber(n) {
     const app = this;
     app.visualIndex = n;
+  }
+
+  /**
+  *
+  * Draw the selected visualization
+  */
+
+  drawVisuals(){
+    const app = this;
     app.sims.forEach((s, j) => app.showSimulation(s, j));
   }
 
