@@ -68,6 +68,10 @@ function plotAddSelectedInteractivity(plotlyParams) {
   var useStaticCharts = !$('#useInteractiveCharts').prop('checked');
   if (!plotlyParams[2]) plotlyParams[2] = {};
   plotlyParams[2].staticPlot = useStaticCharts;
+  plotlyParams[2].displayModeBar = !useStaticCharts;
+  plotlyParams[2].responsive = !useStaticCharts;
+  plotlyParams[2].displaylogo = false;
+  plotlyParams[2].showSendToCloud = !useStaticCharts;
   return plotlyParams;
 }
 
