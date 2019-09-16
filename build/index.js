@@ -17,6 +17,7 @@ var _createClass = function () { function defineProperties(target, props) { for 
 /* eslint no-console: "off" */
 /* eslint consistent-this: ["error", "app", "that"] */
 
+exports.plotAddSelectedInteractivity = plotAddSelectedInteractivity;
 exports.adjustTitle = adjustTitle;
 
 var _clone = require("clone");
@@ -55,6 +56,19 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 function megaByteSizeStringRoundedUp(nBytes) {
   return Math.ceil(+nBytes / 1e6) + ' MB';
+}
+
+/**
+ *
+ * Set Plotly interactivity based on #useInteractiveCharts checkbox
+ * @param {Array<Object>} plotlyParams The plot to be modified
+ */
+
+function plotAddSelectedInteractivity(plotlyParams) {
+  var useStaticCharts = !$('#useInteractiveCharts').prop('checked');
+  if (!plotlyParams[2]) plotlyParams[2] = {};
+  plotlyParams[2].staticPlot = useStaticCharts;
+  return plotlyParams;
 }
 
 /**
@@ -354,9 +368,7 @@ var App = exports.App = function () {
 
       var app = this;
       var plotlyParams = app.Visuals.params(sim);
-      var useStaticCharts = $('#useStaticCharts').prop('checked');
-      if (!plotlyParams[2]) plotlyParams[2] = {};
-      plotlyParams[2].staticPlot = useStaticCharts;
+      plotAddSelectedInteractivity(plotlyParams);
       plotlyParams.unshift("paramPlot" + slot);
       (_Plotly = Plotly).newPlot.apply(_Plotly, _toConsumableArray(plotlyParams));
     }
@@ -572,9 +584,7 @@ var App = exports.App = function () {
         append: config.titleAppend,
         replace: config.titleReplace
       });
-      var useStaticCharts = $('#useStaticCharts').prop('checked');
-      if (!plotlyParams[2]) plotlyParams[2] = {};
-      plotlyParams[2].staticPlot = useStaticCharts;
+      plotAddSelectedInteractivity(plotlyParams);
       plotlyParams.unshift('resultPlot' + slot);
       (_Plotly2 = Plotly).newPlot.apply(_Plotly2, _toConsumableArray(plotlyParams));
     }
@@ -1119,11 +1129,12 @@ var App = exports.App = function () {
         }
         var zipFile = app.study.zipFiles[n];
         showProgress("chosen zip file is:" + JSON.stringify(zipFile));
-        if (zipFile.size > 100 * 1000 * 1000) {
-          var ask = "Fetching this large file might crash, deplete bandwidth, increase your mobile data bill, or cause other issues.  Proceed?";
+        var zipFileMB = megaByteSizeStringRoundedUp(zipFile.size);
+        if (zipFile.size > 50 * 1000 * 1000) {
+          var ask = "If you are using a mobile device, fetching this " + zipFileMB + " zipfile could crash your browser, increase your mobile data bill," + " or cause other issues. Desktops can usually handle ~100-150 MB zipfiles. Proceed?";
           if (!confirm(ask)) {
             // eslint-disable-line no-alert
-            return Promise.reject("zip file exceeds 100 MB, will not download to browser");
+            return Promise.reject("zip file download aborted");
           }
         }
         showProgress("reading from Google Drive");
