@@ -22,6 +22,19 @@ function megaByteSizeStringRoundedUp(nBytes){
     return Math.ceil(+nBytes/1e6)+ ' MB';
 }
 
+/**
+ *
+ * Set Plotly interactivity based on #useInteractiveCharts checkbox
+ * @param {Array<Object>} plotlyParams The plot to be modified
+ */
+
+ export function plotAddSelectedInteractivity(plotlyParams){
+   const useStaticCharts = !($('#useInteractiveCharts').prop('checked'));
+   if (!plotlyParams[2])
+     plotlyParams[2] = {};
+   plotlyParams[2].staticPlot = useStaticCharts;
+   return plotlyParams;
+ }
 
 /**
  * Change Plotly plot title by prepending, appending, or replacing existing plot title
@@ -325,10 +338,7 @@ export class App {
   plotParameters(sim, slot) {
     const app = this;
     const plotlyParams = app.Visuals.params(sim);
-    const useStaticCharts = $('#useStaticCharts').prop('checked');
-    if (!plotlyParams[2])
-      plotlyParams[2] = {};
-    plotlyParams[2].staticPlot = useStaticCharts;
+    plotAddSelectedInteractivity(plotlyParams);
     plotlyParams.unshift("paramPlot" + slot);
     Plotly.newPlot(...plotlyParams);
   }
@@ -546,10 +556,7 @@ export class App {
         replace: config.titleReplace
       }
     );
-    const useStaticCharts = $('#useStaticCharts').prop('checked');
-    if (!plotlyParams[2])
-      plotlyParams[2] = {};
-    plotlyParams[2].staticPlot = useStaticCharts;
+    plotAddSelectedInteractivity(plotlyParams);
     plotlyParams.unshift('resultPlot' + slot);
     Plotly.newPlot(...plotlyParams);
   }
@@ -1106,10 +1113,13 @@ export class App {
       }
       const zipFile = app.study.zipFiles[n];
       showProgress("chosen zip file is:" + JSON.stringify(zipFile));
-      if (zipFile.size > (100 * 1000 * 1000)){
-        const ask = "Fetching this large file might crash, deplete bandwidth, increase your mobile data bill, or cause other issues.  Proceed?";
+      const zipFileMB = megaByteSizeStringRoundedUp(zipFile.size);
+      if (zipFile.size > (50 * 1000 * 1000)){
+        const ask = "If you are using a mobile device, fetching this "+zipFileMB+
+        " zipfile could crash your browser, increase your mobile data bill,"+
+        " or cause other issues. Desktops can handle ~100-150 MB zipfiles. Proceed?";
         if (!confirm(ask)){    // eslint-disable-line no-alert
-            return Promise.reject("zip file exceeds 100 MB, will not download to browser");
+            return Promise.reject("zip file download aborted");
         }
       }
       showProgress("reading from Google Drive");
