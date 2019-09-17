@@ -302,15 +302,17 @@ var App = exports.App = function () {
         config: config,
         folder: folder
       };
-      if (folder && app.renderPriorRunSelector) {
+      if (folder) {
         if (folder.name) $('.onSetStudyFolderNameUpdateValue').prop('value', folder.name);else $('.onSetStudyFolderNameUpdateValue').prop('value', '');
         if (folder.id) $('.onSetStudyFolderIdUpdateValue').prop('value', folder.id);else $('.onSetStudyFolderIdUpdateValue').prop('value', '');
+        if (folder.webViewLink) $('.onSetStudyFolderLinkUpdate').prop('href', folder.webViewLink);else $('.onSetStudyFolderLinkUpdate').prop('href', 'https://drive.google.com');
         if (typeof folder.listFiles === 'function') {
-          setTimeout(updateSavedListTask, 200);
+          setTimeout(updateSavedListTask, 100);
         }
       } else {
         $('.onSetStudyFolderNameUpdateValue').prop('value', '');
         $('.onSetStudyFolderIdUpdateValue').prop('value', '');
+        $('.onSetStudyFolderLinkUpdate').prop('href', 'https://drive.google.com');
       }
       var configTitle = folder && folder.name || config && config.name || 'UNTITLED';
       $('.configTitle').text(configTitle);
@@ -494,6 +496,12 @@ var App = exports.App = function () {
       app.vizMaster.empty();
       app.sims = [];
       app.chosenRun = +n;
+      var zipFile = app.study.zipFiles[n];
+      if (zipFile && zipFile.webViewLink) {
+        $('.onChooseRunLinkUpdate').prop('href', zipFile.webViewLink);
+      } else {
+        $('.onChooseRunLinkUpdate').prop('href', 'https://drive.google.com');
+      }
     }
   }, {
     key: "fetchChosenRun",

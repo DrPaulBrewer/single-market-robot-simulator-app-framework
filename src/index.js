@@ -264,7 +264,7 @@ export class App {
       config,
       folder
     };
-    if (folder && app.renderPriorRunSelector) {
+    if (folder) {
       if (folder.name)
         $('.onSetStudyFolderNameUpdateValue')
         .prop('value', folder.name);
@@ -277,14 +277,19 @@ export class App {
       else
         $('.onSetStudyFolderIdUpdateValue')
         .prop('value', '');
+      if (folder.webViewLink)
+        $('.onSetStudyFolderLinkUpdate').prop('href',folder.webViewLink);
+      else
+        $('.onSetStudyFolderLinkUpdate').prop('href','https://drive.google.com');
       if (typeof(folder.listFiles) === 'function') {
-        setTimeout(updateSavedListTask, 200);
+        setTimeout(updateSavedListTask, 100);
       }
     } else {
       $('.onSetStudyFolderNameUpdateValue')
         .prop('value', '');
       $('.onSetStudyFolderIdUpdateValue')
         .prop('value', '');
+      $('.onSetStudyFolderLinkUpdate').prop('href','https://drive.google.com');
     }
     const configTitle = (folder && folder.name) || (config && config.name) || 'UNTITLED';
     $('.configTitle')
@@ -463,6 +468,12 @@ export class App {
     app.vizMaster.empty();
     app.sims = [];
     app.chosenRun = +n;
+    const zipFile = app.study.zipFiles[n];
+    if (zipFile && zipFile.webViewLink){
+      $('.onChooseRunLinkUpdate').prop('href',zipFile.webViewLink);
+    } else {
+      $('.onChooseRunLinkUpdate').prop('href','https://drive.google.com');
+    }
   }
 
   fetchChosenRun() {
