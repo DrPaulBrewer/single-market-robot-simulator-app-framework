@@ -1129,12 +1129,19 @@ export class App {
       const zipFile = app.study.zipFiles[n];
       showProgress("chosen zip file is:" + JSON.stringify(zipFile));
       const zipFileMB = megaByteSizeStringRoundedUp(zipFile.size);
+      if (zipFile.size> (200*1000*1000)){
+        const msg = "File Too Big: Aborted reading this "+zipFileMB+" zipfile as it would likely crash your browser or device."+
+          "You can continue analysis by manually downloading the zipfile to your PC, unzipping, and using suitable tools. "+
+          "Unzipping will reveal csv files that should be compatible with Python, R, Stata, Excel, or other stats/spreadsheet software.";
+        window.alert(msg); // eslint-disable-line no-alert
+        return Promise.reject("zip file download aborted. Exceeds 200 MB");
+      }
       if (zipFile.size > (50 * 1000 * 1000)){
         const ask = "If you are using a mobile device, fetching this "+zipFileMB+
         " zipfile could crash your browser, increase your mobile data bill,"+
         " or cause other issues. Desktops can sometimes handle ~100 MB zipfiles. Proceed?";
-        if (!confirm(ask)){    // eslint-disable-line no-alert
-            return Promise.reject("zip file download aborted");
+        if (!window.confirm(ask)){    // eslint-disable-line no-alert
+            return Promise.reject("zip file download aborted by user");
         }
       }
       showProgress("reading from Google Drive");
