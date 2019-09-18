@@ -280,7 +280,7 @@ export class App {
       if (folder.webViewLink)
         $('.onSetStudyFolderLinkUpdate').prop('href',folder.webViewLink);
       else
-        $('.onSetStudyFolderLinkUpdate').prop('href','https://drive.google.com');
+        $('.onSetStudyFolderLinkUpdate').prop('href',app.DB.defaultWebLink);
       if (typeof(folder.listFiles) === 'function') {
         setTimeout(updateSavedListTask, 100);
       }
@@ -289,7 +289,7 @@ export class App {
         .prop('value', '');
       $('.onSetStudyFolderIdUpdateValue')
         .prop('value', '');
-      $('.onSetStudyFolderLinkUpdate').prop('href','https://drive.google.com');
+      $('.onSetStudyFolderLinkUpdate').prop('href',app.DB.defaultWebLink);
     }
     const configTitle = (folder && folder.name) || (config && config.name) || 'UNTITLED';
     $('.configTitle')
@@ -472,7 +472,7 @@ export class App {
     if (zipFile && zipFile.webViewLink){
       $('.onChooseRunLinkUpdate').prop('href',zipFile.webViewLink);
     } else {
-      $('.onChooseRunLinkUpdate').prop('href','https://drive.google.com');
+      $('.onChooseRunLinkUpdate').prop('href',app.DB.defaultWebLink);
     }
   }
 
