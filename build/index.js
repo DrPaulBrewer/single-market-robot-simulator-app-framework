@@ -1143,7 +1143,7 @@ var App = exports.App = function () {
         showProgress("chosen zip file is:" + JSON.stringify(zipFile));
         var zipFileMB = megaByteSizeStringRoundedUp(zipFile.size);
         if (zipFile.size > 50 * 1000 * 1000) {
-          var ask = "If you are using a mobile device, fetching this " + zipFileMB + " zipfile could crash your browser, increase your mobile data bill," + " or cause other issues. Desktops can usually handle ~100-150 MB zipfiles. Proceed?";
+          var ask = "If you are using a mobile device, fetching this " + zipFileMB + " zipfile could crash your browser, increase your mobile data bill," + " or cause other issues. Desktops can sometimes handle ~100 MB zipfiles. Proceed?";
           if (!confirm(ask)) {
             // eslint-disable-line no-alert
             return Promise.reject("zip file download aborted");
