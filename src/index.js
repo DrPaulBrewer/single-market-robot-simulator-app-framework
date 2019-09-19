@@ -748,15 +748,20 @@ export class App {
 
   renderMorphEditor() {
     const app = this;
+    $('#morphError').text('');
     if (app.editor) {
       const config = app.editor.getValue();
       const l = config && config.configurations && config.configurations.length;
-      if (!l || (l !== 2))
+      if (!l || (l !== 2)){
+        $('#morphError').text('morph requires exactly 2 configurations. This study currently has '+l+' configurations');
         throw new Error("app.renderMorph morph requires exactly 2 configurations");
+      }
       const A = config.configurations[0];
       const B = config.configurations[1];
-      if (!(Study.isMorphable(A, B)))
+      if (!(Study.isMorphable(A, B))){
+        $('#morphError').text('The two configurations are NOT compatible');
         throw new Error("app.renderMorph morph requires configurations that pass Study.isMorphable");
+      }
       const schema = Study.morphSchema(A, B);
       const hasConfigMorph = config.morph && (Object.keys(config.morph).length>0);
       const startval = (hasConfigMorph && config.morph) || schema.default;

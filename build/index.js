@@ -772,13 +772,20 @@ var App = exports.App = function () {
     key: "renderMorphEditor",
     value: function renderMorphEditor() {
       var app = this;
+      $('#morphError').text('');
       if (app.editor) {
         var config = app.editor.getValue();
         var l = config && config.configurations && config.configurations.length;
-        if (!l || l !== 2) throw new Error("app.renderMorph morph requires exactly 2 configurations");
+        if (!l || l !== 2) {
+          $('#morphError').text('morph requires exactly 2 configurations. This study currently has ' + l + ' configurations');
+          throw new Error("app.renderMorph morph requires exactly 2 configurations");
+        }
         var A = config.configurations[0];
         var B = config.configurations[1];
-        if (!Study.isMorphable(A, B)) throw new Error("app.renderMorph morph requires configurations that pass Study.isMorphable");
+        if (!Study.isMorphable(A, B)) {
+          $('#morphError').text('The two configurations are NOT compatible');
+          throw new Error("app.renderMorph morph requires configurations that pass Study.isMorphable");
+        }
         var schema = Study.morphSchema(A, B);
         var hasConfigMorph = config.morph && Object.keys(config.morph).length > 0;
         var startval = hasConfigMorph && config.morph || schema.default;
