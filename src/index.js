@@ -626,7 +626,6 @@ export class App {
     }
 
     function onDone(sim) {
-      app.showSimulation(sim, slot);
       uiDone();
       return sim;
     }
