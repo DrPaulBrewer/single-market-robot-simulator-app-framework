@@ -640,8 +640,6 @@ export class App {
         throw new Error("Error initializing app behavior - selector " + jqSelector + " not found in app's web page");
       selection.on(eventName || 'click', ((evt) => app[appMethod](evt && evt.target && evt.target.value)));
     });
-    $('.postrun')
-      .prop('disabled', true);
   }
 
   initEditor({
@@ -825,19 +823,9 @@ export class App {
     function uiDone() {
       $('.spinning')
         .removeClass('spinning');
-      $('.postrun')
-        .removeClass('disabled');
-      $('.postrun')
-        .prop('disabled', false);
     }
     $('#runError')
       .empty();
-    $('.postrun')
-      .removeClass("disabled");
-    $('.postrun')
-      .addClass("disabled");
-    $('.postrun')
-      .prop('disabled', true);
     $('#runButton .glyphicon')
       .addClass("spinning");
     app.renderVisualSelector();
