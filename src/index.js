@@ -640,6 +640,7 @@ export class App {
         throw new Error("Error initializing app behavior - selector " + jqSelector + " not found in app's web page");
       selection.on(eventName || 'click', ((evt) => app[appMethod](evt && evt.target && evt.target.value)));
     });
+    $('body').removeClass('disabledMouse');
   }
 
   initEditor({
