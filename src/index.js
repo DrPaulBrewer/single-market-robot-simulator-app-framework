@@ -13,6 +13,28 @@ import openZip from "single-market-robot-simulator-openzip";
 import * as Study from "single-market-robot-simulator-study";
 
 /**
+  * set the app progress bar text or value in #appProgressBar
+  * @param {Object} options
+  * @param {number} options.value bar percentage from 0.0 to 100.0
+  * @param {string} options.text message text to be set above bar
+  */
+
+export function setProgressBar({value, text}){
+  if (typeof(value)==='number'){
+    const v = Math.min(100,Math.max(0,value));
+      $('#appProgressBar')
+        .prop({
+          "aria-valuenow": v,
+          "style": "width: " + v + "%"
+        })
+        .text(v + "%");
+    }
+  if (typeof(text)==='string'){
+    $('#appProgressMessage').text(text);
+  }
+}
+
+/**
  * Return size as an integer number of Megabytes + ' MB' rounded up
  * @param {string|number} nBytes  number of Bytes
  * @return {string} size description string "123 MB"
@@ -100,21 +122,6 @@ function createJSONEditor({
     }
     return new window.JSONEditor(editorElement, options);
   }
-}
-
-/**
-  * scroll a div to the bottom
-
-/**
- * show progress message in resultPlot slot with h1 header tag
- *
- * @param {string} message text to show as heading in div resultPlot+slot
- * @param {number} slot Location for showing message
- */
-
-function resultPlotProgress(message, slot) {
-  $('#resultPlot' + slot)
-    .html(`<h1>${message}</h1>`);
 }
 
 /**
@@ -593,70 +600,6 @@ export class App {
     });
   }
 
-
-  /**
-   * asynchronously start running a simulation and when done show its plots in a slot.  stops spinning run animation when done. Deletes logs buyorder,sellorder if periods>500 to prevent out-of-memory.
-   * @param {Object} simConfig An initialized SMRS.Simulation
-   * @param {number} slot A slot number.  Plots appear in div with id resultPlot+slot and paramPlot+slot
-   * @return {Promise} resolves to finished sim
-   */
-
-
-  runSimulation(simConfig, slot) {
-    // set up and run simulation
-
-    const app = this;
-
-    function onPeriod(sim) {
-      if (sim.period < sim.config.periods) {
-        resultPlotProgress(Math.round(100 * sim.period / sim.config.periods) + "% complete", slot);
-      } else {
-        resultPlotProgress('', slot);
-      }
-      return sim;
-    }
-
-    function uiDone() {
-      $('.spinning')
-        .removeClass('spinning'); // this is perhaps needessly done multiple times
-      $('.postrun')
-        .removeClass('disabled'); // same here
-      $('.postrun')
-        .prop('disabled', false); // and here
-    }
-
-    function onDone(sim) {
-      uiDone();
-      return sim;
-    }
-
-    let mysim = simConfig; // this line used to call new Simulation based on simConfig... but that is done in .simulations already
-
-    app.plotParameters(mysim, slot);
-
-    const promiseSim = (
-      mysim
-      .run({
-        update: onPeriod
-      })
-      .then(onDone)
-      .catch((e) => {
-        console.log(e);
-        resultPlotProgress(e.toString(), slot);
-        uiDone();
-      })
-    );
-    if (mysim.config.periods > 500) {
-      delete mysim.logs.buyorder;
-      delete mysim.logs.sellorder;
-      delete mysim.logs.rejectbuyorder;
-      delete mysim.logs.rejectsellorder;
-    }
-
-    return promiseSim;
-
-  }
-
   /**
    *  Expand the number of buyers and sellers (unless the number is 1, which is preserved), expanding the array(s) of buyerValues and sellerCosts via the how function
    *   how should be callable like this how(buyerValueorSellerCostArray, xfactor) and return a new array of values or costs
@@ -879,6 +822,14 @@ export class App {
 
   run() {
     const app = this;
+    function uiDone() {
+      $('.spinning')
+        .removeClass('spinning');
+      $('.postrun')
+        .removeClass('disabled');
+      $('.postrun')
+        .prop('disabled', false);
+    }
     $('#runError')
       .empty();
     $('.postrun')
@@ -894,18 +845,52 @@ export class App {
     app.sims = app.simulations(studyConfig, true);
     app.vizMaster.scaffold(app.sims.length);
     app.stopped = false;
-    ( pEachSeries(app.sims, app.runSimulation.bind(app))
-        .then(()=>(console.log("finished run")))
-        .then(()=>{
+    setProgressBar({
+      value: 0,
+      text: 'Generating market data'
+    });
+    return ( pEachSeries(app.sims, (sim, slot)=>(
+        sim.run({
+          update: (s)=>{
+            const updateThreshold = Math.max(
+              1,
+              Math.ceil(s.config.periods/100)
+            );
+            if ((s.period % updateThreshold)!==0) return s;
+            const simProgressRatio = s.period/s.config.periods;
+            const studyProgressRatio = (slot+simProgressRatio)/app.sims.length;
+            const studyProgressPct = Math.round(100*studyProgressRatio);
+            setProgressBar({
+              value: studyProgressPct
+            });
+            return s;
+          }
+        })
+      )).then(
+        ()=>{
+          uiDone();
+          setProgressBar({
+            value: 100,
+            text: 'Generation complete'
+          });
           const canUpload = $('#canUploadAfterRun').prop('checked');
           if (!canUpload) return;
           if (app.stopped) {
             return console.log("run aborted by user -- aborting save");
           }
           console.log("saving to Google Drive");
-          app.uploadData();
-        })
-    );
+          setTimeout(()=>{
+            app.uploadData();
+          }, 1000);
+        },
+        (e)=>{
+          uiDone();
+          $('#runError').html("<pre>"+e+"</pre>");
+          setProgressBar({
+            text: "Generation Error!"
+          });
+        }
+    ));
   }
 
   /**
@@ -918,7 +903,7 @@ export class App {
     // trigger normal completion
     app.stopped = true;
     app.sims.forEach((sim) => {
-      sim.config.periods = sim.period;
+      sim.config.periods = sim.period || 0;
     });
   }
 
@@ -1035,7 +1020,12 @@ export class App {
     const app = this;
     const study = clone(app.getStudyConfig());
     const folder = app.getStudyFolder();
+    const name = Study.myDateStamp() + '.zip';
     if (folder) {
+      setProgressBar({
+        value: 0,
+        text: 'Saving '+name
+      });
       saveZip({
             config: study,
             sims: app.sims,
@@ -1043,16 +1033,30 @@ export class App {
           })
           .then((zipBlob) => {
             (folder.upload({
-                name: Study.myDateStamp() + '.zip',
+                name,
                 blob: zipBlob,
-                onProgress: (x) => (console.log(x))
+                onProgress: (x) => {
+                  const { loaded, total, type } = x;
+                  if (type==='progress'){
+                    setProgressBar({
+                      value: Math.round(100*loaded/total)
+                    });
+                  }
+                }
               })
               .then((newfile) => {
+                setProgressBar({
+                  text: 'Saved '+name,
+                  value: 100
+                });
                 if (Array.isArray(app.study.zipFiles))
                   app.study.zipFiles.unshift(newfile);
                   app.renderPriorRunSelector();
               })
-              .catch((e) => (console.log(e)))
+              .catch((e) => {
+                console.log(e);
+                $('#runError').append('<pre> Error Saving '+name+"\n"+e+'</pre>');
+              })
             );
         });
     }
