@@ -17,6 +17,7 @@ var _createClass = function () { function defineProperties(target, props) { for 
 /* eslint no-console: "off" */
 /* eslint consistent-this: ["error", "app", "that"] */
 
+exports.setProgressBar = setProgressBar;
 exports.plotAddSelectedInteractivity = plotAddSelectedInteractivity;
 exports.adjustTitle = adjustTitle;
 
@@ -47,6 +48,29 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+/**
+  * set the app progress bar text or value in #appProgressBar
+  * @param {Object} options
+  * @param {number} options.value bar percentage from 0.0 to 100.0
+  * @param {string} options.text message text to be set above bar
+  */
+
+function setProgressBar(_ref) {
+  var value = _ref.value,
+      text = _ref.text;
+
+  if (typeof value === 'number') {
+    var v = Math.min(100, Math.max(0, value));
+    $('#appProgressBar').prop({
+      "aria-valuenow": v,
+      "style": "width: " + v + "%"
+    }).text(v + "%");
+  }
+  if (typeof text === 'string') {
+    $('#appProgressMessage').text(text);
+  }
+}
 
 /**
  * Return size as an integer number of Megabytes + ' MB' rounded up
@@ -100,11 +124,11 @@ function adjustTitle(plotParams, modifier) {
  * @param {function(number)} onChange - called when user changes the selection (optional)
  */
 
-function setSelectOptions(_ref) {
-  var select = _ref.select,
-      options = _ref.options,
-      selectedOption = _ref.selectedOption,
-      values = _ref.values;
+function setSelectOptions(_ref2) {
+  var select = _ref2.select,
+      options = _ref2.options,
+      selectedOption = _ref2.selectedOption,
+      values = _ref2.values;
 
   $(select + ' > option').remove();
   if (Array.isArray(options)) options.forEach(function (o, n) {
@@ -114,10 +138,10 @@ function setSelectOptions(_ref) {
   });
 }
 
-function createJSONEditor(_ref2) {
-  var div = _ref2.div,
-      clear = _ref2.clear,
-      options = _ref2.options;
+function createJSONEditor(_ref3) {
+  var div = _ref3.div,
+      clear = _ref3.clear,
+      options = _ref3.options;
 
   var editorElement = document.getElementById(div);
   if (editorElement && window.JSONEditor) {
@@ -126,20 +150,6 @@ function createJSONEditor(_ref2) {
     }
     return new window.JSONEditor(editorElement, options);
   }
-}
-
-/**
-  * scroll a div to the bottom
-
-/**
- * show progress message in resultPlot slot with h1 header tag
- *
- * @param {string} message text to show as heading in div resultPlot+slot
- * @param {number} slot Location for showing message
- */
-
-function resultPlotProgress(message, slot) {
-  $('#resultPlot' + slot).html("<h1>" + message + "</h1>");
 }
 
 /**
@@ -270,9 +280,9 @@ var App = exports.App = function () {
 
   }, {
     key: "setStudy",
-    value: function setStudy(_ref3) {
-      var config = _ref3.config,
-          folder = _ref3.folder;
+    value: function setStudy(_ref4) {
+      var config = _ref4.config,
+          folder = _ref4.folder;
 
       var app = this;
 
@@ -623,62 +633,6 @@ var App = exports.App = function () {
     }
 
     /**
-     * asynchronously start running a simulation and when done show its plots in a slot.  stops spinning run animation when done. Deletes logs buyorder,sellorder if periods>500 to prevent out-of-memory.
-     * @param {Object} simConfig An initialized SMRS.Simulation
-     * @param {number} slot A slot number.  Plots appear in div with id resultPlot+slot and paramPlot+slot
-     * @return {Promise} resolves to finished sim
-     */
-
-  }, {
-    key: "runSimulation",
-    value: function runSimulation(simConfig, slot) {
-      // set up and run simulation
-
-      var app = this;
-
-      function onPeriod(sim) {
-        if (sim.period < sim.config.periods) {
-          resultPlotProgress(Math.round(100 * sim.period / sim.config.periods) + "% complete", slot);
-        } else {
-          resultPlotProgress('', slot);
-        }
-        return sim;
-      }
-
-      function uiDone() {
-        $('.spinning').removeClass('spinning'); // this is perhaps needessly done multiple times
-        $('.postrun').removeClass('disabled'); // same here
-        $('.postrun').prop('disabled', false); // and here
-      }
-
-      function onDone(sim) {
-        app.showSimulation(sim, slot);
-        uiDone();
-        return sim;
-      }
-
-      var mysim = simConfig; // this line used to call new Simulation based on simConfig... but that is done in .simulations already
-
-      app.plotParameters(mysim, slot);
-
-      var promiseSim = mysim.run({
-        update: onPeriod
-      }).then(onDone).catch(function (e) {
-        console.log(e);
-        resultPlotProgress(e.toString(), slot);
-        uiDone();
-      });
-      if (mysim.config.periods > 500) {
-        delete mysim.logs.buyorder;
-        delete mysim.logs.sellorder;
-        delete mysim.logs.rejectbuyorder;
-        delete mysim.logs.rejectsellorder;
-      }
-
-      return promiseSim;
-    }
-
-    /**
      *  Expand the number of buyers and sellers (unless the number is 1, which is preserved), expanding the array(s) of buyerValues and sellerCosts via the how function
      *   how should be callable like this how(buyerValueorSellerCostArray, xfactor) and return a new array of values or costs
      */
@@ -729,9 +683,9 @@ var App = exports.App = function () {
     }
   }, {
     key: "initEditor",
-    value: function initEditor(_ref4) {
-      var config = _ref4.config,
-          schema = _ref4.schema;
+    value: function initEditor(_ref5) {
+      var config = _ref5.config,
+          schema = _ref5.schema;
 
       var app = this;
       if ((typeof config === "undefined" ? "undefined" : _typeof(config)) !== 'object') throw new Error("config must be an object, instead got: " + (typeof config === "undefined" ? "undefined" : _typeof(config)));
@@ -900,6 +854,11 @@ var App = exports.App = function () {
     key: "run",
     value: function run() {
       var app = this;
+      function uiDone() {
+        $('.spinning').removeClass('spinning');
+        $('.postrun').removeClass('disabled');
+        $('.postrun').prop('disabled', false);
+      }
       $('#runError').empty();
       $('.postrun').removeClass("disabled");
       $('.postrun').addClass("disabled");
@@ -910,16 +869,45 @@ var App = exports.App = function () {
       app.sims = app.simulations(studyConfig, true);
       app.vizMaster.scaffold(app.sims.length);
       app.stopped = false;
-      (0, _pEachSeries2.default)(app.sims, app.runSimulation.bind(app)).then(function () {
-        return console.log("finished run");
+      setProgressBar({
+        value: 0,
+        text: 'Generating market data'
+      });
+      return (0, _pEachSeries2.default)(app.sims, function (sim, slot) {
+        return sim.run({
+          update: function update(s) {
+            var updateThreshold = Math.max(1, Math.ceil(s.config.periods / 100));
+            if (s.period % updateThreshold !== 0) return s;
+            var simProgressRatio = s.period / s.config.periods;
+            var studyProgressRatio = (slot + simProgressRatio) / app.sims.length;
+            var studyProgressPct = Math.round(100 * studyProgressRatio);
+            setProgressBar({
+              value: studyProgressPct
+            });
+            return s;
+          }
+        });
       }).then(function () {
+        uiDone();
+        setProgressBar({
+          value: 100,
+          text: 'Generation complete'
+        });
         var canUpload = $('#canUploadAfterRun').prop('checked');
         if (!canUpload) return;
         if (app.stopped) {
           return console.log("run aborted by user -- aborting save");
         }
         console.log("saving to Google Drive");
-        app.uploadData();
+        setTimeout(function () {
+          app.uploadData();
+        }, 1000);
+      }, function (e) {
+        uiDone();
+        $('#runError').html("<pre>" + e + "</pre>");
+        setProgressBar({
+          text: "Generation Error!"
+        });
       });
     }
 
@@ -935,7 +923,7 @@ var App = exports.App = function () {
       // trigger normal completion
       app.stopped = true;
       app.sims.forEach(function (sim) {
-        sim.config.periods = sim.period;
+        sim.config.periods = sim.period || 0;
       });
     }
 
@@ -1056,23 +1044,41 @@ var App = exports.App = function () {
       var app = this;
       var study = (0, _clone2.default)(app.getStudyConfig());
       var folder = app.getStudyFolder();
+      var name = Study.myDateStamp() + '.zip';
       if (folder) {
+        setProgressBar({
+          value: 0,
+          text: 'Saving ' + name
+        });
         (0, _singleMarketRobotSimulatorSavezip2.default)({
           config: study,
           sims: app.sims,
           download: false
         }).then(function (zipBlob) {
           folder.upload({
-            name: Study.myDateStamp() + '.zip',
+            name: name,
             blob: zipBlob,
             onProgress: function onProgress(x) {
-              return console.log(x);
+              var loaded = x.loaded,
+                  total = x.total,
+                  type = x.type;
+
+              if (type === 'progress') {
+                setProgressBar({
+                  value: Math.round(100 * loaded / total)
+                });
+              }
             }
           }).then(function (newfile) {
+            setProgressBar({
+              text: 'Saved ' + name,
+              value: 100
+            });
             if (Array.isArray(app.study.zipFiles)) app.study.zipFiles.unshift(newfile);
             app.renderPriorRunSelector();
           }).catch(function (e) {
-            return console.log(e);
+            console.log(e);
+            $('#runError').append('<pre> Error Saving ' + name + "\n" + e + '</pre>');
           });
         });
       }
