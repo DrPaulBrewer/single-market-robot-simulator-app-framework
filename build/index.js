@@ -847,6 +847,9 @@ var App = exports.App = function () {
 
     /**
      * run the current study and display a visualization
+     *
+     * requires there to be CSS classes enabledMouse and disabledMouse
+     * which set pointer-events: none and pointer-events: auto respectively
      */
 
   }, {
@@ -855,7 +858,11 @@ var App = exports.App = function () {
       var app = this;
       function uiDone() {
         $('.spinning').removeClass('spinning');
+        $('body').removeClass('disabledMouse');
+        $('.btn-danger').removeClass('enabledMouse');
       }
+      $('body').addClass('disabledMouse');
+      $('.btn-danger').addClass('enabledMouse');
       $('#runError').empty();
       $('#runButton .glyphicon').addClass("spinning");
       app.renderVisualSelector();
@@ -865,7 +872,7 @@ var App = exports.App = function () {
       app.stopped = false;
       setProgressBar({
         value: 0,
-        text: 'Generating market data'
+        text: 'Generating market data...only red buttons are usable'
       });
       return (0, _pEachSeries2.default)(app.sims, function (sim, slot) {
         return sim.run({
