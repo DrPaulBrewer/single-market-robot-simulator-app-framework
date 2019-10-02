@@ -679,6 +679,7 @@ var App = exports.App = function () {
           return app[appMethod](evt && evt.target && evt.target.value);
         });
       });
+      $('body').removeClass('disabledMouse');
     }
   }, {
     key: "initEditor",
