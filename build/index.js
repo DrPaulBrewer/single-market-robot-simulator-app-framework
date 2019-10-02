@@ -679,7 +679,6 @@ var App = exports.App = function () {
           return app[appMethod](evt && evt.target && evt.target.value);
         });
       });
-      $('.postrun').prop('disabled', true);
     }
   }, {
     key: "initEditor",
@@ -856,13 +855,8 @@ var App = exports.App = function () {
       var app = this;
       function uiDone() {
         $('.spinning').removeClass('spinning');
-        $('.postrun').removeClass('disabled');
-        $('.postrun').prop('disabled', false);
       }
       $('#runError').empty();
-      $('.postrun').removeClass("disabled");
-      $('.postrun').addClass("disabled");
-      $('.postrun').prop('disabled', true);
       $('#runButton .glyphicon').addClass("spinning");
       app.renderVisualSelector();
       var studyConfig = app.getStudyConfig();
