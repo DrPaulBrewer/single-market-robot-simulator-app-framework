@@ -11,6 +11,7 @@ import pEachSeries from "p-each-series";
 import saveZip from "single-market-robot-simulator-savezip";
 import openZip from "single-market-robot-simulator-openzip";
 import * as Study from "single-market-robot-simulator-study";
+export { Study };
 
 /**
   * set the app progress bar text or value in #appProgressBar
