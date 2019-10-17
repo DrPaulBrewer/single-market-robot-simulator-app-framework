@@ -1009,9 +1009,21 @@ var App = exports.App = function () {
     key: "drawVisuals",
     value: function drawVisuals() {
       var app = this;
-      app.sims.forEach(function (s, j) {
-        return app.showSimulation(s, j);
-      });
+      var visuals = app.getVisuals();
+      var vidx = app.visualIndex % visuals.length;
+      var visual = visuals[vidx];
+      if (visual.meta.input === 'study') {
+        var _Plotly3;
+
+        var plotlyParams = visual(app.sims);
+        plotAddSelectedInteractivity(plotlyParams);
+        plotlyParams.unshift('resultPlot0');
+        (_Plotly3 = Plotly).newPlot.apply(_Plotly3, _toConsumableArray(plotlyParams));
+      } else {
+        app.sims.forEach(function (s, j) {
+          return app.showSimulation(s, j);
+        });
+      }
     }
 
     /**
