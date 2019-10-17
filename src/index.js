@@ -977,7 +977,17 @@ export class App {
 
   drawVisuals(){
     const app = this;
-    app.sims.forEach((s, j) => app.showSimulation(s, j));
+    const visuals = app.getVisuals();
+    const vidx = app.visualIndex % visuals.length;
+    const visual = visuals[vidx];
+    if (visual.meta.input==='study') {
+      const plotlyParams = visual(app.sims);
+      plotAddSelectedInteractivity(plotlyParams);
+      plotlyParams.unshift('resultPlot0');
+      Plotly.newPlot(...plotlyParams);
+    } else {
+      app.sims.forEach((s, j) => app.showSimulation(s, j));
+    }
   }
 
   /**
