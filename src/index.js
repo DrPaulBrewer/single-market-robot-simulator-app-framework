@@ -983,7 +983,7 @@ export class App {
     if (visual.meta.input==='study') {
       const plotlyParams = visual(app.sims);
       plotAddSelectedInteractivity(plotlyParams);
-      plotlyParams.unshift('resultPlot0');
+      plotlyParams.unshift('study-visual');
       Plotly.newPlot(...plotlyParams);
     } else {
       app.sims.forEach((s, j) => app.showSimulation(s, j));
