@@ -1017,7 +1017,7 @@ var App = exports.App = function () {
 
         var plotlyParams = visual(app.sims);
         plotAddSelectedInteractivity(plotlyParams);
-        plotlyParams.unshift('resultPlot0');
+        plotlyParams.unshift('study-visual');
         (_Plotly3 = Plotly).newPlot.apply(_Plotly3, _toConsumableArray(plotlyParams));
       } else {
         app.sims.forEach(function (s, j) {
