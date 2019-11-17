@@ -667,9 +667,7 @@ export class App {
   initDB() {
     const app = this;
     if (app.DB)
-      (app.DB.listStudyFolders({
-          trashed: false
-        })
+      (app.DB.listStudyFolders()
         .then((items) => {
           if (Array.isArray(items) && (items.length)) {
             app.availableStudyFolders = items;
@@ -794,26 +792,11 @@ export class App {
 
   /**
    * move the current study to the trash list
+   * DISABLED pending REMOVAL -- 17 Nov 2019
    */
 
   moveToTrash() {
-    const app = this;
-    const {
-      availableStudyFolders,
-      chosenStudyIndex
-    } = app;
-    if (app.DB) {
-      (availableStudyFolders[chosenStudyIndex].trash()
-        .then(() => {
-          availableStudyFolders.splice(chosenStudyIndex, 1);
-          app.renderConfigSelector();
-          app.choose(0);
-        })
-        .catch((e) => {
-          console.log(e);
-        })
-      );
-    }
+    throw new Error("...framework: moveToTrash no longer supported");
   }
 
   /**
@@ -1193,43 +1176,10 @@ export class App {
 
   /**
    * render into the div with id "trashList" the study folders found in Trash. Trash items can be clicked to restore to editor.
+   * DISABLED pending removal -- Nov 17 2019
    */
 
   renderTrash() {
-    const app = this;
-    const StudyFolder = app.DB.studyFolder;
-    $('#trashList')
-      .empty();
-    if (app.DB) {
-      (app.DB.listStudyFolders({
-          trashed: true
-        })
-        .then((items) => {
-          items.forEach((item) => {
-            $('#trashList')
-              .append('<pre class="pre-scrollable trash-item">' + JSON.stringify(item, null, 2) + '</pre>');
-          });
-          $('pre.trash-item')
-            .click(function () {
-
-              // this click function needs to be a full function with its own "this", not an anonymous ()=>{block}
-
-              const folder = new StudyFolder(JSON.parse($(this)
-                .text()));
-              if ((typeof(folder) === 'object') && (folder.id) && (folder.name)) {
-                (folder.untrash()
-                  .then(() => (folder.getConfig()))
-                  .then((response) => (app.setStudy(response)))
-                  .then(() => {
-                    $('#editLink')
-                      .click();
-                  })
-                  .catch((e) => (console.log(e)))
-                );
-              }
-            });
-        })
-      );
-    }
+    throw new Error("...app-framework: rendering Trash no longer supported");
   }
 }
