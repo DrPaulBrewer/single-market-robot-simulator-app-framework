@@ -706,9 +706,7 @@ var App = exports.App = function () {
     key: "initDB",
     value: function initDB() {
       var app = this;
-      if (app.DB) app.DB.listStudyFolders({
-        trashed: false
-      }).then(function (items) {
+      if (app.DB) app.DB.listStudyFolders().then(function (items) {
         if (Array.isArray(items) && items.length) {
           app.availableStudyFolders = items;
           app.renderConfigSelector();
@@ -828,24 +826,13 @@ var App = exports.App = function () {
 
     /**
      * move the current study to the trash list
+     * DISABLED pending REMOVAL -- 17 Nov 2019
      */
 
   }, {
     key: "moveToTrash",
     value: function moveToTrash() {
-      var app = this;
-      var availableStudyFolders = app.availableStudyFolders,
-          chosenStudyIndex = app.chosenStudyIndex;
-
-      if (app.DB) {
-        availableStudyFolders[chosenStudyIndex].trash().then(function () {
-          availableStudyFolders.splice(chosenStudyIndex, 1);
-          app.renderConfigSelector();
-          app.choose(0);
-        }).catch(function (e) {
-          console.log(e);
-        });
-      }
+      throw new Error("...framework: moveToTrash no longer supported");
     }
 
     /**
@@ -1206,40 +1193,13 @@ var App = exports.App = function () {
 
     /**
      * render into the div with id "trashList" the study folders found in Trash. Trash items can be clicked to restore to editor.
+     * DISABLED pending removal -- Nov 17 2019
      */
 
   }, {
     key: "renderTrash",
     value: function renderTrash() {
-      var app = this;
-      var StudyFolder = app.DB.studyFolder;
-      $('#trashList').empty();
-      if (app.DB) {
-        app.DB.listStudyFolders({
-          trashed: true
-        }).then(function (items) {
-          items.forEach(function (item) {
-            $('#trashList').append('<pre class="pre-scrollable trash-item">' + JSON.stringify(item, null, 2) + '</pre>');
-          });
-          $('pre.trash-item').click(function () {
-
-            // this click function needs to be a full function with its own "this", not an anonymous ()=>{block}
-
-            var folder = new StudyFolder(JSON.parse($(this).text()));
-            if ((typeof folder === "undefined" ? "undefined" : _typeof(folder)) === 'object' && folder.id && folder.name) {
-              folder.untrash().then(function () {
-                return folder.getConfig();
-              }).then(function (response) {
-                return app.setStudy(response);
-              }).then(function () {
-                $('#editLink').click();
-              }).catch(function (e) {
-                return console.log(e);
-              });
-            }
-          });
-        });
-      }
+      throw new Error("...app-framework: rendering Trash no longer supported");
     }
   }]);
 
