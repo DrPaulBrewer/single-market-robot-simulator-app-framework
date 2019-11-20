@@ -980,6 +980,17 @@ var App = exports.App = function () {
        *
        */
 
+      /* first check if new name is already taken */
+
+      var existingFolderAtName = app.availableStudyFolders.find(function (f) {
+        return f.name === config.name;
+      });
+
+      if (existingFolderAtName) {
+        return window.alert("Conflict: A folder with the selected 'name' already exists." + // eslint-disable-line no-alert
+        " Please edit the 'name' and save again.");
+      }
+
       return app.DB.createStudyFolder({
         name: config.name
       }).then(function (folder) {
