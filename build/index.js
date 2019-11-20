@@ -1078,7 +1078,7 @@ var App = exports.App = function () {
       var study = (0, _clone2.default)(app.getStudyConfig());
       var folder = app.getStudyFolder();
       var name = Study.myDateStamp() + '.zip';
-      if (folder) {
+      if (folder && folder.upload) {
         setProgressBar({
           value: 0,
           text: 'Saving ' + name
@@ -1088,7 +1088,7 @@ var App = exports.App = function () {
           sims: app.sims,
           download: false
         }).then(function (zipBlob) {
-          folder.upload({
+          return folder.upload({
             name: name,
             blob: zipBlob,
             onProgress: function onProgress(x) {
@@ -1102,18 +1102,23 @@ var App = exports.App = function () {
                 });
               }
             }
-          }).then(function (newfile) {
-            setProgressBar({
-              text: 'Saved ' + name,
-              value: 100
-            });
-            if (Array.isArray(app.study.zipFiles)) app.study.zipFiles.unshift(newfile);
-            app.renderPriorRunSelector();
-          }).catch(function (e) {
-            console.log(e);
-            $('#runError').append('<pre> Error Saving ' + name + "\n" + e + '</pre>');
           });
+        }).then(function (newfile) {
+          setProgressBar({
+            text: 'Saved ' + name,
+            value: 100
+          });
+          if (Array.isArray(app.study.zipFiles)) {
+            app.study.zipFiles.unshift(newfile);
+            app.renderPriorRunSelector();
+          }
+        }).catch(function (e) {
+          console.log(e);
+          $('#runError').append('<pre> Error Saving ' + name + "\n" + e + '</pre>');
         });
+      } else {
+        console.log("folder is read only, cannot upload new data");
+        $('#runError').append('folder is read only, cannot upload new data');
       }
     }
 

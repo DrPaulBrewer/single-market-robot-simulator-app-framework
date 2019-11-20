@@ -1045,18 +1045,18 @@ export class App {
     const study = clone(app.getStudyConfig());
     const folder = app.getStudyFolder();
     const name = Study.myDateStamp() + '.zip';
-    if (folder) {
+    if (folder && folder.upload) {
       setProgressBar({
         value: 0,
         text: 'Saving '+name
       });
-      saveZip({
+      (saveZip({
             config: study,
             sims: app.sims,
             download: false
           })
-          .then((zipBlob) => {
-            (folder.upload({
+          .then((zipBlob) => (
+            folder.upload({
                 name,
                 blob: zipBlob,
                 onProgress: (x) => {
@@ -1067,22 +1067,25 @@ export class App {
                     });
                   }
                 }
-              })
-              .then((newfile) => {
-                setProgressBar({
+              })))
+          .then((newfile) => {
+              setProgressBar({
                   text: 'Saved '+name,
                   value: 100
-                });
-                if (Array.isArray(app.study.zipFiles))
+              });
+              if (Array.isArray(app.study.zipFiles)){
                   app.study.zipFiles.unshift(newfile);
                   app.renderPriorRunSelector();
-              })
-              .catch((e) => {
+              }
+            })
+          .catch((e) => {
                 console.log(e);
                 $('#runError').append('<pre> Error Saving '+name+"\n"+e+'</pre>');
               })
-            );
-        });
+        );
+    } else {
+      console.log("folder is read only, cannot upload new data");
+      $('#runError').append('folder is read only, cannot upload new data');
     }
   }
 
