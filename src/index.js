@@ -284,27 +284,6 @@ export class App {
   }) {
     const app = this;
 
-    function updateSavedListTask() {
-      (folder
-        .listFiles()
-        .then((files) => (files.filter((f) => (f.mimeType === 'application/zip'))))
-        .then((files) => {
-          app.study.zipFiles = files;
-        })
-        .then(() => (app.renderPriorRunSelector()))
-      );
-    }
-
-    function updateEditorTask() {
-      if (app.editor && app.initEditor) {
-        app.initEditor({
-          config: clone(config),
-          schema: app.editorConfigSchema
-        });
-      }
-    }
-    const t0 = Date.now();
-    console.log("called setStudy at " + t0);
     app.study = {
       config,
       folder
@@ -326,9 +305,16 @@ export class App {
         $('.onSetStudyFolderLinkUpdate').prop('href',folder.webViewLink);
       else
         $('.onSetStudyFolderLinkUpdate').prop('href',app.DB.defaultWebLink);
-      if (typeof(folder.listFiles) === 'function') {
-        setTimeout(updateSavedListTask, 100);
-      }
+          if (folder && folder.listFiles){
+            (folder
+              .listFiles()
+              .then((files) => (files.filter((f) => (f.mimeType === 'application/zip'))))
+              .then((files) => {
+                app.study.zipFiles = files;
+              })
+              .then(() => (app.renderPriorRunSelector()))
+            );
+          }
     } else {
       $('.onSetStudyFolderNameUpdateValue')
         .prop('value', '');
@@ -348,12 +334,15 @@ export class App {
     $('.currentStudyFolderDescription')
       .text(description);
     if (config) {
-      setTimeout(updateEditorTask, 200);
+      if (app.editor && app.initEditor) {
+        app.initEditor({
+          config: clone(config),
+          schema: app.editorConfigSchema
+        });
+      }
       if (app.timeit) app.timeit(config);
       if (Study.numberOfSimulations(config) <= 4) app.refresh();
     }
-    const elapsed = Date.now() - t0;
-    console.log("finish setConfig, elapsed = " + elapsed);
   }
 
   /**
@@ -496,7 +485,6 @@ export class App {
 
   choose(n) {
     const app = this;
-    console.log("chose " + n + " at " + Date.now());
     $('div.openzip-progress').empty();
     app.vizMaster.empty();
     app.sims = [];
@@ -895,7 +883,7 @@ export class App {
           if (app.stopped) {
             return console.log("run aborted by user -- aborting save");
           }
-          console.log("saving to Google Drive");
+          console.log("saving....");
           setTimeout(()=>{
             app.uploadData();
           }, 1000);
