@@ -319,28 +319,6 @@ var App = exports.App = function () {
 
       var app = this;
 
-      function updateSavedListTask() {
-        folder.listFiles().then(function (files) {
-          return files.filter(function (f) {
-            return f.mimeType === 'application/zip';
-          });
-        }).then(function (files) {
-          app.study.zipFiles = files;
-        }).then(function () {
-          return app.renderPriorRunSelector();
-        });
-      }
-
-      function updateEditorTask() {
-        if (app.editor && app.initEditor) {
-          app.initEditor({
-            config: (0, _clone2.default)(config),
-            schema: app.editorConfigSchema
-          });
-        }
-      }
-      var t0 = Date.now();
-      console.log("called setStudy at " + t0);
       app.study = {
         config: config,
         folder: folder
@@ -349,8 +327,16 @@ var App = exports.App = function () {
         if (folder.name) $('.onSetStudyFolderNameUpdateValue').prop('value', folder.name);else $('.onSetStudyFolderNameUpdateValue').prop('value', '');
         if (folder.id) $('.onSetStudyFolderIdUpdateValue').prop('value', folder.id);else $('.onSetStudyFolderIdUpdateValue').prop('value', '');
         if (folder.webViewLink) $('.onSetStudyFolderLinkUpdate').prop('href', folder.webViewLink);else $('.onSetStudyFolderLinkUpdate').prop('href', app.DB.defaultWebLink);
-        if (typeof folder.listFiles === 'function') {
-          setTimeout(updateSavedListTask, 100);
+        if (folder && folder.listFiles) {
+          folder.listFiles().then(function (files) {
+            return files.filter(function (f) {
+              return f.mimeType === 'application/zip';
+            });
+          }).then(function (files) {
+            app.study.zipFiles = files;
+          }).then(function () {
+            return app.renderPriorRunSelector();
+          });
         }
       } else {
         $('.onSetStudyFolderNameUpdateValue').prop('value', '');
@@ -365,12 +351,15 @@ var App = exports.App = function () {
       var description = folder && folder.description || config && config.description || '';
       $('.currentStudyFolderDescription').text(description);
       if (config) {
-        setTimeout(updateEditorTask, 200);
+        if (app.editor && app.initEditor) {
+          app.initEditor({
+            config: (0, _clone2.default)(config),
+            schema: app.editorConfigSchema
+          });
+        }
         if (app.timeit) app.timeit(config);
         if (Study.numberOfSimulations(config) <= 4) app.refresh();
       }
-      var elapsed = Date.now() - t0;
-      console.log("finish setConfig, elapsed = " + elapsed);
     }
 
     /**
@@ -520,7 +509,6 @@ var App = exports.App = function () {
     key: "choose",
     value: function choose(n) {
       var app = this;
-      console.log("chose " + n + " at " + Date.now());
       $('div.openzip-progress').empty();
       app.vizMaster.empty();
       app.sims = [];
@@ -920,7 +908,7 @@ var App = exports.App = function () {
         if (app.stopped) {
           return console.log("run aborted by user -- aborting save");
         }
-        console.log("saving to Google Drive");
+        console.log("saving....");
         setTimeout(function () {
           app.uploadData();
         }, 1000);
