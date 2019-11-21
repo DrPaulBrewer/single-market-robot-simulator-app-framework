@@ -581,15 +581,14 @@ export class App {
 
   getVisuals() {
     const app = this;
-    let visuals = [];
+    const numberOfSimulations = app.sims && app.sims.length;
+    let part1 = (numberOfSimulations>1)? (app.Visuals.summary) : [];
     const periods = app.getPeriods();
     if (periods <= 50)
-      visuals = app.Visuals.small;
-    else if (periods <= 500)
-      visuals = app.Visuals.medium;
-    else
-      visuals = app.Visuals.large;
-    return visuals;
+      return part1.concat(app.Visuals.small);
+    if (periods <= 500)
+      return part1.concat(app.Visuals.medium);
+    return part1.concat(app.Visuals.large);
   }
 
 
@@ -852,9 +851,9 @@ export class App {
       .empty();
     $('#runButton .glyphicon')
       .addClass("spinning");
-    app.renderVisualSelector();
     const studyConfig = app.getStudyConfig();
     app.sims = app.simulations(studyConfig, true);
+    app.renderVisualSelector();
     app.vizMaster.scaffold(app.sims.length);
     app.stopped = false;
     setProgressBar({

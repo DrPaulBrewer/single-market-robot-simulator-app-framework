@@ -608,10 +608,12 @@ var App = exports.App = function () {
     key: "getVisuals",
     value: function getVisuals() {
       var app = this;
-      var visuals = [];
+      var numberOfSimulations = app.sims && app.sims.length;
+      var part1 = numberOfSimulations > 1 ? app.Visuals.summary : [];
       var periods = app.getPeriods();
-      if (periods <= 50) visuals = app.Visuals.small;else if (periods <= 500) visuals = app.Visuals.medium;else visuals = app.Visuals.large;
-      return visuals;
+      if (periods <= 50) return part1.concat(app.Visuals.small);
+      if (periods <= 500) return part1.concat(app.Visuals.medium);
+      return part1.concat(app.Visuals.large);
     }
 
     /**
@@ -881,9 +883,9 @@ var App = exports.App = function () {
       $('.btn-danger').addClass('enabledMouse');
       $('#runError').empty();
       $('#runButton .glyphicon').addClass("spinning");
-      app.renderVisualSelector();
       var studyConfig = app.getStudyConfig();
       app.sims = app.simulations(studyConfig, true);
+      app.renderVisualSelector();
       app.vizMaster.scaffold(app.sims.length);
       app.stopped = false;
       setProgressBar({
