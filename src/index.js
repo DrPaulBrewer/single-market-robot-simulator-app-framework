@@ -340,6 +340,13 @@ export class App {
           schema: app.editorConfigSchema
         });
       }
+      if (config.common && app.setPeriods){
+        if (+config.common.periods>0){
+          app.setPeriods(Math.min(100,+config.common.periods));
+        } else {
+          app.setPeriods(1);
+        }
+      }
       if (app.timeit) app.timeit(config);
       if (Study.numberOfSimulations(config) <= 4) app.refresh();
     }
@@ -363,8 +370,8 @@ export class App {
 
   setPeriods(n) {
     const app = this;
-    const config = app.getStudyConfig();
-    if (config && config.common && (+n > 0)) {
+    if (+n>0){
+      const config = app.getStudyConfig();
       config.common.periods = +n;
       showPeriods(n);
       app.timeit(config);
