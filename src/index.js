@@ -349,21 +349,23 @@ export class App {
           app.setPeriods(1);
         }
       }
-      if (app.timeit) app.timeit(config);
-      if (config) {
-        app.showParameters(config);
+      if (config && config.common && config.configurations) {
+        // app.showParameters(config);
         const sims = app.simulations(config);
+        console.log("in scaleup-tab refresher");
+        console.log(sims);
         $('#xsimbs')
           .html(
             "<tr>" + (sims
               .map(
                 (sim, j) => {
-                  const data = [j, sim.numberOfBuyers, sim.numberOfSellers];
+                  const data = [j, sim.config.numberOfBuyers, sim.config.numberOfSellers];
                   return "<td>" + data.join("</td><td>") + "</td>";
                 })
               .join('</tr><tr>')
             ) + "</tr>");
       }
+      if (app.timeit) app.timeit(config);
     }
   }
 
