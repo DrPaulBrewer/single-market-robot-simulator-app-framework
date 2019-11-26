@@ -1,4 +1,4 @@
-/* Copyright 2016- Paul Brewer, Economic and Financial Technology Consulting LLC */
+// Copyright 2016- Paul Brewer, Economic and Financial Technology Consulting LLC
 /* This file is open source software.  The MIT License applies to this software.  */
 
 /* global Plotly:true, $:true */
@@ -49,10 +49,12 @@ function megaByteSizeStringRoundedUp(nBytes){
  *
  * Set Plotly interactivity based on #useInteractiveCharts checkbox
  * @param {Array<Object>} plotlyParams The plot to be modified
+ * @param {[boolean]} interactive optional, if undefined taken from $('#useInteractiveCharts')
  */
 
- export function plotAddSelectedInteractivity(plotlyParams){
-   const useStaticCharts = !($('#useInteractiveCharts').prop('checked'));
+ export function plotAddSelectedInteractivity(plotlyParams, override){
+   const selectedInteractivity = $('#useInteractiveCharts').prop('checked');
+   const useStaticCharts = (override===undefined)? (!selectedInteractivity) : (!override);
    if (!plotlyParams[2])
      plotlyParams[2] = {};
    plotlyParams[2].staticPlot = useStaticCharts;
@@ -348,7 +350,20 @@ export class App {
         }
       }
       if (app.timeit) app.timeit(config);
-      if (Study.numberOfSimulations(config) <= 4) app.refresh();
+      if (config) {
+        app.showParameters(config);
+        const sims = app.simulations(config);
+        $('#xsimbs')
+          .html(
+            "<tr>" + (sims
+              .map(
+                (sim, j) => {
+                  const data = [j, sim.numberOfBuyers, sim.numberOfSellers];
+                  return "<td>" + data.join("</td><td>") + "</td>";
+                })
+              .join('</tr><tr>')
+            ) + "</tr>");
+      }
     }
   }
 
@@ -767,32 +782,6 @@ export class App {
     }
   }
 
-
-  /**
-   * refreshes a number of UI elements
-   */
-
-  refresh() {
-    const app = this;
-    const study = app.getStudyConfig();
-    const periods = app.getPeriods();
-    showPeriods(periods);
-    if (study) {
-      app.showParameters(study);
-      const sims = app.simulations(study);
-      $('#xsimbs')
-        .html(
-          "<tr>" + (sims
-            .map(
-              (sim, j) => {
-                const data = [j, sim.numberOfBuyers, sim.numberOfSellers];
-                return "<td>" + data.join("</td><td>") + "</td>";
-              })
-            .join('</tr><tr>')
-          ) + "</tr>");
-      app.plotParameters(sims[0], "ScaleUp");
-    }
-  }
 
   /**
    * expands the current study by creating new values and costs by interpolation

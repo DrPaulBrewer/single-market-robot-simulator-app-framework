@@ -88,10 +88,12 @@ function megaByteSizeStringRoundedUp(nBytes) {
  *
  * Set Plotly interactivity based on #useInteractiveCharts checkbox
  * @param {Array<Object>} plotlyParams The plot to be modified
+ * @param {[boolean]} interactive optional, if undefined taken from $('#useInteractiveCharts')
  */
 
-function plotAddSelectedInteractivity(plotlyParams) {
-  var useStaticCharts = !$('#useInteractiveCharts').prop('checked');
+function plotAddSelectedInteractivity(plotlyParams, override) {
+  var selectedInteractivity = $('#useInteractiveCharts').prop('checked');
+  var useStaticCharts = override === undefined ? !selectedInteractivity : !override;
   if (!plotlyParams[2]) plotlyParams[2] = {};
   plotlyParams[2].staticPlot = useStaticCharts;
   plotlyParams[2].displayModeBar = !useStaticCharts;
@@ -365,7 +367,14 @@ var App = exports.App = function () {
           }
         }
         if (app.timeit) app.timeit(config);
-        if (Study.numberOfSimulations(config) <= 4) app.refresh();
+        if (config) {
+          app.showParameters(config);
+          var sims = app.simulations(config);
+          $('#xsimbs').html("<tr>" + sims.map(function (sim, j) {
+            var data = [j, sim.numberOfBuyers, sim.numberOfSellers];
+            return "<td>" + data.join("</td><td>") + "</td>";
+          }).join('</tr><tr>') + "</tr>");
+        }
       }
     }
 
@@ -794,28 +803,6 @@ var App = exports.App = function () {
         var config = Object.assign({}, Study.simplify(app.editor.getValue()), { morph: app.morphEditor.getValue() });
         app.editor.setValue(config);
         $('#editLink').click(); // send user to Editor tab to rename/edit/save
-      }
-    }
-
-    /**
-     * refreshes a number of UI elements
-     */
-
-  }, {
-    key: "refresh",
-    value: function refresh() {
-      var app = this;
-      var study = app.getStudyConfig();
-      var periods = app.getPeriods();
-      showPeriods(periods);
-      if (study) {
-        app.showParameters(study);
-        var sims = app.simulations(study);
-        $('#xsimbs').html("<tr>" + sims.map(function (sim, j) {
-          var data = [j, sim.numberOfBuyers, sim.numberOfSellers];
-          return "<td>" + data.join("</td><td>") + "</td>";
-        }).join('</tr><tr>') + "</tr>");
-        app.plotParameters(sims[0], "ScaleUp");
       }
     }
 
