@@ -1,7 +1,7 @@
 // Copyright 2016- Paul Brewer, Economic and Financial Technology Consulting LLC
 /* This file is open source software.  The MIT License applies to this software.  */
 
-/* global Plotly:true, $:true */
+/* global $:true */
 
 /* eslint no-console: "off" */
 /* eslint consistent-this: ["error", "app", "that"] */
@@ -45,45 +45,6 @@ function megaByteSizeStringRoundedUp(nBytes){
     return Math.ceil(+nBytes/1e6)+ ' MB';
 }
 
-/**
- *
- * Set Plotly interactivity based on #useInteractiveCharts checkbox
- * @param {Array<Object>} plotlyParams The plot to be modified
- * @param {[boolean]} interactive optional, if undefined taken from $('#useInteractiveCharts')
- */
-
- export function plotAddSelectedInteractivity(plotlyParams, override){
-   const selectedInteractivity = $('#useInteractiveCharts').prop('checked');
-   const useStaticCharts = (override===undefined)? (!selectedInteractivity) : (!override);
-   if (!plotlyParams[2])
-     plotlyParams[2] = {};
-   plotlyParams[2].staticPlot = useStaticCharts;
-   plotlyParams[2].displayModeBar = !useStaticCharts;
-   plotlyParams[2].responsive = !useStaticCharts;
-   plotlyParams[2].displaylogo = false;
-   plotlyParams[2].showSendToCloud = !useStaticCharts;
-   return plotlyParams;
- }
-
-/**
- * Change Plotly plot title by prepending, appending, or replacing existing plot title
- * @param {Array<Object>} plotParams The plot to be modified -- a two element Array of [PlotlyTraces, PlotlyLayout]
- * @param {{prepend: ?string, append: ?string, replace: ?string}} modifier modifications to title
- */
-
-export function adjustTitle(plotParams, modifier) {
-  const layout = plotParams[1];
-  if (layout) {
-    if (modifier.replace && (modifier.replace.length > 0))
-      layout.title = modifier.replace;
-    if (layout.title) {
-      if (modifier.prepend && (modifier.prepend.length > 0))
-        layout.title = modifier.prepend + layout.title;
-      if (modifier.append && (modifier.append.length > 0))
-        layout.title += modifier.append;
-    }
-  }
-}
 
 /**
  * Use jQuery to manipulate DOM select element
@@ -188,19 +149,26 @@ class VizMaster {
     $(this.div).empty();
     return this;
   }
-  scaffold(n){
+  scaffold({n, withParamPlots}){
     let i=0;
     this.empty();
     while(i<n){
       let $row = $("<div>")
         .addClass("row")
         .appendTo(this.div);
-      $("<div>", { id: `paramPlot${i}`})
-        .addClass("paramPlot col-xs-12 col-md-4")
-        .appendTo($row);
-      $("<div>", { id: `resultPlot${i}`})
-        .addClass("resultPlot col-xs-12 col-md-7")
-        .appendTo($row);
+      if (withParamPlots){
+        $("<div>", { id: `paramPlot${i}`})
+          .addClass("paramPlot col-xs-12 col-md-4")
+          .appendTo($row);
+      // to restore above code, change below code to add col-md-7
+        $("<div>", { id: `resultPlot${i}`})
+          .addClass("resultPlot col-xs-12 col-md-7")
+          .appendTo($row);
+      } else {
+        $("<div>", { id: `resultPlot${i}`})
+            .addClass("resultPlot col-xs-12")
+            .appendTo($row);
+      }
       i += 1;
     }
   }
@@ -396,43 +364,6 @@ export class App {
   }
 
   /**
-   * Plot the parameters of a simulation into a numbered slot in the UI
-   * Low level, for SMRS.Simulation --  For study level, see showParameters(conf)
-   * @param {Object} sim - an instance of SMRS.Simulation
-   * @param {number} slot - slot number, appended to "paramPlot" to get DOM id
-   */
-
-  plotParameters(sim, slot) {
-    const app = this;
-    const plotlyParams = app.Visuals.params(sim);
-    plotAddSelectedInteractivity(plotlyParams);
-    plotlyParams.unshift("paramPlot" + slot);
-    Plotly.newPlot(...plotlyParams);
-  }
-
-  /**
-   * Clears all class .paramPlot UI elements and plots all parameters of simulations in a study. Calls app.simulations and app.plotParameters.
-   * completes updates to UI asynchronously, with 100ms pause between plots.
-   * @param {Object} conf A study configuration compatible with app.simulations()
-   */
-
-  showParameters(conf) {
-    const app = this;
-    const sims = app.simulations(conf);
-    const l = sims.length;
-    let i = 0;
-
-    function loop() {
-      app.plotParameters(sims[i], i);
-      i += 1;
-      if (i < l) {
-        setTimeout(loop, 100);
-      }
-    }
-    setTimeout(loop, 100);
-  }
-
-  /**
    * Updates span.estimated-running-time with estimate of required running time for the current study, given the number of periods and the cached timing run,
    *
    */
@@ -591,54 +522,12 @@ export class App {
 
 
   /**
-   * get array of visualizations appropriate to the number of periods in the current study
-   * if periods<=50, returns app.Visuals.small;  if 50<periods<=500, returns app.Visuals.medium; if periods>500, returns app.Visuals.large
-   * @return {Array<function>} array of visualization functions generated from single-market-robot-simulator-viz-plotly
-   */
-
-  getVisuals() {
-    const app = this;
-    const numberOfSimulations = app.sims && app.sims.length;
-    let part1 = (numberOfSimulations>1)? (app.Visuals.summary) : [];
-    const periods = app.getPeriods();
-    if (periods <= 50)
-      return part1.concat(app.Visuals.small);
-    if (periods <= 500)
-      return part1.concat(app.Visuals.medium);
-    return part1.concat(app.Visuals.large);
-  }
-
-
-  /**
-   * plot simulation data plot into "slot" at div with id resultPlot+slot using chosen visual; adjust plot title per sim.config.title{append,prepend,replace}
-   * @param {Object} simConfig An instance of SMRS.Simulation with finished simulation data in the logs
-   * @param {number} slot
-   */
-
-  showSimulation(simConfig, slot) {
-    const app = this;
-    const visuals = app.getVisuals();
-    const plotlyParams = visuals[app.visualIndex % visuals.length](simConfig);
-    const config = simConfig.config;
-    adjustTitle(
-      plotlyParams, {
-        prepend: config.titlePrepend,
-        append: config.titleAppend,
-        replace: config.titleReplace
-      }
-    );
-    plotAddSelectedInteractivity(plotlyParams);
-    plotlyParams.unshift('resultPlot' + slot);
-    Plotly.newPlot(...plotlyParams);
-  }
-
-  /**
    * Render visualization options for current app.study into DOM select existing at id #vizselect
    */
 
   renderVisualSelector() {
     const app = this;
-    const visuals = app.getVisuals();
+    const visuals = app.visuals;
     const select = '#vizselect';
     const options = (visuals && (visuals.map((v) => (v.meta.title || v.meta.f)))) || [];
     const selectedOption = app.visualIndex;
@@ -991,17 +880,17 @@ export class App {
 
   drawVisuals(){
     const app = this;
-    const visuals = app.getVisuals();
+    const visuals = app.visuals;
     const vidx = app.visualIndex % visuals.length;
     const visual = visuals[vidx];
-    if (visual.meta.input==='study') {
-      const plotlyParams = visual(app.sims);
-      plotAddSelectedInteractivity(plotlyParams);
-      plotlyParams.unshift('study-visual');
-      Plotly.newPlot(...plotlyParams);
-    } else {
-      app.sims.forEach((s, j) => app.showSimulation(s, j));
-    }
+    // TODO scaffold for app.sims.length charts
+    const isInteractive = $('#useInteractiveCharts').prop('checked');
+    const to = (visual.meta.input==='study')? 'study-visual': 'study-results';
+    visual.load({
+      from: app.sims,
+      to,
+      isInteractive
+    });
   }
 
   /**
