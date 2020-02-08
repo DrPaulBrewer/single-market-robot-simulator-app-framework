@@ -9,17 +9,12 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); // Copyright 2016- Paul Brewer, Economic and Financial Technology Consulting LLC
-/* This file is open source software.  The MIT License applies to this software.  */
-
-/* global Plotly:true, $:true */
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /* global $:true */
 
 /* eslint no-console: "off" */
 /* eslint consistent-this: ["error", "app", "that"] */
 
 exports.setProgressBar = setProgressBar;
-exports.plotAddSelectedInteractivity = plotAddSelectedInteractivity;
-exports.adjustTitle = adjustTitle;
 
 var _clone = require("clone");
 
@@ -44,8 +39,6 @@ var Study = _interopRequireWildcard(_singleMarketRobotSimulatorStudy);
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -82,42 +75,6 @@ function setProgressBar(_ref) {
 
 function megaByteSizeStringRoundedUp(nBytes) {
   return Math.ceil(+nBytes / 1e6) + ' MB';
-}
-
-/**
- *
- * Set Plotly interactivity based on #useInteractiveCharts checkbox
- * @param {Array<Object>} plotlyParams The plot to be modified
- * @param {[boolean]} interactive optional, if undefined taken from $('#useInteractiveCharts')
- */
-
-function plotAddSelectedInteractivity(plotlyParams, override) {
-  var selectedInteractivity = $('#useInteractiveCharts').prop('checked');
-  var useStaticCharts = override === undefined ? !selectedInteractivity : !override;
-  if (!plotlyParams[2]) plotlyParams[2] = {};
-  plotlyParams[2].staticPlot = useStaticCharts;
-  plotlyParams[2].displayModeBar = !useStaticCharts;
-  plotlyParams[2].responsive = !useStaticCharts;
-  plotlyParams[2].displaylogo = false;
-  plotlyParams[2].showSendToCloud = !useStaticCharts;
-  return plotlyParams;
-}
-
-/**
- * Change Plotly plot title by prepending, appending, or replacing existing plot title
- * @param {Array<Object>} plotParams The plot to be modified -- a two element Array of [PlotlyTraces, PlotlyLayout]
- * @param {{prepend: ?string, append: ?string, replace: ?string}} modifier modifications to title
- */
-
-function adjustTitle(plotParams, modifier) {
-  var layout = plotParams[1];
-  if (layout) {
-    if (modifier.replace && modifier.replace.length > 0) layout.title = modifier.replace;
-    if (layout.title) {
-      if (modifier.prepend && modifier.prepend.length > 0) layout.title = modifier.prepend + layout.title;
-      if (modifier.append && modifier.append.length > 0) layout.title += modifier.append;
-    }
-  }
 }
 
 /**
@@ -216,13 +173,21 @@ var VizMaster = function () {
     }
   }, {
     key: "scaffold",
-    value: function scaffold(n) {
+    value: function scaffold(_ref4) {
+      var n = _ref4.n,
+          withParamPlots = _ref4.withParamPlots;
+
       var i = 0;
       this.empty();
       while (i < n) {
         var $row = $("<div>").addClass("row").appendTo(this.div);
-        $("<div>", { id: "paramPlot" + i }).addClass("paramPlot col-xs-12 col-md-4").appendTo($row);
-        $("<div>", { id: "resultPlot" + i }).addClass("resultPlot col-xs-12 col-md-7").appendTo($row);
+        if (withParamPlots) {
+          $("<div>", { id: "paramPlot" + i }).addClass("paramPlot col-xs-12 col-md-4").appendTo($row);
+          // to restore above code, change below code to add col-md-7
+          $("<div>", { id: "resultPlot" + i }).addClass("resultPlot col-xs-12 col-md-7").appendTo($row);
+        } else {
+          $("<div>", { id: "resultPlot" + i }).addClass("resultPlot col-xs-12").appendTo($row);
+        }
         i += 1;
       }
     }
@@ -238,7 +203,7 @@ var App = exports.App = function () {
    * @param {Object} options
    * @param {Object} options.SMRS reference to either the imported module single-market-robot-simulator or a fork
    * @param {Object} options.DB "database" such as single-market-robot-simulator-db-googledrive for storing simulation configurations
-   * @param {Object} options.Visuals object describing visualizations of completed simulations and parameters, to be interpreted by single-market-robot-simulator-viz-plotly
+   * @param {Array<Object>} options.visuals array of objects describing visualizations of completed simulations and parameters, to be interpreted by single-market-robot-simulator-viz-plotly
    * @param {Object} options.editorConfigSchema JSON Schema object for json-editor relevant to user editing of simulation configurations
    * @param {Object} options.editorStartValue default simulation configuration for editing if none are defined
    * @param {Array<Array<string>>} options.behavior click and eventmap stored as Array of 2 or 3 element arrays [jqSelector, appMethodName, [ eventType = click ] ]
@@ -249,7 +214,7 @@ var App = exports.App = function () {
 
     this.SMRS = options.SMRS;
     this.DB = options.DB;
-    this.Visuals = options.Visuals;
+    this.visuals = options.visuals;
     this.editorConfigSchema = options.editorConfigSchema;
     this.editorStartValue = options.editorStartValue;
     this.behavior = options.behavior;
@@ -315,9 +280,9 @@ var App = exports.App = function () {
 
   }, {
     key: "setStudy",
-    value: function setStudy(_ref4) {
-      var config = _ref4.config,
-          folder = _ref4.folder;
+    value: function setStudy(_ref5) {
+      var config = _ref5.config,
+          folder = _ref5.folder;
 
       var app = this;
 
@@ -408,49 +373,6 @@ var App = exports.App = function () {
         showPeriods(n);
         app.timeit(config);
       }
-    }
-
-    /**
-     * Plot the parameters of a simulation into a numbered slot in the UI
-     * Low level, for SMRS.Simulation --  For study level, see showParameters(conf)
-     * @param {Object} sim - an instance of SMRS.Simulation
-     * @param {number} slot - slot number, appended to "paramPlot" to get DOM id
-     */
-
-  }, {
-    key: "plotParameters",
-    value: function plotParameters(sim, slot) {
-      var _Plotly;
-
-      var app = this;
-      var plotlyParams = app.Visuals.params(sim);
-      plotAddSelectedInteractivity(plotlyParams);
-      plotlyParams.unshift("paramPlot" + slot);
-      (_Plotly = Plotly).newPlot.apply(_Plotly, _toConsumableArray(plotlyParams));
-    }
-
-    /**
-     * Clears all class .paramPlot UI elements and plots all parameters of simulations in a study. Calls app.simulations and app.plotParameters.
-     * completes updates to UI asynchronously, with 100ms pause between plots.
-     * @param {Object} conf A study configuration compatible with app.simulations()
-     */
-
-  }, {
-    key: "showParameters",
-    value: function showParameters(conf) {
-      var app = this;
-      var sims = app.simulations(conf);
-      var l = sims.length;
-      var i = 0;
-
-      function loop() {
-        app.plotParameters(sims[i], i);
-        i += 1;
-        if (i < l) {
-          setTimeout(loop, 100);
-        }
-      }
-      setTimeout(loop, 100);
     }
 
     /**
@@ -610,49 +532,6 @@ var App = exports.App = function () {
     }
 
     /**
-     * get array of visualizations appropriate to the number of periods in the current study
-     * if periods<=50, returns app.Visuals.small;  if 50<periods<=500, returns app.Visuals.medium; if periods>500, returns app.Visuals.large
-     * @return {Array<function>} array of visualization functions generated from single-market-robot-simulator-viz-plotly
-     */
-
-  }, {
-    key: "getVisuals",
-    value: function getVisuals() {
-      var app = this;
-      var numberOfSimulations = app.sims && app.sims.length;
-      var part1 = numberOfSimulations > 1 ? app.Visuals.summary : [];
-      var periods = app.getPeriods();
-      if (periods <= 50) return part1.concat(app.Visuals.small);
-      if (periods <= 500) return part1.concat(app.Visuals.medium);
-      return part1.concat(app.Visuals.large);
-    }
-
-    /**
-     * plot simulation data plot into "slot" at div with id resultPlot+slot using chosen visual; adjust plot title per sim.config.title{append,prepend,replace}
-     * @param {Object} simConfig An instance of SMRS.Simulation with finished simulation data in the logs
-     * @param {number} slot
-     */
-
-  }, {
-    key: "showSimulation",
-    value: function showSimulation(simConfig, slot) {
-      var _Plotly2;
-
-      var app = this;
-      var visuals = app.getVisuals();
-      var plotlyParams = visuals[app.visualIndex % visuals.length](simConfig);
-      var config = simConfig.config;
-      adjustTitle(plotlyParams, {
-        prepend: config.titlePrepend,
-        append: config.titleAppend,
-        replace: config.titleReplace
-      });
-      plotAddSelectedInteractivity(plotlyParams);
-      plotlyParams.unshift('resultPlot' + slot);
-      (_Plotly2 = Plotly).newPlot.apply(_Plotly2, _toConsumableArray(plotlyParams));
-    }
-
-    /**
      * Render visualization options for current app.study into DOM select existing at id #vizselect
      */
 
@@ -660,7 +539,7 @@ var App = exports.App = function () {
     key: "renderVisualSelector",
     value: function renderVisualSelector() {
       var app = this;
-      var visuals = app.getVisuals();
+      var visuals = app.visuals;
       var select = '#vizselect';
       var options = visuals && visuals.map(function (v) {
         return v.meta.title || v.meta.f;
@@ -724,9 +603,9 @@ var App = exports.App = function () {
     }
   }, {
     key: "initEditor",
-    value: function initEditor(_ref5) {
-      var config = _ref5.config,
-          schema = _ref5.schema;
+    value: function initEditor(_ref6) {
+      var config = _ref6.config,
+          schema = _ref6.schema;
 
       var app = this;
       if ((typeof config === "undefined" ? "undefined" : _typeof(config)) !== 'object') throw new Error("config must be an object, instead got: " + (typeof config === "undefined" ? "undefined" : _typeof(config)));
@@ -842,18 +721,7 @@ var App = exports.App = function () {
     }
 
     /**
-     * move the current study to the trash list
-     * DISABLED pending REMOVAL -- 17 Nov 2019
-     */
-
-  }, {
-    key: "moveToTrash",
-    value: function moveToTrash() {
-      throw new Error("...framework: moveToTrash no longer supported");
-    }
-
-    /**
-     * run the current study and display a visualization
+     * run the current study and save data
      *
      * requires there to be CSS classes enabledMouse and disabledMouse
      * which set pointer-events: none and pointer-events: auto respectively
@@ -875,8 +743,8 @@ var App = exports.App = function () {
       var studyConfig = app.getStudyConfig();
       app.sims = app.simulations(studyConfig, true);
       app.renderVisualSelector();
-      app.vizMaster.scaffold(app.sims.length);
       app.stopped = false;
+      app.vizMaster.empty(); // empty old visualization if any
       setProgressBar({
         value: 0,
         text: 'Generating market data...only red buttons are usable'
@@ -1024,21 +892,19 @@ var App = exports.App = function () {
     key: "drawVisuals",
     value: function drawVisuals() {
       var app = this;
-      var visuals = app.getVisuals();
+      var visuals = app.visuals;
       var vidx = app.visualIndex % visuals.length;
       var visual = visuals[vidx];
-      if (visual.meta.input === 'study') {
-        var _Plotly3;
-
-        var plotlyParams = visual(app.sims);
-        plotAddSelectedInteractivity(plotlyParams);
-        plotlyParams.unshift('study-visual');
-        (_Plotly3 = Plotly).newPlot.apply(_Plotly3, _toConsumableArray(plotlyParams));
-      } else {
-        app.sims.forEach(function (s, j) {
-          return app.showSimulation(s, j);
-        });
-      }
+      var isInteractive = $('#useInteractiveCharts').prop('checked');
+      var showCEModel = $('#showCEModel').val();
+      var withCEPlots = showCEModel === 'plot';
+      var to = visual.meta.input === 'study' ? 'study-visual' : 'study-results';
+      app.vizMaster.scaffold(app.sims.length, withCEPlots);
+      visual.load({
+        from: app.sims,
+        to: to,
+        isInteractive: isInteractive
+      });
     }
 
     /**
@@ -1170,17 +1036,6 @@ var App = exports.App = function () {
           app.renderVisualSelector();
         }).then(showZipSuccess).catch(showZipFailure);
       }, 50);
-    }
-
-    /**
-     * render into the div with id "trashList" the study folders found in Trash. Trash items can be clicked to restore to editor.
-     * DISABLED pending removal -- Nov 17 2019
-     */
-
-  }, {
-    key: "renderTrash",
-    value: function renderTrash() {
-      throw new Error("...app-framework: rendering Trash no longer supported");
     }
   }]);
 
