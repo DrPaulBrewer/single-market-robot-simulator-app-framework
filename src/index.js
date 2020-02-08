@@ -178,7 +178,7 @@ export class App {
    * @param {Object} options
    * @param {Object} options.SMRS reference to either the imported module single-market-robot-simulator or a fork
    * @param {Object} options.DB "database" such as single-market-robot-simulator-db-googledrive for storing simulation configurations
-   * @param {Object} options.Visuals object describing visualizations of completed simulations and parameters, to be interpreted by single-market-robot-simulator-viz-plotly
+   * @param {Array<Object>} options.visuals array of objects describing visualizations of completed simulations and parameters, to be interpreted by single-market-robot-simulator-viz-plotly
    * @param {Object} options.editorConfigSchema JSON Schema object for json-editor relevant to user editing of simulation configurations
    * @param {Object} options.editorStartValue default simulation configuration for editing if none are defined
    * @param {Array<Array<string>>} options.behavior click and eventmap stored as Array of 2 or 3 element arrays [jqSelector, appMethodName, [ eventType = click ] ]
@@ -187,7 +187,7 @@ export class App {
   constructor(options) {
     this.SMRS = options.SMRS;
     this.DB = options.DB;
-    this.Visuals = options.Visuals;
+    this.visuals = options.visuals;
     this.editorConfigSchema = options.editorConfigSchema;
     this.editorStartValue = options.editorStartValue;
     this.behavior = options.behavior;
@@ -526,7 +526,7 @@ export class App {
     const app = this;
     const visuals = app.visuals;
     const select = '#vizselect';
-    const options = (visuals && (visuals.map((v) => (v.meta.title)))) || [];
+    const options = (visuals && (visuals.map((v) => (v.meta.title || v.meta.f)))) || [];
     const selectedOption = app.visualIndex;
     setSelectOptions({
       select,
