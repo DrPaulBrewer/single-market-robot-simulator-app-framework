@@ -898,7 +898,7 @@ var App = exports.App = function () {
       var isInteractive = $('#useInteractiveCharts').prop('checked');
       var showCEModel = $('#showCEModel').val();
       var withCEPlots = showCEModel === 'plot';
-      var to = visual.meta.input === 'study' ? 'study-visual' : 'study-results';
+      var to = visual.meta.input === 'study' ? 'study-visual' : 'resultPlot';
       app.vizMaster.scaffold(app.sims.length, withCEPlots);
       visual.load({
         from: app.sims,
