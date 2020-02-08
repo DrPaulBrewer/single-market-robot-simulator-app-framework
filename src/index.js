@@ -1,6 +1,3 @@
-// Copyright 2016- Paul Brewer, Economic and Financial Technology Consulting LLC
-/* This file is open source software.  The MIT License applies to this software.  */
-
 /* global $:true */
 
 /* eslint no-console: "off" */
@@ -529,7 +526,7 @@ export class App {
     const app = this;
     const visuals = app.visuals;
     const select = '#vizselect';
-    const options = (visuals && (visuals.map((v) => (v.meta.title || v.meta.f)))) || [];
+    const options = (visuals && (visuals.map((v) => (v.meta.title)))) || [];
     const selectedOption = app.visualIndex;
     setSelectOptions({
       select,
@@ -702,16 +699,7 @@ export class App {
   }
 
   /**
-   * move the current study to the trash list
-   * DISABLED pending REMOVAL -- 17 Nov 2019
-   */
-
-  moveToTrash() {
-    throw new Error("...framework: moveToTrash no longer supported");
-  }
-
-  /**
-   * run the current study and display a visualization
+   * run the current study and save data
    *
    * requires there to be CSS classes enabledMouse and disabledMouse
    * which set pointer-events: none and pointer-events: auto respectively
@@ -734,8 +722,8 @@ export class App {
     const studyConfig = app.getStudyConfig();
     app.sims = app.simulations(studyConfig, true);
     app.renderVisualSelector();
-    app.vizMaster.scaffold(app.sims.length);
     app.stopped = false;
+    app.vizMaster.empty(); // empty old visualization if any
     setProgressBar({
       value: 0,
       text: 'Generating market data...only red buttons are usable'
@@ -883,9 +871,11 @@ export class App {
     const visuals = app.visuals;
     const vidx = app.visualIndex % visuals.length;
     const visual = visuals[vidx];
-    // TODO scaffold for app.sims.length charts
     const isInteractive = $('#useInteractiveCharts').prop('checked');
+    const showCEModel = $('#showCEModel').val();
+    const withCEPlots = (showCEModel==='plot');
     const to = (visual.meta.input==='study')? 'study-visual': 'study-results';
+    app.vizMaster.scaffold(app.sims.length, withCEPlots);
     visual.load({
       from: app.sims,
       to,
@@ -1035,14 +1025,5 @@ export class App {
         .catch(showZipFailure)
       );
     }, 50);
-  }
-
-  /**
-   * render into the div with id "trashList" the study folders found in Trash. Trash items can be clicked to restore to editor.
-   * DISABLED pending removal -- Nov 17 2019
-   */
-
-  renderTrash() {
-    throw new Error("...app-framework: rendering Trash no longer supported");
   }
 }
