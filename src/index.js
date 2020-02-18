@@ -875,6 +875,7 @@ export class App {
     const showCEModel = $('#showCEModel').val();
     const withParamPlots = (showCEModel==='plot');
     const to = (visual.meta.input==='study')? 'study-visual': 'resultPlot';
+    const sdPlot = app.visuals[app.visuals.length-1];
     app.vizMaster.scaffold(
       {
         n:app.sims.length,
@@ -886,6 +887,12 @@ export class App {
       to,
       isInteractive
     });
+    if (withParamPlots){
+      sdPlot.load({
+        from: app.sims,
+        to: 'paramPlot'
+      });
+    }
   }
 
   /**
