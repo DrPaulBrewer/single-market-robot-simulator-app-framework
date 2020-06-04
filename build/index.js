@@ -77,9 +77,10 @@ function setSelectOptions({
   selectedOption,
   values
 }) {
+  const selectedOptionNumber = +selectedOption;
   $(select + ' > option').remove();
   if (Array.isArray(options)) options.forEach((o, n) => {
-    const s = n === selectedOption ? 'selected' : '';
+    const s = n === selectedOptionNumber ? 'selected' : '';
     const v = Array.isArray(values) ? values[n] : n;
     $(select).append("<option value=\"".concat(v, "\" ").concat(s, ">").concat(o, "</option>"));
   });
@@ -805,7 +806,7 @@ class App {
 
   setVisualNumber(n) {
     const app = this;
-    app.visualIndex = n;
+    app.visualIndex = +n;
   }
   /**
   *
