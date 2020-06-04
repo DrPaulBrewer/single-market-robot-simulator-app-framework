@@ -1,6 +1,6 @@
 {
   "name": "single-market-robot-simulator-app-framework",
-  "version": "12.1.1",
+  "version": "12.1.2",
   "description": "specialized reusable app framework for creating robot trading webapps",
   "main": "build/index.js",
   "jsnext:main": "src/index.js",
