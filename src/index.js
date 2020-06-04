@@ -62,7 +62,7 @@ function setSelectOptions({
   if (Array.isArray(options))
     options.forEach(
       (o, n) => {
-        const s = (n === selectedOption) ? 'selected="selected"' : '';
+        const s = (n === selectedOption) ? 'selected' : '';
         const v = (Array.isArray(values))? values[n]: n;
         $(select)
           .append(`<option value="${v}" ${s}>${o}</option>`);
