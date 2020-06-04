@@ -36,12 +36,10 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
   * @param {number} options.value bar percentage from 0.0 to 100.0
   * @param {string} options.text message text to be set above bar
   */
-function setProgressBar(_ref) {
-  let {
-    value,
-    text
-  } = _ref;
-
+function setProgressBar({
+  value,
+  text
+}) {
   if (typeof value === 'number') {
     const v = Math.min(100, Math.max(0, value));
     $('#appProgressBar').prop({
@@ -73,27 +71,25 @@ function megaByteSizeStringRoundedUp(nBytes) {
  */
 
 
-function setSelectOptions(_ref2) {
-  let {
-    select,
-    options,
-    selectedOption,
-    values
-  } = _ref2;
+function setSelectOptions({
+  select,
+  options,
+  selectedOption,
+  values
+}) {
   $(select + ' > option').remove();
   if (Array.isArray(options)) options.forEach((o, n) => {
-    const s = n === selectedOption ? 'selected="selected"' : '';
+    const s = n === selectedOption ? 'selected' : '';
     const v = Array.isArray(values) ? values[n] : n;
     $(select).append("<option value=\"".concat(v, "\" ").concat(s, ">").concat(o, "</option>"));
   });
 }
 
-function createJSONEditor(_ref3) {
-  let {
-    div,
-    clear,
-    options
-  } = _ref3;
+function createJSONEditor({
+  div,
+  clear,
+  options
+}) {
   const editorElement = document.getElementById(div);
 
   if (editorElement && window.JSONEditor) {
@@ -160,11 +156,10 @@ class VizMaster {
     return this;
   }
 
-  scaffold(_ref4) {
-    let {
-      n,
-      withParamPlots
-    } = _ref4;
+  scaffold({
+    n,
+    withParamPlots
+  }) {
     let i = 0;
     this.empty();
 
@@ -264,11 +259,10 @@ class App {
    */
 
 
-  setStudy(_ref5) {
-    let {
-      config,
-      folder
-    } = _ref5;
+  setStudy({
+    config,
+    folder
+  }) {
     const app = this;
     app.study = {
       config,
@@ -553,11 +547,10 @@ class App {
     $('body').removeClass('disabledMouse');
   }
 
-  initEditor(_ref6) {
-    let {
-      config,
-      schema
-    } = _ref6;
+  initEditor({
+    config,
+    schema
+  }) {
     const app = this;
     if (typeof config !== 'object') throw new Error("config must be an object, instead got: " + typeof config);
     if (typeof schema !== 'object') throw new Error("schema must be an object, instead got: " + typeof schema);
