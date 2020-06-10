@@ -318,8 +318,6 @@ export class App {
       if (config && config.common && config.configurations) {
         // app.showParameters(config);
         const sims = app.simulations(config);
-        console.log("in scaleup-tab refresher");
-        console.log(sims);
         $('#xsimbs')
           .html(
             "<tr>" + (sims
