@@ -313,8 +313,6 @@ class App {
       if (config && config.common && config.configurations) {
         // app.showParameters(config);
         const sims = app.simulations(config);
-        console.log("in scaleup-tab refresher");
-        console.log(sims);
         $('#xsimbs').html("<tr>" + sims.map((sim, j) => {
           const data = [j, sim.config.numberOfBuyers, sim.config.numberOfSellers];
           return "<td>" + data.join("</td><td>") + "</td>";
