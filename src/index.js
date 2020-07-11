@@ -867,6 +867,8 @@ export class App {
 
   drawVisuals(){
     const app = this;
+    const studyConfig = app.getStudyConfig();
+    const axis = Study.axis(studyConfig);
     const visuals = app.visuals;
     const vidx = app.visualIndex % visuals.length;
     const visual = visuals[vidx];
@@ -884,7 +886,8 @@ export class App {
     visual.load({
       from: app.sims,
       to,
-      isInteractive
+      isInteractive,
+      axis
     });
     if (withParamPlots){
       sdPlot.load({
