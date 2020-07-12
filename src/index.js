@@ -42,6 +42,15 @@ function megaByteSizeStringRoundedUp(nBytes){
     return Math.ceil(+nBytes/1e6)+ ' MB';
 }
 
+function optionHTML({option,value,selected}, n){
+  const s = (selected)? 'selected' : '';
+  const v = (value===undefined)? n: value;
+  return `<option value="${v}" ${s}>${option}</option>`;
+}
+
+function optionGroupHTML({group,options}){
+  return `<optgroup label="${group}">`+options.map(optionHTML)+'</optgroup>';
+}
 
 /**
  * Use jQuery to manipulate DOM select element
@@ -54,21 +63,44 @@ function megaByteSizeStringRoundedUp(nBytes){
 function setSelectOptions({
   select,
   options,
+  groups,
   selectedOption,
   values
 }) {
   const selectedOptionNumber = +selectedOption;
+  function toOptionObject(option,n){
+    return {
+      option,
+      selected: (n === selectedOptionNumber),
+      value: (Array.isArray(values))? values[n]: n
+     };
+  }
+  $(select + ' > optgroup')
+    .remove();
   $(select + ' > option')
     .remove();
-  if (Array.isArray(options))
-    options.forEach(
-      (o, n) => {
-        const s = (n === selectedOptionNumber) ? 'selected' : '';
-        const v = (Array.isArray(values))? values[n]: n;
+  if (!Array.isArray(options)) return;
+  if (Array.isArray(groups)){
+    let group = groups[0], groupOptions = [];
+    for(let i=0,l=options.length;i<l;++i){
+      if (groups[i]===group){
+        groupOptions.push(toOptionObject(options[i],i));
+      } else {
         $(select)
-          .append(`<option value="${v}" ${s}>${o}</option>`);
+          .append(optionGroupHTML({group, options: groupOptions}));
       }
+      group = groups[i];
+      groupOptions = [];
+    }
+  } else {
+    $(select)
+    .append(
+      options
+      .map(toOptionObject)
+      .map(optionHTML)
+      .join('')
     );
+  }
 }
 
 
@@ -526,10 +558,12 @@ export class App {
     const visuals = app.visuals;
     const select = '#vizselect';
     const options = (visuals && (visuals.map((v) => (v.meta.title || v.meta.f)))) || [];
+    const groups = (visuals  && (visuals[0].group) && (visuals.map((v)=>(v.group))));
     const selectedOption = app.visualIndex;
     setSelectOptions({
       select,
       options,
+      groups,
       selectedOption
     });
   }
