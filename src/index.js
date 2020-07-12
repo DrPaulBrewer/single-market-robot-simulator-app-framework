@@ -83,14 +83,13 @@ function setSelectOptions({
   if (Array.isArray(groups)){
     let group = groups[0], groupOptions = [];
     for(let i=0,l=options.length;i<l;++i){
-      if (groups[i]===group){
-        groupOptions.push(toOptionObject(options[i],i));
-      } else {
+      if (groups[i]!==group){
         $(select)
           .append(optionGroupHTML({group, options: groupOptions}));
+        group = groups[i];
+        groupOptions = [];
       }
-      group = groups[i];
-      groupOptions = [];
+      groupOptions.push(toOptionObject(options[i],i));
     }
   } else {
     $(select)
