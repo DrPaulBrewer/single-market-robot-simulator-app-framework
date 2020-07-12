@@ -558,7 +558,7 @@ export class App {
     const visuals = app.visuals;
     const select = '#vizselect';
     const options = (visuals && (visuals.map((v) => (v.meta.title || v.meta.f)))) || [];
-    const groups = (visuals  && (visuals[0].group) && (visuals.map((v)=>(v.group))));
+    const groups = (visuals  && (visuals[0].meta.group) && (visuals.map((v)=>(v.meta.group))));
     const selectedOption = app.visualIndex;
     setSelectOptions({
       select,
