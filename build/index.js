@@ -114,17 +114,16 @@ function setSelectOptions({
         groupOptions = [];
 
     for (let i = 0, l = options.length; i < l; ++i) {
-      if (groups[i] === group) {
-        groupOptions.push(toOptionObject(options[i], i));
-      } else {
+      if (groups[i] !== group) {
         $(select).append(optionGroupHTML({
           group,
           options: groupOptions
         }));
+        group = groups[i];
+        groupOptions = [];
       }
 
-      group = groups[i];
-      groupOptions = [];
+      groupOptions.push(toOptionObject(options[i], i));
     }
   } else {
     $(select).append(options.map(toOptionObject).map(optionHTML).join(''));
