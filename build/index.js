@@ -77,7 +77,7 @@ function optionGroupHTML({
   group,
   options
 }) {
-  return "<optgroup label=\"".concat(group, "\">") + options.map(optionHTML) + '</optgroup>';
+  return "<optgroup label=\"".concat(group, "\">") + options.map(optionHTML).join('') + '</optgroup>';
 }
 /**
  * Use jQuery to manipulate DOM select element

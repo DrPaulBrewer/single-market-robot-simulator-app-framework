@@ -49,7 +49,7 @@ function optionHTML({option,value,selected}, n){
 }
 
 function optionGroupHTML({group,options}){
-  return `<optgroup label="${group}">`+options.map(optionHTML)+'</optgroup>';
+  return `<optgroup label="${group}">`+(options.map(optionHTML).join(''))+'</optgroup>';
 }
 
 /**
