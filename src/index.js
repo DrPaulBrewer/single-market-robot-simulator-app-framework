@@ -170,17 +170,19 @@ function showZipFailure(e) {
 
 
 class VizMaster {
-  constructor(div){
-    this.div = `#${div}`;
+  constructor(simsDiv, studyDiv){
+    this.div = `#${simsDiv}`;
+    this.studyDiv = studyDiv;
     this.empty();
   }
   empty(){
     $(this.div).empty();
+    $(this.studyDiv).empty();
     return this;
   }
   scaffold({n, withParamPlots}){
     let i=0;
-    this.empty();
+    $(this.div).empty();
     while(i<n){
       let $row = $("<div>")
         .addClass("row")
@@ -230,7 +232,7 @@ export class App {
     this.chosenStudyIndex = 0;
     this.sims = [];
     this.visualIndex = 0;
-    this.vizMaster = new VizMaster('study-results');
+    this.vizMaster = new VizMaster('study-results','study-visual');
   }
 
   /**

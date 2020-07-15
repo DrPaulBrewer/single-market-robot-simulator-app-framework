@@ -191,13 +191,15 @@ function showZipFailure(e) {
 }
 
 class VizMaster {
-  constructor(div) {
-    this.div = "#".concat(div);
+  constructor(simsDiv, studyDiv) {
+    this.div = "#".concat(simsDiv);
+    this.studyDiv = studyDiv;
     this.empty();
   }
 
   empty() {
     $(this.div).empty();
+    $(this.studyDiv).empty();
     return this;
   }
 
@@ -206,7 +208,7 @@ class VizMaster {
     withParamPlots
   }) {
     let i = 0;
-    this.empty();
+    $(this.div).empty();
 
     while (i < n) {
       let $row = $("<div>").addClass("row").appendTo(this.div);
@@ -256,7 +258,7 @@ class App {
     this.chosenStudyIndex = 0;
     this.sims = [];
     this.visualIndex = 0;
-    this.vizMaster = new VizMaster('study-results');
+    this.vizMaster = new VizMaster('study-results', 'study-visual');
   }
   /**
    * Create new simulations for study
