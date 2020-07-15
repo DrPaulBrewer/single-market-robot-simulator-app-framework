@@ -171,22 +171,22 @@ function showZipFailure(e) {
 
 class VizMaster {
   constructor(simsDiv, studyDiv){
-    this.div = `#${simsDiv}`;
+    this.div = simsDiv;
     this.studyDiv = studyDiv;
     this.empty();
   }
   empty(){
-    $(this.div).empty();
-    $(this.studyDiv).empty();
+    $('#'+this.div).empty();
+    $('#'+this.studyDiv).empty();
     return this;
   }
   scaffold({n, withParamPlots}){
     let i=0;
-    $(this.div).empty();
+    $('#'+this.div).empty();
     while(i<n){
       let $row = $("<div>")
         .addClass("row")
-        .appendTo(this.div);
+        .appendTo('#'+this.div);
       if (withParamPlots){
         $("<div>", { id: `paramPlot${i}`})
           .addClass("paramPlot col-xs-12 col-md-4")
@@ -910,7 +910,7 @@ export class App {
     const isInteractive = $('#useInteractiveCharts').prop('checked');
     const showCEModel = $('#showCEModel').val();
     const withParamPlots = (showCEModel==='plot');
-    const to = (visual.meta.input==='study')? 'study-visual': 'resultPlot';
+    const to = (visual.meta.input==='study')? (app.vizMaster.studyDiv): 'resultPlot';
     const sdPlot = app.visuals[app.visuals.length-1];
     app.vizMaster.scaffold(
       {
