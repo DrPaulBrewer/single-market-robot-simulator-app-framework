@@ -1022,7 +1022,8 @@ class App {
         let periods = 0;
 
         try {
-          const periodsPerSim = app.sims.map(s => s.logs.ohlc.data.length);
+          const periodsPerSim = app.sims.map(s => s.logs.ohlc.data.length - 1); // -1 for header
+
           periods = Math.max(...periodsPerSim); // min might be 0 if a single sim is misconfigured, so using max here
         } catch (e) {
           periods = 0;
