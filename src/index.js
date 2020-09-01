@@ -156,9 +156,9 @@ function restoreZipUI() {
   );
 }
 
-function showZipSuccess() {
+function showZipSuccess({periods}) {
   emptyZipProgress();
-  showZipProgress('<span class="green"> SUCCESS.  The data in the zip file has been loaded. Scroll down to interact with this data. </span>');
+  showZipProgress(`<span class="green"> SUCCESS.  Read ${periods} periods. The data in the zip file has been loaded. Scroll down to interact with this data. </span>`);
   restoreZipUI();
 }
 
@@ -1069,8 +1069,16 @@ export class App {
         .then(function (data) {
           app.sims = data.sims;
           app.renderVisualSelector();
+          let periods = 0;
+          try {
+            const periodsPerSim = app.sims.map((s)=>(s.logs.ohlc.data.length));
+            periods = Math.max(...periodsPerSim); // min might be 0 if a single sim is misconfigured, so using max here
+          } catch(e){
+            periods = 0;
+          }
+          return periods;
         })
-        .then(showZipSuccess)
+        .then((periods)=>(showZipSuccess({periods})))
         .catch(showZipFailure)
       );
     }, 50);
