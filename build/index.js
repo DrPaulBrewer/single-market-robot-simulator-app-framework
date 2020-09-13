@@ -530,7 +530,7 @@ class App {
         }
 
         if (f.properties.logs) {
-          const orders = f.logs.includes("order") ? "+O" : "  ";
+          const orders = f.properties.logs.includes("order") ? "+O" : "  ";
           parts.push(orders);
         }
       }
