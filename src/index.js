@@ -526,8 +526,26 @@ export class App {
         const app = this;
         const options = (
             app.study &&
-                app.study.zipFiles &&
-                app.study.zipFiles.map((f) => (f.name + ': ' + megaByteSizeStringRoundedUp(f.size)))
+            app.study.zipFiles &&
+            app.study.zipFiles.map(
+              (f) => {
+                const parts = [];
+                parts.push(f.name);
+                if (typeof(f.properties)==='object'){
+                  if (f.properties.periods){
+                    parts.push(f.properties.periods+"P");
+                  }
+                  if (f.properties.logs){
+                    const orders = (f.logs.includes("order"))?"+O":"  ";
+                    parts.push(orders);
+                  }
+                }
+                if (f.size){
+                  parts.push(megaByteSizeStringRoundedUp(f.size));
+                }
+                return parts.join(":");
+              }
+            )
         ) || []; // fails thru to empty set of options
         const values = (
           app.study &&
@@ -970,6 +988,12 @@ export class App {
     const study = clone(app.getStudyConfig());
     const folder = app.getStudyFolder();
     const name = Study.myDateStamp() + '.zip';
+    const { description, properties } = Study.zipMetadata(
+      {
+        cfg:  study,
+        sims: app.sims
+      }
+    );
     if (folder && folder.upload) {
       setProgressBar({
         value: 0,
@@ -983,6 +1007,8 @@ export class App {
           .then((zipBlob) => (
             folder.upload({
                 name,
+                description,
+                properties,
                 blob: zipBlob,
                 onProgress: (x) => {
                   const { loaded, total, type } = x;
