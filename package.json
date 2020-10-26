@@ -32,7 +32,7 @@
   "dependencies": {
     "clone": "^2.1.2",
     "p-each-series": "^2.1.0",
-    "single-market-robot-simulator-openzip": "^3.9.0",
+    "single-market-robot-simulator-openzip": "^3.10.0",
     "single-market-robot-simulator-savezip": "^3.3.0",
     "single-market-robot-simulator-study": "^5.0.2"
   }
