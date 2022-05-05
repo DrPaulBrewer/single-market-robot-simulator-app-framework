@@ -19,7 +19,6 @@ Each primary folder
 
 Each study folder has metadata for these items:
 * a human readable `.name` of the folder, must be unique within primary folder
-* a human readable `.description` in plain text, must be unique within primary older
 * a `.role` field set to "Econ1.Net Study Folder"
 * an `.id` token needed to create new files in this folder or trash the folder
 
@@ -39,12 +38,8 @@ all behavior is via `async function`
 
 ### DB.listStudyFolders({trashed: true| false })=>Array[StudyFolder]
 * ordered with most recent first
-* search term searches descriptions
 
 ### DB.createStudyFolder({name})=>StudyFolder
-
-### StudyFolder.trash()
-### StudyFolder.untrash()
 ### StudyFolder.getConfig()=>({config,folder})
 ### StudyFolder.setConfig({config})
 ### StudyFolder.listFiles()=>[list of file objects, each with a .name property, and possibly other properties]
@@ -52,3 +47,16 @@ all behavior is via `async function`
 ### StudyFolder.upload({name, contents, blob, onProgress}) => uploads file, responsible for upload/clobber-prevention logic
 
 
+## Removed features (Notes 2022-may;  actual removal was earlier)
+
+Descriptions seem like a good idea but can get in the way of users trying new things. Also descriptions
+can be stale even with the lock-in once data exists.
+
+* a human readable `.description` in plain text, must be unique within primary older
+* search term searches descriptions
+
+Similarly trash seems like a good idea, but it is duplicating the wheel.  The drive app and other apps have
+ways to delete items.
+
+### StudyFolder.trash()
+### StudyFolder.untrash()

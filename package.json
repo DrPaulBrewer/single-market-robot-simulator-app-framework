@@ -2,17 +2,13 @@
   "name": "single-market-robot-simulator-app-framework",
   "version": "13.4.0",
   "description": "specialized reusable app framework for creating robot trading webapps",
-  "main": "build/index.js",
-  "jsnext:main": "src/index.js",
+  "exports": "./src/index.mjs",
   "scripts": {
-    "clean": "rm -rf ./build ./doc ; mkdir ./build",
-    "build": "node_modules/.bin/babel build src/index.js -o build/index.js",
-    "doc": "node_modules/.bin/esdoc -c esdoc.json",
-    "lint": "node_modules/.bin/eslint src/index.js",
-    "lint-test": "node_modules/.bin/eslint test/index.js",
-    "test": "node_modules/.bin/mocha --compilers js:babel-core/register --reporter spec --slow 50 --timeout 60000",
-    "cover": "node_modules/.bin/istanbul cover node_modules/.bin/_mocha -- -u exports --compilers js:babel-register --timeout 60000",
-    "go": "npm run clean && npm run lint && npm run lint-test && npm run build"
+    "docs": "rm -rf ./docs && npx jsdoc -c .jsdoc.conf.json --access all src/index.mjs && mv out docs",
+    "lint": "eslint src/index.mjs",
+    "lint-test": "eslint test/index.mjs",
+    "test": "c8 mocha --reporter spec --slow 50 --timeout 60000",
+    "go": "npm run lint && npm run lint-test && npm test && npm run docs"
   },
   "repository": {
     "type": "git",
@@ -21,19 +17,16 @@
   "author": "drpaulbrewer@eaftc.com",
   "license": "MIT",
   "devDependencies": {
-    "@babel/cli": "^7.12.1",
-    "@babel/core": "^7.12.3",
-    "@babel/polyfill": "^7.12.1",
-    "@babel/preset-env": "^7.12.1",
-    "@babel/register": "^7.12.1",
-    "esdoc": "^1.1.0",
-    "eslint": "^7.12.0"
+    "c8": "^7.11.2",
+    "eslint": "^8.14.0",
+    "jsdoc": "^3.6.10",
+    "mocha": "^10.0.0"
   },
   "dependencies": {
     "clone": "^2.1.2",
-    "p-each-series": "^2.1.0",
-    "single-market-robot-simulator-openzip": "^3.10.0",
+    "p-each-series": "^3.0.0",
+    "single-market-robot-simulator-openzip": "^4.2.0",
     "single-market-robot-simulator-savezip": "^3.3.0",
-    "single-market-robot-simulator-study": "^5.0.2"
+    "single-market-robot-simulator-study": "^6.1.0"
   }
 }

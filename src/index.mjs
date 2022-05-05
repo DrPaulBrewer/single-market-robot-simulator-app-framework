@@ -8,26 +8,31 @@ import pEachSeries from "p-each-series";
 import saveZip from "single-market-robot-simulator-savezip";
 import openZip from "single-market-robot-simulator-openzip";
 import * as Study from "single-market-robot-simulator-study";
-export { Study };
+export {
+  Study
+};
 
 /**
-  * set the app progress bar text or value in #appProgressBar
-  * @param {Object} options
-  * @param {number} options.value bar percentage from 0.0 to 100.0
-  * @param {string} options.text message text to be set above bar
-  */
+ * set the app progress bar text or value in #appProgressBar
+ * @param {Object} options
+ * @param {number} options.value bar percentage from 0.0 to 100.0
+ * @param {string} options.text message text to be set above bar
+ */
 
-export function setProgressBar({value, text}){
-  if (typeof(value)==='number'){
-    const v = Math.min(100,Math.max(0,value));
-      $('#appProgressBar')
-        .prop({
-          "aria-valuenow": v,
-          "style": "width: " + v + "%"
-        })
-        .text(v + "%");
-    }
-  if (typeof(text)==='string'){
+export function setProgressBar({
+  value,
+  text
+}) {
+  if (typeof(value) === 'number') {
+    const v = Math.min(100, Math.max(0, value));
+    $('#appProgressBar')
+      .prop({
+        "aria-valuenow": v,
+        "style": "width: " + v + "%"
+      })
+      .text(v + "%");
+  }
+  if (typeof(text) === 'string') {
     $('#appProgressMessage').text(text);
   }
 }
@@ -38,18 +43,25 @@ export function setProgressBar({value, text}){
  * @return {string} size description string "123 MB"
  */
 
-function megaByteSizeStringRoundedUp(nBytes){
-    return Math.ceil(+nBytes/1e6)+ ' MB';
+export function megaByteSizeStringRoundedUp(nBytes) {
+  return Math.ceil(+nBytes / 1e6) + ' MB';
 }
 
-function optionHTML({option,value,selected}, n){
-  const s = (selected)? 'selected' : '';
-  const v = (value===undefined)? n: value;
+export function optionHTML({
+  option,
+  value,
+  selected
+}, n) {
+  const s = (selected) ? 'selected' : '';
+  const v = (value === undefined) ? n : value;
   return `<option value="${v}" ${s}>${option}</option>`;
 }
 
-function optionGroupHTML({group,options}){
-  return `<optgroup label="${group}">`+(options.map(optionHTML).join(''))+'</optgroup>';
+export function optionGroupHTML({
+  group,
+  options
+}) {
+  return `<optgroup label="${group}">` + (options.map(optionHTML).join('')) + '</optgroup>';
 }
 
 /**
@@ -68,37 +80,42 @@ function setSelectOptions({
   values
 }) {
   const selectedOptionNumber = +selectedOption;
-  function toOptionObject(option,n){
+
+  function toOptionObject(option, n) {
     return {
       option,
       selected: (n === selectedOptionNumber),
-      value: (Array.isArray(values))? values[n]: n
-     };
+      value: (Array.isArray(values)) ? values[n] : n
+    };
   }
   $(select + ' > optgroup')
     .remove();
   $(select + ' > option')
     .remove();
   if (!Array.isArray(options)) return;
-  if (Array.isArray(groups)){
-    let group = groups[0], groupOptions = [];
-    for(let i=0,l=options.length;i<l;++i){
-      if (groups[i]!==group){
+  if (Array.isArray(groups)) {
+    let group = groups[0],
+      groupOptions = [];
+    for (let i = 0, l = options.length;i < l;++i) {
+      if (groups[i] !== group) {
         $(select)
-          .append(optionGroupHTML({group, options: groupOptions}));
+          .append(optionGroupHTML({
+            group,
+            options: groupOptions
+          }));
         group = groups[i];
         groupOptions = [];
       }
-      groupOptions.push(toOptionObject(options[i],i));
+      groupOptions.push(toOptionObject(options[i], i));
     }
   } else {
     $(select)
-    .append(
-      options
-      .map(toOptionObject)
-      .map(optionHTML)
-      .join('')
-    );
+      .append(
+        options
+        .map(toOptionObject)
+        .map(optionHTML)
+        .join('')
+      );
   }
 }
 
@@ -111,7 +128,7 @@ function createJSONEditor({
   const editorElement = document.getElementById(div);
   if (editorElement && window.JSONEditor) {
     if (clear) {
-      $('#'+div).empty();
+      $('#' + div).empty();
     }
     return new window.JSONEditor(editorElement, options);
   }
@@ -129,10 +146,9 @@ function showPeriods(periods) {
     .val(periods);
   $('span.periods')
     .text(periods);
-  return periods;
 }
 
-function emptyZipProgress(){
+function emptyZipProgress() {
   $('div.openzip-progress').empty();
 }
 
@@ -156,7 +172,9 @@ function restoreZipUI() {
   );
 }
 
-function showZipSuccess({periods}) {
+function showZipSuccess({
+  periods
+}) {
   emptyZipProgress();
   showZipProgress(`<span class="green"> SUCCESS.  Read ${periods} periods. The data in the zip file has been loaded. Scroll down to interact with this data. </span>`);
   restoreZipUI();
@@ -168,37 +186,61 @@ function showZipFailure(e) {
   restoreZipUI();
 }
 
+function defer(f, ...params){
+  setTimeout(f,10, ...params);
+}
+
+async function zipFilesInFolder(folder){
+  let files = [];
+  try {
+    files = await folder.listFiles();
+  } catch(e){
+    console.log("smrs-app-framework: zipFiles Error", e);
+    files = [];
+  }
+  const zipFiles = files.filter((f)=>(f?.name?.endsWith(".zip")));
+  return zipFiles;
+}
 
 class VizMaster {
-  constructor(simsDiv, studyDiv){
+  constructor(simsDiv, studyDiv) {
     this.div = simsDiv;
     this.studyDiv = studyDiv;
     this.empty();
   }
-  empty(){
-    $('#'+this.div).empty();
-    $('#'+this.studyDiv).empty();
+  empty() {
+    $('#' + this.div).empty();
+    $('#' + this.studyDiv).empty();
     return this;
   }
-  scaffold({n, withParamPlots}){
-    let i=0;
-    $('#'+this.div).empty();
-    while(i<n){
+  scaffold({
+    n,
+    withParamPlots
+  }) {
+    let i = 0;
+    $('#' + this.div).empty();
+    while (i < n) {
       let $row = $("<div>")
         .addClass("row")
-        .appendTo('#'+this.div);
-      if (withParamPlots){
-        $("<div>", { id: `paramPlot${i}`})
+        .appendTo('#' + this.div);
+      if (withParamPlots) {
+        $("<div>", {
+            id: `paramPlot${i}`
+          })
           .addClass("paramPlot col-xs-12 col-md-4")
           .appendTo($row);
-      // to restore above code, change below code to add col-md-7
-        $("<div>", { id: `resultPlot${i}`})
+        // to restore above code, change below code to add col-md-7
+        $("<div>", {
+            id: `resultPlot${i}`
+          })
           .addClass("resultPlot col-xs-12 col-md-7")
           .appendTo($row);
       } else {
-        $("<div>", { id: `resultPlot${i}`})
-            .addClass("resultPlot col-xs-12")
-            .appendTo($row);
+        $("<div>", {
+            id: `resultPlot${i}`
+          })
+          .addClass("resultPlot col-xs-12")
+          .appendTo($row);
       }
       i += 1;
     }
@@ -232,7 +274,7 @@ export class App {
     this.chosenStudyIndex = 0;
     this.sims = [];
     this.visualIndex = 0;
-    this.vizMaster = new VizMaster('study-results','study-visual');
+    this.vizMaster = new VizMaster('study-results', 'study-visual');
   }
 
   /**
@@ -255,13 +297,25 @@ export class App {
   }
 
   /**
+   * Update zip file list UI from Folder
+   * @param {folder} an instance of StudyFolder
+   */
+
+  async updateZipList(folder){
+    const app = this;
+    const zipFiles = await zipFilesInFolder(folder);
+    app.study.zipFiles = zipFiles;
+    app.renderPriorRunSelector();
+  }
+
+  /**
    * Get current study configuration
    * @return {Object} study configuration
    */
 
   getStudyConfig() {
     const app = this;
-    return app.study && app.study.config;
+    return app?.study?.config;
   }
 
   /**
@@ -275,20 +329,12 @@ export class App {
   }
 
   /**
-   * Set current study
-   * @param {Object} studyConfig study configuraion
+   * update UI fields for current folder or clear folder
+   *  @param [folder] optional instance of StudyFolder
    */
 
-  setStudy({
-    config,
-    folder
-  }) {
+  updateFolderUI(folder, config){
     const app = this;
-
-    app.study = {
-      config,
-      folder
-    };
     if (folder) {
       if (folder.name)
         $('.onSetStudyFolderNameUpdateValue')
@@ -303,25 +349,15 @@ export class App {
         $('.onSetStudyFolderIdUpdateValue')
         .prop('value', '');
       if (folder.webViewLink)
-        $('.onSetStudyFolderLinkUpdate').prop('href',folder.webViewLink);
+        $('.onSetStudyFolderLinkUpdate').prop('href', folder.webViewLink);
       else
-        $('.onSetStudyFolderLinkUpdate').prop('href',app.DB.defaultWebLink);
-          if (folder && folder.listFiles){
-            (folder
-              .listFiles()
-              .then((files) => (files.filter((f) => (f.mimeType === 'application/zip'))))
-              .then((files) => {
-                app.study.zipFiles = files;
-              })
-              .then(() => (app.renderPriorRunSelector()))
-            );
-          }
+        $('.onSetStudyFolderLinkUpdate').prop('href', app.DB.defaultWebLink);
     } else {
       $('.onSetStudyFolderNameUpdateValue')
         .prop('value', '');
       $('.onSetStudyFolderIdUpdateValue')
         .prop('value', '');
-      $('.onSetStudyFolderLinkUpdate').prop('href',app.DB.defaultWebLink);
+      $('.onSetStudyFolderLinkUpdate').prop('href', app.DB.defaultWebLink);
     }
     const configTitle = (folder && folder.name) || (config && config.name) || 'UNTITLED';
     $('.configTitle')
@@ -334,6 +370,24 @@ export class App {
     const description = (folder && folder.description) || (config && config.description) || '';
     $('.currentStudyFolderDescription')
       .text(description);
+  }
+
+  /**
+   * Set current study
+   * @param {Object} studyConfig study configuraion
+   */
+
+  setStudy({
+    config,
+    folder
+  }) {
+    const app = this;
+    app.study = {
+      config,
+      folder
+    };
+    if (folder) defer(app.updateZipList.bind(app),folder);
+    app.updateFolderUI(folder, config);
     if (config) {
       if (app.editor && app.initEditor) {
         app.initEditor({
@@ -341,9 +395,9 @@ export class App {
           schema: app.editorConfigSchema
         });
       }
-      if (config.common && app.setPeriods){
-        if (+config.common.periods>0){
-          app.setPeriods(Math.min(100,+config.common.periods));
+      if (config.common && app.setPeriods) {
+        if (+config.common.periods > 0) {
+          app.setPeriods(Math.min(100, +config.common.periods));
         } else {
           app.setPeriods(1);
         }
@@ -362,7 +416,7 @@ export class App {
               .join('</tr><tr>')
             ) + "</tr>");
       }
-      if (app.timeit) app.timeit(config);
+      defer(app.timeit.bind(app), config);
     }
   }
 
@@ -384,11 +438,11 @@ export class App {
 
   setPeriods(n) {
     const app = this;
-    if (+n>0){
+    if (+n > 0) {
       const config = app.getStudyConfig();
       config.common.periods = +n;
       showPeriods(n);
-      app.timeit(config);
+      defer(app.timeit.bind(app),config);
     }
   }
 
@@ -427,40 +481,35 @@ export class App {
    * @param {Object} studyConfig - A studyConfig as defined by app.simulations
    */
 
-  timeit(studyConfig) {
+  async timeit(studyConfig) {
     const app = this;
-    // delay running timeit by 1 sec as seems to be blocking screen refresh of description, etc.
     if (!studyConfig || !(Array.isArray(studyConfig.configurations))) return;
-    setTimeout(function () {
-      const t0 = Date.now();
-      const periodTimers = app.periodTimers;
-      periodTimers.length = 0;
-      const randomIndex = Math.floor(Math.random()*Study.numberOfSimulations(studyConfig));
-      const randomSim = app.simulations(
-        studyConfig,
-        app.SMRS.Simulation,
-        [randomIndex])[0];
-      const agents = randomSim.config.numberOfBuyers + randomSim.config.numberOfSellers;
-      if (agents > 200) return;
-      (randomSim
-        .run({
-          update: (sim) => {
-            const elapsed = Date.now() - t0;
-            periodTimers[sim.period] = elapsed;
-            // hack to end simulations if over 2 sec or 5 periods
-            if ((elapsed > 2000) || (sim.period > 5))
-              sim.config.periods = sim.period;
-            return sim;
+    const t0 = Date.now();
+    const periodTimers = app.periodTimers;
+    periodTimers.length = 0;
+    const randomIndex = Math.floor(Math.random() * Study.numberOfSimulations(studyConfig));
+    const randomSim = app.simulations(
+      studyConfig,
+      app.SMRS.Simulation,
+      [randomIndex])[0];
+    const agents = randomSim.config.numberOfBuyers + randomSim.config.numberOfSellers;
+    if (agents > 200) return;
+    try {
+      await randomSim.run({
+        update: (sim) => {
+          const elapsed = Date.now() - t0;
+          periodTimers[sim.period] = elapsed;
+          // hack to end simulations if over 2 sec or 5 periods
+          if ((elapsed > 2000) || (sim.period > 5))
+            sim.config.periods = sim.period;
+          return sim;
           }
-        })
-        .then(
-          () => {
-            app.guessTime();
-          })
-        .catch((e) => (console.log(e)))
-      );
-    }, 1000);
-  }
+        });
+      app.guessTime();
+    } catch(e){
+      console.log('smrs-app-framework-timeit', e);
+    }
+}
 
   /**
    * Eventually choose study n from Array app.availableStudies if possible, get details from DB, send it to app.editor and app.periodsEditor if defined, then app.timeit, and then refresh UI with app.refresh
@@ -473,9 +522,12 @@ export class App {
     app.vizMaster.empty();
     app.sims = [];
     if (Array.isArray(app.availableStudyFolders)) {
-      app.chosenStudyIndex = Math.max(0, Math.min(Math.floor(n), app.availableStudyFolders.length - 1));
-      app.availableStudyFolders[app.chosenStudyIndex].getConfig()
-        .then((choice) => (app.setStudy(choice)));
+      defer(async()=>{
+        app.chosenStudyIndex = Math.max(0, Math.min(Math.floor(n), app.availableStudyFolders.length - 1));
+        const folder = app.availableStudyFolders[app.chosenStudyIndex];
+        const config = await folder.getConfig();
+        app.setStudy({folder,config});
+      });
     }
   }
 
@@ -486,10 +538,10 @@ export class App {
     app.sims = [];
     app.chosenRun = +n;
     const zipFile = app.study.zipFiles[n];
-    if (zipFile && zipFile.webViewLink){
-      $('.onChooseRunLinkUpdate').prop('href',zipFile.webViewLink);
+    if (zipFile && zipFile.webViewLink) {
+      $('.onChooseRunLinkUpdate').prop('href', zipFile.webViewLink);
     } else {
-      $('.onChooseRunLinkUpdate').prop('href',app.DB.defaultWebLink);
+      $('.onChooseRunLinkUpdate').prop('href', app.DB.defaultWebLink);
     }
   }
 
@@ -522,51 +574,50 @@ export class App {
    *
    */
 
-    renderPriorRunSelector() {
-        const app = this;
-        const options = (
-            app.study &&
-            app.study.zipFiles &&
-            app.study.zipFiles.map(
-              (f) => {
-                const parts = [];
-                parts.push(f.name);
-                if (typeof(f.properties)==='object'){
-                  if (f.properties.periods){
-                    parts.push(f.properties.periods+"P");
-                  }
-                  if (f.properties.logs){
-                    const orders = (f.properties.logs.includes("order"))?"+O":"  ";
-                    parts.push(orders);
-                  }
-                }
-                if (f.size){
-                  parts.push(megaByteSizeStringRoundedUp(f.size));
-                }
-                return parts.join(":");
-              }
-            )
-        ) || []; // fails thru to empty set of options
-        const values = (
-          app.study &&
-          app.study.zipFiles &&
-          app.study.zipFiles.map((f)=>(f.id))
-        ) || [];
-        const selectedOption = 0;
-        app.chosenRun = 0;
-        setSelectOptions({
-            select: 'select.numericRunSelector',
-            options,
-            selectedOption
-        });
-        setSelectOptions({
-          select: 'select.fileidRunSelector',
-          options,
-          selectedOption,
-          values
-        });
-    }
-
+  renderPriorRunSelector() {
+    const app = this;
+    const options = (
+      app.study &&
+      app.study.zipFiles &&
+      app.study.zipFiles.map(
+        (f) => {
+          const parts = [];
+          parts.push(f.name);
+          if (typeof(f.properties) === 'object') {
+            if (f.properties.periods) {
+              parts.push(f.properties.periods + "P");
+            }
+            if (f.properties.logs) {
+              const orders = (f.properties.logs.includes("order")) ? "+O" : "  ";
+              parts.push(orders);
+            }
+          }
+          if (f.size) {
+            parts.push(megaByteSizeStringRoundedUp(f.size));
+          }
+          return parts.join(":");
+        }
+      )
+    ) || []; // fails thru to empty set of options
+    const values = (
+      app.study &&
+      app.study.zipFiles &&
+      app.study.zipFiles.map((f) => (f.id))
+    ) || [];
+    const selectedOption = 0;
+    app.chosenRun = 0;
+    setSelectOptions({
+      select: 'select.numericRunSelector',
+      options,
+      selectedOption
+    });
+    setSelectOptions({
+      select: 'select.fileidRunSelector',
+      options,
+      selectedOption,
+      values
+    });
+  }
 
   /**
    * Render visualization options for current app.study into DOM select existing at id #vizselect
@@ -577,7 +628,7 @@ export class App {
     const visuals = app.visuals;
     const select = '#vizselect';
     const options = (visuals && (visuals.map((v) => (v.meta.title || v.meta.f)))) || [];
-    const groups = (visuals  && (visuals[0].meta.group) && (visuals.map((v)=>(v.meta.group))));
+    const groups = (visuals && (visuals[0].meta.group) && (visuals.map((v) => (v.meta.group))));
     const selectedOption = app.visualIndex;
     setSelectOptions({
       select,
@@ -613,7 +664,7 @@ export class App {
         config: app.editorStartValue,
         schema: app.editorConfigSchema
       });
-    app.initDB();
+    defer(app.initDB.bind(app));
   }
 
   initBehavior() {
@@ -650,21 +701,20 @@ export class App {
     });
   }
 
-  initDB() {
+  async initDB() {
     const app = this;
-    if (app.DB)
-      (app.DB.listStudyFolders()
-        .then((items) => {
-          if (Array.isArray(items) && (items.length)) {
-            app.availableStudyFolders = items;
-            app.renderConfigSelector();
-            app.choose(0);
-          }
-        })
-        .catch((e) => {
-          console.log("app-framework initDB() Error accessing simulation configuration database:" + e);
-        })
-      );
+    if (app.DB){
+      try {
+        const items = await app.DB.listStudyFolders();
+        if (Array.isArray(items) && (items.length)) {
+          app.availableStudyFolders = items;
+          app.renderConfigSelector();
+          app.choose(0);
+        }
+      } catch(e) {
+          console.log("app-framework initDB() Error accessing simulation configuration database:",e);
+      }
+    }
   }
 
   /**
@@ -678,18 +728,18 @@ export class App {
     if (app.editor) {
       const config = app.editor.getValue();
       const l = config && config.configurations && config.configurations.length;
-      if (!l || (l !== 2)){
-        $('#morphError').text('morph requires exactly 2 configurations. This study currently has '+l+' configurations');
+      if (!l || (l !== 2)) {
+        $('#morphError').text('morph requires exactly 2 configurations. This study currently has ' + l + ' configurations');
         throw new Error("app.renderMorph morph requires exactly 2 configurations");
       }
       const A = config.configurations[0];
       const B = config.configurations[1];
-      if (!(Study.isMorphable(A, B))){
+      if (!(Study.isMorphable(A, B))) {
         $('#morphError').text('The two configurations are NOT compatible');
         throw new Error("app.renderMorph morph requires configurations that pass Study.isMorphable");
       }
       const schema = Study.morphSchema(A, B);
-      const hasConfigMorph = config.morph && (Object.keys(config.morph).length>0);
+      const hasConfigMorph = config.morph && (Object.keys(config.morph).length > 0);
       const startval = (hasConfigMorph && config.morph) || schema.default;
       app.morphEditor = createJSONEditor({
         div: 'morphEditor',
@@ -710,10 +760,10 @@ export class App {
     const app = this;
     if (app.editor && app.morphEditor) {
       const config = (
-        Object.assign(
-          {},
-          Study.simplify(app.editor.getValue()),
-          { morph: app.morphEditor.getValue() }
+        Object.assign({},
+          Study.simplify(app.editor.getValue()), {
+            morph: app.morphEditor.getValue()
+          }
         )
       );
       app.editor.setValue(config);
@@ -757,7 +807,7 @@ export class App {
    * which set pointer-events: none and pointer-events: auto respectively
    */
 
-  run() {
+  async run() {
     const app = this;
     function uiDone() {
       $('.spinning')
@@ -780,48 +830,44 @@ export class App {
       value: 0,
       text: 'Generating market data...only red buttons are usable'
     });
-    return ( pEachSeries(app.sims, (sim, slot)=>(
+    try {
+      await pEachSeries(app.sims, (sim, slot) => (
         sim.run({
-          update: (s)=>{
+          update: (s) => {
             const updateThreshold = Math.max(
               1,
-              Math.ceil(s.config.periods/100)
+              Math.ceil(s.config.periods / 100)
             );
-            if ((s.period % updateThreshold)!==0) return s;
-            const simProgressRatio = s.period/s.config.periods;
-            const studyProgressRatio = (slot+simProgressRatio)/app.sims.length;
-            const studyProgressPct = Math.round(100*studyProgressRatio);
+            if ((s.period % updateThreshold) !== 0) return s;
+            const simProgressRatio = s.period / s.config.periods;
+            const studyProgressRatio = (slot + simProgressRatio) / app.sims.length;
+            const studyProgressPct = Math.round(100 * studyProgressRatio);
             setProgressBar({
               value: studyProgressPct
             });
             return s;
           }
         })
-      )).then(
-        ()=>{
-          uiDone();
-          setProgressBar({
-            value: 100,
-            text: 'Generation complete'
-          });
-          const canUpload = $('#canUploadAfterRun').prop('checked');
-          if (!canUpload) return;
-          if (app.stopped) {
-            return console.log("run aborted by user -- aborting save");
-          }
-          console.log("saving....");
-          setTimeout(()=>{
-            app.uploadData();
-          }, 1000);
-        },
-        (e)=>{
-          uiDone();
-          $('#runError').html("<pre>"+e+"</pre>");
-          setProgressBar({
-            text: "Generation Error!"
-          });
-        }
-    ));
+      ));
+      uiDone();
+      setProgressBar({
+        value: 100,
+        text: 'Generation complete'
+      });
+      const canUpload = $('#canUploadAfterRun').prop('checked');
+      if (!canUpload) return;
+      if (app.stopped) {
+        return console.log("run aborted by user -- aborting save");
+      }
+      console.log("saving....");
+      await app.uploadData();
+    } catch (e) {
+      uiDone();
+      $('#runError').html("<pre>" + e + "</pre>");
+      setProgressBar({
+        text: "Error! "+e
+      });
+    }
   }
 
   /**
@@ -846,15 +892,17 @@ export class App {
    *
    */
 
-  save() {
+  async save() {
     const app = this;
     const myStudyFolder = app.getStudyFolder();
     let config = app.editor.getValue();
     if (!config.customcaseids) {
       delete config.common.caseid;
-      config.configurations.forEach((c)=>{ delete c.caseid; });
+      config.configurations.forEach((c) => {
+        delete c.caseid;
+      });
     }
-    if (config.simplify){
+    if (config.simplify) {
       config = Study.simplify(config);
     }
 
@@ -863,17 +911,15 @@ export class App {
      *
      */
 
-    if (myStudyFolder && (config.name === myStudyFolder.name))
-      return (
-        myStudyFolder
-        .setConfig({
-          config
-        })
-        .then(
-          () => (window.location.reload()),
-          (e) => (window.alert(e)) // eslint-disable-line no-alert
-        )
-      );
+    if (myStudyFolder && (config.name === myStudyFolder.name)){
+      try {
+        await myStudyFolder.setConfig({config});
+        window.location.reload();
+      } catch(e) {
+        window.alert(e);  // eslint-disable-line no-alert
+      }
+      return;
+    }
 
     /*
      * name is different, or no myStudyFolder, so create a new Study Folder then save
@@ -882,25 +928,22 @@ export class App {
 
     /* first check if new name is already taken */
 
-    const existingFolderAtName = app.availableStudyFolders.find((f)=>(f.name===config.name));
+    const existingFolderAtName = app.availableStudyFolders.find((f) => (f.name === config.name));
 
-    if (existingFolderAtName){
-      return window.alert("Conflict: A folder with the selected 'name' already exists."+ // eslint-disable-line no-alert
-      " Please edit the 'name' and save again.");
+    if (existingFolderAtName) {
+      return window.alert("Conflict: A folder with the selected 'name' already exists." + // eslint-disable-line no-alert
+        " Please edit the 'name' and save again.");
     }
 
-    return (app.DB.createStudyFolder({
-        name: config.name
-      })
-      .then((folder) => (folder.setConfig({
-        config
-      })))
-      .then(
-        () => (window.location.reload()),
-        (e) => (window.alert(e)) // eslint-disable-line no-alert
-      )
-    );
-
+    try {
+      const folder = await app.DB.createStudyFolder({
+          name: config.name
+      });
+      folder.setConfig({config});
+      window.location.reload();
+    } catch(e){
+      window.alert(e); // eslint-disable-line no-alert
+    }
   }
 
   /**
@@ -914,11 +957,11 @@ export class App {
   }
 
   /**
-  *
-  * Draw the selected visualization
-  */
+   *
+   * Draw the selected visualization
+   */
 
-  drawVisuals(){
+  drawVisuals() {
     const app = this;
     const studyConfig = app.getStudyConfig();
     const axis = Study.axis(studyConfig);
@@ -927,22 +970,20 @@ export class App {
     const visual = visuals[vidx];
     const isInteractive = $('#useInteractiveCharts').prop('checked');
     const showCEModel = $('#showCEModel').val();
-    const withParamPlots = (showCEModel==='plot');
-    const to = (visual.meta.input==='study')? (app.vizMaster.studyDiv): 'resultPlot';
-    const sdPlot = app.visuals[app.visuals.length-1];
-    app.vizMaster.scaffold(
-      {
-        n:app.sims.length,
-        withParamPlots
-      }
-    );
+    const withParamPlots = (showCEModel === 'plot');
+    const to = (visual.meta.input === 'study') ? (app.vizMaster.studyDiv) : 'resultPlot';
+    const sdPlot = app.visuals[app.visuals.length - 1];
+    app.vizMaster.scaffold({
+      n: app.sims.length,
+      withParamPlots
+    });
     visual.load({
       from: app.sims,
       to,
       isInteractive,
       axis
     });
-    if (withParamPlots){
+    if (withParamPlots) {
       sdPlot.load({
         from: app.sims,
         to: 'paramPlot'
@@ -954,7 +995,7 @@ export class App {
    * Create  .zip file containing study and simulation configurations and data and give it to the user
    */
 
-  downloadData() {
+  async downloadData() {
     const app = this;
     $('#downloadButton')
       .prop('disabled', true);
@@ -962,78 +1003,77 @@ export class App {
       .addClass("disabled");
     $('#downloadButton .glyphicon')
       .addClass("spinning");
-    setTimeout(() => {
-      saveZip({
-          config: clone(app.getStudyConfig()),
-          sims: app.sims,
-          download: true
-        })
-        .then(() => {
-          $('#downloadButton .spinning')
+    await saveZip({
+      config: clone(app.getStudyConfig()),
+      sims: app.sims,
+      download: true
+    }).catch((e)=>(console.log('downloadData',e)));
+    $('#downloadButton .spinning')
             .removeClass("spinning");
-          $('#downloadButton')
+    $('#downloadButton')
             .removeClass("disabled");
-          $('#downloadButton')
+    $('#downloadButton')
             .prop('disabled', false);
-        });
-    }, 200);
   }
 
   /**
    * Create .zip file containing study and simulation configurations and data and upload it to the cloud
    */
 
-  uploadData() {
+  async uploadData() {
     const app = this;
     const study = clone(app.getStudyConfig());
     const folder = app.getStudyFolder();
     const name = Study.myDateStamp() + '.zip';
-    const { description, properties } = Study.zipMetadata(
-      {
-        cfg:  study,
-        sims: app.sims
-      }
-    );
+    const {
+      description,
+      properties
+    } = Study.zipMetadata({
+      cfg: study,
+      sims: app.sims
+    });
     if (folder && folder.upload) {
       setProgressBar({
         value: 0,
-        text: 'Saving '+name
+        text: 'Saving ' + name
       });
-      (saveZip({
+      try {
+        const zipBlob = await saveZip({
             config: study,
             sims: app.sims,
             download: false
-          })
-          .then((zipBlob) => (
-            folder.upload({
-                name,
-                description,
-                properties,
-                blob: zipBlob,
-                onProgress: (x) => {
-                  const { loaded, total, type } = x;
-                  if (type==='progress'){
-                    setProgressBar({
-                      value: Math.round(100*loaded/total)
-                    });
-                  }
+        });
+        const newfile = await folder.upload({
+              name,
+              description,
+              properties,
+              blob: zipBlob,
+              onProgress: (x) => {
+                const {
+                  loaded,
+                  total,
+                  type
+                } = x;
+                if (type === 'progress') {
+                  setProgressBar({
+                    value: Math.round(100 * loaded / total)
+                  });
                 }
-              })))
-          .then((newfile) => {
-              setProgressBar({
-                  text: 'Saved '+name,
-                  value: 100
-              });
-              if (Array.isArray(app.study.zipFiles)){
-                  app.study.zipFiles.unshift(newfile);
-                  app.renderPriorRunSelector();
               }
-            })
-          .catch((e) => {
-                console.log(e);
-                $('#runError').append('<pre> Error Saving '+name+"\n"+e+'</pre>');
-              })
-        );
+        });
+        if (Array.isArray(app.study.zipFiles)) {
+          app.study.zipFiles.unshift(newfile);
+          app.renderPriorRunSelector();
+        }
+        setProgressBar({
+          text: 'Saved ' + name,
+          value: 100
+        });
+      } catch (e){
+        console.log('smrs-app-framework-uploadData',e);
+        $('#runError').append('<pre> Error Saving ' + name + "\n" + e + '</pre>');
+        return;
+      }
     } else {
       console.log("folder is read only, cannot upload new data");
       $('#runError').append('folder is read only, cannot upload new data');
@@ -1049,19 +1089,19 @@ export class App {
     const app = this;
     showZipProgress("chosen zip file is:" + JSON.stringify(zipFile));
     const zipFileMB = megaByteSizeStringRoundedUp(zipFile.size);
-    if (zipFile.size> (200*1000*1000)){
-      const msg = "File Too Big: Aborted reading this "+zipFileMB+" zipfile as it would likely crash your browser or device."+
-        "You can continue analysis by manually downloading the zipfile to your PC, unzipping, and using suitable tools. "+
+    if (zipFile.size > (200 * 1000 * 1000)) {
+      const msg = "File Too Big: Aborted reading this " + zipFileMB + " zipfile as it would likely crash your browser or device." +
+        "You can continue analysis by manually downloading the zipfile to your PC, unzipping, and using suitable tools. " +
         "Unzipping will reveal csv files that should be compatible with Python, R, Stata, Excel, or other stats/spreadsheet software.";
       window.alert(msg); // eslint-disable-line no-alert
       return Promise.reject("zip file download aborted. Exceeds 200 MB");
     }
-    if (zipFile.size > (50 * 1000 * 1000)){
-      const ask = "If you are using a mobile device, fetching this "+zipFileMB+
-      " zipfile could crash your browser, increase your mobile data bill,"+
-      " or cause other issues. Desktops can sometimes handle ~100 MB zipfiles. Proceed?";
-      if (!window.confirm(ask)){    // eslint-disable-line no-alert
-          return Promise.reject("zip file download aborted by user");
+    if (zipFile.size > (50 * 1000 * 1000)) {
+      const ask = "If you are using a mobile device, fetching this " + zipFileMB +
+        " zipfile could crash your browser, increase your mobile data bill," +
+        " or cause other issues. Desktops can sometimes handle ~100 MB zipfiles. Proceed?";
+      if (!window.confirm(ask)) { // eslint-disable-line no-alert
+        return Promise.reject("zip file download aborted by user");
       }
     }
     showZipProgress("reading from Google Drive");
@@ -1072,41 +1112,39 @@ export class App {
    * open a .zip file associated with current study folder
    */
 
-  openZipFile(chosenSavedRun) {
+  async openZipFile(chosenSavedRun) {
     const app = this;
-    const zipFile = app.study.zipFiles[+chosenSavedRun];
-    ($('button.openzip-button')
-      .prop('disabled', true)
-      .addClass("disabled")
-    );
-    setTimeout(() => {
-      (openZip(app.zipPromise(zipFile), app.SMRS, showZipProgress)
-        .then(function (data) {
-          if (!(data.config)) throw new Error("No master configuration file (config.json) was found in zip file.  Maybe this zip file is unrelated.");
-          if (!(data.sims.length)) throw new Error("No simulation configuration files (sim.json) in the zip file");
-          app.vizMaster.scaffold(data.sims.length);
-          if ((Array.isArray(data.config.configurations)) &&
-            (Study.numberOfSimulations(data.config) !== data.sims.length))
-            throw new Error("Missing files.  the number of configurations generated by config.json does not match the number of simulation directories and files I found");
-          if (data.sims.includes(undefined))
-            throw new Error("It seems a folder has been deleted from the zip file or I could not read it. ");
-          return data;
-        })
-        .then(function (data) {
-          app.sims = data.sims;
-          app.renderVisualSelector();
-          let periods = 0;
-          try {
-            const periodsPerSim = app.sims.map((s)=>(s.logs.ohlc.data.length-1)); // -1 for header
-            periods = Math.max(...periodsPerSim); // min might be 0 if a single sim is misconfigured, so using max here
-          } catch(e){
-            periods = 0;
-          }
-          return periods;
-        })
-        .then((periods)=>(showZipSuccess({periods})))
-        .catch(showZipFailure)
+    try {
+      const zipFile = app.study.zipFiles[+chosenSavedRun];
+      ($('button.openzip-button')
+        .prop('disabled', true)
+        .addClass("disabled")
       );
-    }, 50);
+      const data = await openZip(
+        app.zipPromise(zipFile),
+        app.SMRS,
+        showZipProgress
+      );
+      if (!(data.config)) throw new Error("No master configuration file (config.json) was found in zip file.  Maybe this zip file is unrelated.");
+      if (!(data.sims.length)) throw new Error("No simulation configuration files (sim.json) in the zip file");
+      app.vizMaster.scaffold(data.sims.length);
+      if ((Array.isArray(data.config.configurations)) &&
+        (Study.numberOfSimulations(data.config) !== data.sims.length))
+          throw new Error("Missing files.  the number of configurations generated by config.json does not match the number of simulation directories and files I found");
+      if (data.sims.includes(undefined))
+          throw new Error("It seems a folder has been deleted from the zip file or I could not read it. ");
+      app.sims = data.sims;
+      app.renderVisualSelector();
+      let periods = 0;
+      try {
+        const periodsPerSim = app.sims.map((s) => (s.logs.ohlc.data.length - 1)); // -1 for header
+        periods = Math.max(...periodsPerSim); // min might be 0 if a single sim is misconfigured, so using max here
+      } catch (e) {
+        periods = 0;
+      }
+      showZipSuccess({periods});
+    } catch(e) {
+      showZipFailure(e);
+    }
   }
 }
