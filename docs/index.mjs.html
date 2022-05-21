@@ -1,4 +1,32 @@
-/* global $:true */
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: index.mjs</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: index.mjs</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/* global $:true */
 
 /* eslint no-console: "off" */
 /* eslint consistent-this: ["error", "app", "that"] */
@@ -65,7 +93,7 @@ export function optionHTML({
 }, n) {
   const s = (selected) ? 'selected' : '';
   const v = (value === undefined) ? n : value;
-  return `<option value="${v}" ${s}>${option}</option>`;
+  return `&lt;option value="${v}" ${s}>${option}&lt;/option>`;
 }
 
 /**
@@ -80,7 +108,7 @@ export function optionGroupHTML({
   group,
   options
 }) {
-  return `<optgroup label="${group}">` + (options.map(optionHTML).join('')) + '</optgroup>';
+  return `&lt;optgroup label="${group}">` + (options.map(optionHTML).join('')) + '&lt;/optgroup>';
 }
 
 /**
@@ -125,7 +153,7 @@ function setSelectOptions({
   if (Array.isArray(groups)) {
     let group = groups[0],
       groupOptions = [];
-    for (let i = 0, l = options.length;i < l;++i) {
+    for (let i = 0, l = options.length;i &lt; l;++i) {
       if (groups[i] !== group) {
         $(select)
           .append(optionGroupHTML({
@@ -163,7 +191,7 @@ function createJSONEditor({
   options
 }) {
   const editorElement = document.getElementById(div);
-  if (editorElement && window.JSONEditor) {
+  if (editorElement &amp;&amp; window.JSONEditor) {
     if (clear) {
       $('#' + div).empty();
     }
@@ -202,7 +230,7 @@ function emptyZipProgress() {
 function showZipProgress(message) {
   // see https://stackoverflow.com/q/10776085/103081
   $('div.openzip-progress')
-    .append("<p>" + message + "</p>")
+    .append("&lt;p>" + message + "&lt;/p>")
     .scrollTop($('div.openzip-progress').prop("scrollHeight"));
 }
 
@@ -213,7 +241,7 @@ function showZipProgress(message) {
  * @returns {void}
  */
 function showZipError(e) {
-  showZipProgress('<span class="red"> ERROR: ' + e + '</span>');
+  showZipProgress('&lt;span class="red"> ERROR: ' + e + '&lt;/span>');
 }
 
 emptyZipProgress();
@@ -241,7 +269,7 @@ function showZipSuccess({
   periods
 }) {
   emptyZipProgress();
-  showZipProgress(`<span class="green"> SUCCESS.  Read ${periods} periods. The data in the zip file has been loaded. Scroll down to interact with this data. </span>`);
+  showZipProgress(`&lt;span class="green"> SUCCESS.  Read ${periods} periods. The data in the zip file has been loaded. Scroll down to interact with this data. &lt;/span>`);
   restoreZipUI();
 }
 
@@ -253,7 +281,7 @@ function showZipSuccess({
  */
 function showZipFailure(e) {
   if (e) showZipError(e);
-  showZipProgress('<span class="red"> FAILURE. I could not use that zip file.  You may try again, choosing a different zip file');
+  showZipProgress('&lt;span class="red"> FAILURE. I could not use that zip file.  You may try again, choosing a different zip file');
   restoreZipUI();
 }
 
@@ -278,7 +306,7 @@ function defer(f, ...params){
  * find zip files in folder
  *
  * @param {StudyFolder} folder to search for files
- * @returns {Promise<*>} file entries for .zip files
+ * @returns {Promise&lt;*>} file entries for .zip files
  */
 async function zipFilesInFolder(folder){
   let files = [];
@@ -336,24 +364,24 @@ class VizMaster {
   }) {
     let i = 0;
     $('#' + this.div).empty();
-    while (i < n) {
-      let $row = $("<div>")
+    while (i &lt; n) {
+      let $row = $("&lt;div>")
         .addClass("row")
         .appendTo('#' + this.div);
       if (withParamPlots) {
-        $("<div>", {
+        $("&lt;div>", {
             id: `paramPlot${i}`
           })
           .addClass("paramPlot col-xs-12 col-md-4")
           .appendTo($row);
         // to restore above code, change below code to add col-md-7
-        $("<div>", {
+        $("&lt;div>", {
             id: `resultPlot${i}`
           })
           .addClass("resultPlot col-xs-12 col-md-7")
           .appendTo($row);
       } else {
-        $("<div>", {
+        $("&lt;div>", {
             id: `resultPlot${i}`
           })
           .addClass("resultPlot col-xs-12")
@@ -375,7 +403,7 @@ export class App {
    * @param {object[]} options.visuals array of objects describing visualizations of completed simulations and parameters, to be interpreted by single-market-robot-simulator-viz-plotly
    * @param {object} options.editorConfigSchema JSON Schema object for json-editor relevant to user editing of simulation configurations
    * @param {object} options.editorStartValue default simulation configuration for editing if none are defined
-   * @param {Array<Array<string>>} options.behavior click and eventmap stored as Array of 2 or 3 element arrays [jqSelector, appMethodName, [ eventType = click ] ]
+   * @param {Array&lt;Array&lt;string>>} options.behavior click and eventmap stored as Array of 2 or 3 element arrays [jqSelector, appMethodName, [ eventType = click ] ]
    * @returns {App} new App
    */
   constructor(options) {
@@ -443,7 +471,7 @@ export class App {
 
   getStudyFolder() {
     const app = this;
-    return app.study && app.study.folder;
+    return app.study &amp;&amp; app.study.folder;
   }
 
   /**
@@ -477,15 +505,15 @@ export class App {
         .prop('value', '');
       $('.onSetStudyFolderLinkUpdate').prop('href', app.DB.defaultWebLink);
     }
-    const configTitle = (folder && folder.name) || (config && config.name) || 'UNTITLED';
+    const configTitle = (folder &amp;&amp; folder.name) || (config &amp;&amp; config.name) || 'UNTITLED';
     $('.configTitle')
       .text(configTitle);
-    const modifiedTime = folder && folder.modifiedTime;
+    const modifiedTime = folder &amp;&amp; folder.modifiedTime;
     const modifiedTimeStr = (modifiedTime) ? (new Date(modifiedTime)
       .toUTCString()) : '';
     $('.currentStudyFolderModifiedTime')
       .text(modifiedTimeStr);
-    const description = (folder && folder.description) || (config && config.description) || '';
+    const description = (folder &amp;&amp; folder.description) || (config &amp;&amp; config.description) || '';
     $('.currentStudyFolderDescription')
       .text(description);
   }
@@ -507,32 +535,32 @@ export class App {
     if (folder) defer(app.updateZipList.bind(app),folder);
     app.updateFolderUI(folder, config);
     if (config) {
-      if (app.editor && app.initEditor) {
+      if (app.editor &amp;&amp; app.initEditor) {
         app.initEditor({
           config: clone(config),
           schema: app.editorConfigSchema
         });
       }
-      if (config.common && app.setPeriods) {
+      if (config.common &amp;&amp; app.setPeriods) {
         if (+config.common.periods > 0) {
           app.setPeriods(Math.min(100, +config.common.periods));
         } else {
           app.setPeriods(1);
         }
       }
-      if (config && config.common && config.configurations) {
+      if (config &amp;&amp; config.common &amp;&amp; config.configurations) {
         // app.showParameters(config);
         const sims = app.simulations(config);
         $('#xsimbs')
           .html(
-            "<tr>" + (sims
+            "&lt;tr>" + (sims
               .map(
                 (sim, j) => {
                   const data = [j, sim.config.numberOfBuyers, sim.config.numberOfSellers];
-                  return "<td>" + data.join("</td><td>") + "</td>";
+                  return "&lt;td>" + data.join("&lt;/td>&lt;td>") + "&lt;/td>";
                 })
-              .join('</tr><tr>')
-            ) + "</tr>");
+              .join('&lt;/tr>&lt;tr>')
+            ) + "&lt;/tr>");
       }
       defer(app.timeit.bind(app), config);
     }
@@ -546,7 +574,7 @@ export class App {
   getPeriods() {
     const app = this;
     const config = app.getStudyConfig();
-    return config && config.common.periods;
+    return config &amp;&amp; config.common.periods;
   }
 
   /**
@@ -595,7 +623,7 @@ export class App {
   }
 
   /**
-   * Eventually updates Array<number> app.periodTimers by running a study for up to 5 periods or 5 seconds to get period finishing times. Calls guessTIme to update span.estimated-running-time
+   * Eventually updates Array&lt;number> app.periodTimers by running a study for up to 5 periods or 5 seconds to get period finishing times. Calls guessTIme to update span.estimated-running-time
    * @param {Object} studyConfig - A studyConfig as defined by app.simulations
    */
 
@@ -656,7 +684,7 @@ export class App {
     app.sims = [];
     app.chosenRun = +n;
     const zipFile = app.study.zipFiles[n];
-    if (zipFile && zipFile.webViewLink) {
+    if (zipFile &amp;&amp; zipFile.webViewLink) {
       $('.onChooseRunLinkUpdate').prop('href', zipFile.webViewLink);
     } else {
       $('.onChooseRunLinkUpdate').prop('href', app.DB.defaultWebLink);
@@ -676,7 +704,7 @@ export class App {
     const app = this;
     const select = '#selector';
     const options = (
-      app.availableStudyFolders &&
+      app.availableStudyFolders &amp;&amp;
       app.availableStudyFolders.map((f) => (f.name))
     ) || []; // fails thru to empty set of options
     const selectedOption = 0;
@@ -695,8 +723,8 @@ export class App {
   renderPriorRunSelector() {
     const app = this;
     const options = (
-      app.study &&
-      app.study.zipFiles &&
+      app.study &amp;&amp;
+      app.study.zipFiles &amp;&amp;
       app.study.zipFiles.map(
         (f) => {
           const parts = [];
@@ -718,8 +746,8 @@ export class App {
       )
     ) || []; // fails thru to empty set of options
     const values = (
-      app.study &&
-      app.study.zipFiles &&
+      app.study &amp;&amp;
+      app.study.zipFiles &amp;&amp;
       app.study.zipFiles.map((f) => (f.id))
     ) || [];
     const selectedOption = 0;
@@ -745,8 +773,8 @@ export class App {
     const app = this;
     const visuals = app.visuals;
     const select = '#vizselect';
-    const options = (visuals && (visuals.map((v) => (v.meta.title || v.meta.f)))) || [];
-    const groups = (visuals && (visuals[0].meta.group) && (visuals.map((v) => (v.meta.group))));
+    const options = (visuals &amp;&amp; (visuals.map((v) => (v.meta.title || v.meta.f)))) || [];
+    const groups = (visuals &amp;&amp; (visuals[0].meta.group) &amp;&amp; (visuals.map((v) => (v.meta.group))));
     const selectedOption = app.visualIndex;
     setSelectOptions({
       select,
@@ -777,7 +805,7 @@ export class App {
   init() {
     const app = this;
     app.initBehavior();
-    if (app.editorStartValue && app.editorConfigSchema)
+    if (app.editorStartValue &amp;&amp; app.editorConfigSchema)
       app.initEditor({
         config: app.editorStartValue,
         schema: app.editorConfigSchema
@@ -794,7 +822,7 @@ export class App {
       let selection = $(jqSelector);
       if (selection.length === 0)
         throw new Error("Error initializing app behavior - selector " + jqSelector + " not found in app's web page");
-      selection.on(eventName || 'click', ((evt) => app[appMethod](evt && evt.target && evt.target.value)));
+      selection.on(eventName || 'click', ((evt) => app[appMethod](evt &amp;&amp; evt.target &amp;&amp; evt.target.value)));
     });
     $('body').removeClass('disabledMouse');
   }
@@ -824,7 +852,7 @@ export class App {
     if (app.DB){
       try {
         const items = await app.DB.listStudyFolders();
-        if (Array.isArray(items) && (items.length)) {
+        if (Array.isArray(items) &amp;&amp; (items.length)) {
           app.availableStudyFolders = items;
           app.renderConfigSelector();
           app.choose(0);
@@ -845,7 +873,7 @@ export class App {
     $('#morphError').text('');
     if (app.editor) {
       const config = app.editor.getValue();
-      const l = config && config.configurations && config.configurations.length;
+      const l = config &amp;&amp; config.configurations &amp;&amp; config.configurations.length;
       if (!l || (l !== 2)) {
         $('#morphError').text('morph requires exactly 2 configurations. This study currently has ' + l + ' configurations');
         throw new Error("app.renderMorph morph requires exactly 2 configurations");
@@ -857,8 +885,8 @@ export class App {
         throw new Error("app.renderMorph morph requires configurations that pass Study.isMorphable");
       }
       const schema = Study.morphSchema(A, B);
-      const hasConfigMorph = config.morph && (Object.keys(config.morph).length > 0);
-      const startval = (hasConfigMorph && config.morph) || schema.default;
+      const hasConfigMorph = config.morph &amp;&amp; (Object.keys(config.morph).length > 0);
+      const startval = (hasConfigMorph &amp;&amp; config.morph) || schema.default;
       app.morphEditor = createJSONEditor({
         div: 'morphEditor',
         clear: true,
@@ -876,7 +904,7 @@ export class App {
 
   doMorph() {
     const app = this;
-    if (app.editor && app.morphEditor) {
+    if (app.editor &amp;&amp; app.morphEditor) {
       const config = (
         Object.assign({},
           Study.simplify(app.editor.getValue()), {
@@ -981,7 +1009,7 @@ export class App {
       await app.uploadData();
     } catch (e) {
       uiDone();
-      $('#runError').html("<pre>" + e + "</pre>");
+      $('#runError').html("&lt;pre>" + e + "&lt;/pre>");
       setProgressBar({
         text: "Error! "+e
       });
@@ -1029,7 +1057,7 @@ export class App {
      *
      */
 
-    if (myStudyFolder && (config.name === myStudyFolder.name)){
+    if (myStudyFolder &amp;&amp; (config.name === myStudyFolder.name)){
       try {
         await myStudyFolder.setConfig({config});
         window.location.reload();
@@ -1150,7 +1178,7 @@ export class App {
       cfg: study,
       sims: app.sims
     });
-    if (folder && folder.upload) {
+    if (folder &amp;&amp; folder.upload) {
       setProgressBar({
         value: 0,
         text: 'Saving ' + name
@@ -1189,7 +1217,7 @@ export class App {
         });
       } catch (e){
         console.log('smrs-app-framework-uploadData',e);
-        $('#runError').append('<pre> Error Saving ' + name + "\n" + e + '</pre>');
+        $('#runError').append('&lt;pre> Error Saving ' + name + "\n" + e + '&lt;/pre>');
         return;
       }
     } else {
@@ -1246,7 +1274,7 @@ export class App {
       if (!(data.config)) throw new Error("No master configuration file (config.json) was found in zip file.  Maybe this zip file is unrelated.");
       if (!(data.sims.length)) throw new Error("No simulation configuration files (sim.json) in the zip file");
       app.vizMaster.scaffold(data.sims.length);
-      if ((Array.isArray(data.config.configurations)) &&
+      if ((Array.isArray(data.config.configurations)) &amp;&amp;
         (Study.numberOfSimulations(data.config) !== data.sims.length))
           throw new Error("Missing files.  the number of configurations generated by config.json does not match the number of simulation directories and files I found");
       if (data.sims.includes(undefined))
@@ -1266,3 +1294,26 @@ export class App {
     }
   }
 }
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="App_App.html">App</a></li><li><a href="VizMaster.html">VizMaster</a></li></ul><h3>Global</h3><ul><li><a href="global.html#createJSONEditor">createJSONEditor</a></li><li><a href="global.html#defer">defer</a></li><li><a href="global.html#emptyZipProgress">emptyZipProgress</a></li><li><a href="global.html#megaByteSizeStringRoundedUp">megaByteSizeStringRoundedUp</a></li><li><a href="global.html#optionGroupHTML">optionGroupHTML</a></li><li><a href="global.html#optionHTML">optionHTML</a></li><li><a href="global.html#restoreZipUI">restoreZipUI</a></li><li><a href="global.html#setProgressBar">setProgressBar</a></li><li><a href="global.html#setSelectOptions">setSelectOptions</a></li><li><a href="global.html#showPeriods">showPeriods</a></li><li><a href="global.html#showZipError">showZipError</a></li><li><a href="global.html#showZipFailure">showZipFailure</a></li><li><a href="global.html#showZipProgress">showZipProgress</a></li><li><a href="global.html#showZipSuccess">showZipSuccess</a></li><li><a href="global.html#zipFilesInFolder">zipFilesInFolder</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.10</a> on Sat May 21 2022 03:26:03 GMT-0400 (Eastern Daylight Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
