@@ -364,6 +364,20 @@ class VizMaster {
   }
 }
 
+class FacadeSimulation {
+
+  /**
+   * Facade Simulation simply sets this.config and does nothing else
+   *
+   * @param {object} props properties
+   * @returns {object} new FacadeSimulations, when called with new
+   */
+  constructor(props) {
+    this.config = props;
+  }
+
+}
+
 export class App {
 
   /**
@@ -403,22 +417,19 @@ export class App {
    * @param {object} studyConfig.common Common single-market-robot-simulator configuration settings to be forced in all simulations in a study.
    * @param {boolean} runnable True for runnable simulation, false for facadeSimulation
    * @param {number[]|undefined} subset undefined->all, or an array of indices to use from studyConfig.configurations
-   * @returns {object[]} array of new SMRS.Simulation - each simulation will be initialized but not running
+   * @returns {Simulation[]|FacadeSimulation[]} array of new SMRS.Simulation - each simulation will be initialized but not running
    */
   simulations(studyConfig, runnable, subset) {
     const app = this;
-
-    function FacadeSimulation(props) {
-      this.config = props;
-    }
     return Study.makeSimulations(studyConfig, (runnable) ? app.SMRS.Simulation : FacadeSimulation, subset);
   }
 
   /**
    * Update zip file list UI from Folder
-   * @param {folder} an instance of StudyFolder
+   *
+   * @param {StudyFolder} folder selected StudyFolder
+   * @returns {Promise<void>} resolves when completed
    */
-
   async updateZipList(folder){
     const app = this;
     const zipFiles = await zipFilesInFolder(folder);
@@ -428,9 +439,9 @@ export class App {
 
   /**
    * Get current study configuration
-   * @return {Object} study configuration
+   *
+   * @returns {object} study configuration
    */
-
   getStudyConfig() {
     const app = this;
     return app?.study?.config;
@@ -438,63 +449,48 @@ export class App {
 
   /**
    * Get current StudyFolder
-   * @return {Object} an instance implementing the StudyFolder interface
+   *
+   * @returns {StudyFolder} StudyFolder
    */
-
   getStudyFolder() {
     const app = this;
     return app.study && app.study.folder;
   }
 
   /**
-   * update UI fields for current folder or clear folder
-   *  @param [folder] optional instance of StudyFolder
+   * update or clear UI fields for current folder
+   *
+   *  @param {StudyFolder} folder optional instance of StudyFolder
+   *  @param {object} config optional instance of study configuration
+   *  @returns {void}
    */
-
   updateFolderUI(folder, config){
     const app = this;
-    if (folder) {
-      if (folder.name)
-        $('.onSetStudyFolderNameUpdateValue')
-        .prop('value', folder.name);
-      else
-        $('.onSetStudyFolderNameUpdateValue')
-        .prop('value', '');
-      if (folder.id)
-        $('.onSetStudyFolderIdUpdateValue')
-        .prop('value', folder.id);
-      else
-        $('.onSetStudyFolderIdUpdateValue')
-        .prop('value', '');
-      if (folder.webViewLink)
-        $('.onSetStudyFolderLinkUpdate').prop('href', folder.webViewLink);
-      else
-        $('.onSetStudyFolderLinkUpdate').prop('href', app.DB.defaultWebLink);
-    } else {
-      $('.onSetStudyFolderNameUpdateValue')
-        .prop('value', '');
-      $('.onSetStudyFolderIdUpdateValue')
-        .prop('value', '');
-      $('.onSetStudyFolderLinkUpdate').prop('href', app.DB.defaultWebLink);
-    }
-    const configTitle = (folder && folder.name) || (config && config.name) || 'UNTITLED';
+    $('.onSetStudyFolderNameUpdateValue')
+      .prop('value', folder?.name || '');
+    $('.onSetStudyFolderIdUpdateValue')
+      .prop('value', folder?.id || '');
+    $('.onSetStudyFolderLinkUpdate').prop('href', folder?.webViewLink || app?.DB?.defaultWebLink || '');
+    const configTitle = folder?.name || config?.name || 'UNTITLED';
     $('.configTitle')
       .text(configTitle);
-    const modifiedTime = folder && folder.modifiedTime;
-    const modifiedTimeStr = (modifiedTime) ? (new Date(modifiedTime)
+    const modifiedTimeStr = (folder?.modifiedTime) ? (new Date(folder?.modifiedTime)
       .toUTCString()) : '';
     $('.currentStudyFolderModifiedTime')
       .text(modifiedTimeStr);
-    const description = (folder && folder.description) || (config && config.description) || '';
+    const description = folder?.description || config?.description || '';
     $('.currentStudyFolderDescription')
       .text(description);
   }
 
   /**
    * Set current study
-   * @param {Object} studyConfig study configuraion
+   *
+   * @param {object} options options
+   * @param {object} options.config study configuration
+   * @param {StudyFolder} options.folder study folder
+   * @returns {void}
    */
-
   setStudy({
     config,
     folder
@@ -509,19 +505,18 @@ export class App {
     if (config) {
       if (app.editor && app.initEditor) {
         app.initEditor({
-          config: clone(config),
+          config: clone(config), // clone here and later require clicking save to change config
           schema: app.editorConfigSchema
         });
       }
       if (config.common && app.setPeriods) {
         if (+config.common.periods > 0) {
-          app.setPeriods(Math.min(100, +config.common.periods));
+          app.setPeriods(Math.min(100, Math.floor(config.common.periods)));
         } else {
           app.setPeriods(1);
         }
       }
-      if (config && config.common && config.configurations) {
-        // app.showParameters(config);
+      if (config.common && config.configurations) {
         const sims = app.simulations(config);
         $('#xsimbs')
           .html(
@@ -540,9 +535,9 @@ export class App {
 
   /**
    * Get number of periods for next run of study, looks in study.common.periods
-   * @return {number} number of periods
+   *
+   * @returns {number} number of periods
    */
-
   getPeriods() {
     const app = this;
     const config = app.getStudyConfig();
@@ -551,9 +546,10 @@ export class App {
 
   /**
    * Safely sets number of periods for the next run of the current study.  Affects config of cached app.study but not settings in editor.
+   *
    * @param {number} n number of periods
+   * @returns {void}
    */
-
   setPeriods(n) {
     const app = this;
     if (+n > 0) {
@@ -567,8 +563,8 @@ export class App {
   /**
    * Updates span.estimated-running-time with estimate of required running time for the current study, given the number of periods and the cached timing run,
    *
+   * @returns {void}
    */
-
   guessTime() {
     const app = this;
     const periodTimers = app.periodTimers;
@@ -595,10 +591,11 @@ export class App {
   }
 
   /**
-   * Eventually updates Array<number> app.periodTimers by running a study for up to 5 periods or 5 seconds to get period finishing times. Calls guessTIme to update span.estimated-running-time
-   * @param {Object} studyConfig - A studyConfig as defined by app.simulations
+   * Updates Array<number> app.periodTimers by running a study for up to 5 periods or 5 seconds to get period finishing times. Calls guessTIme to update span.estimated-running-time
+   *
+   * @param {object} studyConfig study configuration
+   * @returns {void}
    */
-
   async timeit(studyConfig) {
     const app = this;
     if (!studyConfig || !(Array.isArray(studyConfig.configurations))) return;
@@ -630,10 +627,14 @@ export class App {
 }
 
   /**
-   * Eventually choose study n from Array app.availableStudies if possible, get details from DB, send it to app.editor and app.periodsEditor if defined, then app.timeit, and then refresh UI with app.refresh
+   * handle user choice of the n-th study from the selector box.
+   * Eventually choose study n from Array app.availableStudies:
+   * if possible, get details from DB, send it to app.editor and app.periodsEditor if defined,
+   * then app.timeit, and then refresh UI with app.refresh
+   *
    * @param {number} n index of chosen study in app.availableStudies[]
+   * @returns {void}
    */
-
   choose(n) {
     const app = this;
     $('div.openzip-progress').empty();
@@ -649,6 +650,12 @@ export class App {
     }
   }
 
+  /**
+   * handle user choice of the n-th zipFile from the selector box
+   *
+   * @param {number} n index of selected zipFile in selector
+   * @returns {void}
+   */
   chooseRun(n) {
     const app = this;
     $('div.openzip-progress').empty();
@@ -663,15 +670,22 @@ export class App {
     }
   }
 
+  /**
+   * handle user fetch click for selected zipFile
+   *
+   * @returns {void}
+   */
   fetchChosenRun() {
     const app = this;
     app.openZipFile(app.chosenRun);
   }
 
   /**
-   * Render #selector if it exists, by erasing all options and reading each study .title from app.availableStudies  You should define an empty select element in index.html with id "selector"
+   * Render #selector if it exists, by erasing all options and reading each study .title from app.availableStudies
+   * You should define an empty select element in index.html with id "selector"
+   *
+   * @returns {void}
    */
-
   renderConfigSelector() {
     const app = this;
     const select = '#selector';
@@ -690,8 +704,8 @@ export class App {
   /**
    * Render #priorRunSelector if it exists
    *
+   * @returns {void}
    */
-
   renderPriorRunSelector() {
     const app = this;
     const options = (
@@ -739,8 +753,9 @@ export class App {
 
   /**
    * Render visualization options for current app.study into DOM select existing at id #vizselect
+   *
+   * @returns {void}
    */
-
   renderVisualSelector() {
     const app = this;
     const visuals = app.visuals;
@@ -758,9 +773,12 @@ export class App {
 
   /**
    *  Expand the number of buyers and sellers (unless the number is 1, which is preserved), expanding the array(s) of buyerValues and sellerCosts via the how function
-   *   how should be callable like this how(buyerValueorSellerCostArray, xfactor) and return a new array of values or costs
+   *   how should be callable like this how(buyerValue or SellerCostArray, xfactor) and return a new array of values or costs
+   *   Study.expander.interpolate and Study.expander.duplicate are typical how functions.
+   *
+   * @param {Function} how function(array, xfactor) to transform array for xfactor more agents
+   * @returns {void}
    */
-
   expand(how) {
     const app = this;
     const xfactor = +$('#xfactor')
@@ -771,9 +789,12 @@ export class App {
     });
   }
 
-  /** Perform additional required initialization, NOT called by constructor. Sets up (1) app.behavior with jQuery.on; (2) JSON Editor in div with id editor; (3) begins reading database for saveList
+  /**
+   * Perform additional required initialization, NOT called by constructor. Sets up (1) app.behavior with jQuery.on;
+   * (2) JSON Editor in div #editor; (3) begins reading database for saveList
+   *
+   * @returns {void}
    */
-
   init() {
     const app = this;
     app.initBehavior();
@@ -785,6 +806,11 @@ export class App {
     defer(app.initDB.bind(app));
   }
 
+  /**
+   * initialize app's behavior to UI events, via jQuery.on
+   *
+   * @returns {void}
+   */
   initBehavior() {
     const app = this;
     app.behavior.forEach((v) => {
@@ -799,6 +825,14 @@ export class App {
     $('body').removeClass('disabledMouse');
   }
 
+  /**
+   * Initialize jdorn's JSON Editor
+   *
+   * @param {object} editorOptions editor options
+   * @param {object} editorOptions.config required initial study configuration
+   * @param {object} editorOptions.schema required json-schema
+   * @returns {void}
+   */
   initEditor({
     config,
     schema
@@ -819,6 +853,13 @@ export class App {
     });
   }
 
+  /**
+   * Initialize study folder list from app.DB and populate UI.  Then choose the first folder to further populate UI.
+   * This might be local or remote.
+   * Calls await app.DB.listStudyFolders()
+   *
+   * @returns {Promise<void>} resolves when complete
+   */
   async initDB() {
     const app = this;
     if (app.DB){
@@ -836,10 +877,11 @@ export class App {
   }
 
   /**
-   * renderMorph
+   * renderMorphEditor
    * setup UI for Morph after tab click
+   *
+   * @returns {void}
    */
-
   renderMorphEditor() {
     const app = this;
     $('#morphError').text('');
@@ -872,8 +914,9 @@ export class App {
 
   /**
    * morphs the edited configuration and stuffs it back in the editor
+   *
+   * @returns {void}
    */
-
   doMorph() {
     const app = this;
     if (app.editor && app.morphEditor) {
@@ -893,8 +936,9 @@ export class App {
 
   /**
    * expands the current study by creating new values and costs by interpolation
+   *
+   * @returns {void}
    */
-
   interpolate() {
     const app = this;
     app.expand(Study.expander.interpolate);
@@ -902,8 +946,9 @@ export class App {
 
   /**
    * expands the current study by duplicating unit costs and values
+   *
+   * @returns {void}
    */
-
   duplicate() {
     const app = this;
     app.expand(Study.expander.duplicate);
@@ -911,8 +956,9 @@ export class App {
 
   /**
    * abandon edits to the current study by refreshing the UI and editor from the cache
+   *
+   * @returns {void}
    */
-
   undo() {
     const app = this;
     app.choose(app.chosenStudyIndex);
@@ -920,19 +966,27 @@ export class App {
 
   /**
    * run the current study and save data
-   *
    * requires there to be CSS classes enabledMouse and disabledMouse
    * which set pointer-events: none and pointer-events: auto respectively
+   *
+   * @returns {Promise<void>} resolves when complete
    */
-
   async run() {
     const app = this;
+
+    /**
+     * indicate run finished in UI
+     * stops spinning icons
+     *
+     * @returns {void}
+     */
     function uiDone() {
       $('.spinning')
         .removeClass('spinning');
       $('body').removeClass('disabledMouse');
       $('.btn-danger').removeClass('enabledMouse');
     }
+
     $('body').addClass('disabledMouse');
     $('.btn-danger').addClass('enabledMouse');
     $('#runError')
@@ -991,8 +1045,9 @@ export class App {
   /**
    * stop a run of the current study
    * should have no effect unless study is running
+   *
+   * @returns {void}
    */
-
   stop() {
     const app = this;
     // trigger normal completion
@@ -1003,13 +1058,11 @@ export class App {
   }
 
   /**
-   * tries to save the current study from the editor. try to save in place if name is unchanged.  If new name, create a new StudyFolder and save.  Reload the browser after saving.
+   * save the current study from the editor. try to save in place if name is unchanged.  If new name, create a new StudyFolder and save.
+   * Reload the browser after saving.
    *
-   * Previous behavior was to Save to the top of the app DB saveList, if the title is changed.  Otherwise, in place (remove/save).
-   * Finally, reload the browser to give the app a clean restart.
-   *
+   * @returns {Promise<void>} resolves when complete
    */
-
   async save() {
     const app = this;
     const myStudyFolder = app.getStudyFolder();
@@ -1057,7 +1110,7 @@ export class App {
       const folder = await app.DB.createStudyFolder({
           name: config.name
       });
-      folder.setConfig({config});
+      await folder.setConfig({config});
       window.location.reload();
     } catch(e){
       window.alert(e); // eslint-disable-line no-alert
@@ -1066,9 +1119,10 @@ export class App {
 
   /**
    * Select a visualization from the visualization list but don't draw it yet.
+   *
    * @param {number} n Visualization index in Visuals array
+   * @returns {void}
    */
-
   setVisualNumber(n) {
     const app = this;
     app.visualIndex = +n;
@@ -1077,8 +1131,9 @@ export class App {
   /**
    *
    * Draw the selected visualization
+   *
+   * @returns {void}
    */
-
   drawVisuals() {
     const app = this;
     const studyConfig = app.getStudyConfig();
@@ -1111,8 +1166,9 @@ export class App {
 
   /**
    * Create  .zip file containing study and simulation configurations and data and give it to the user
+   *
+   * @returns {Promise<void>} resolves when complete
    */
-
   async downloadData() {
     const app = this;
     $('#downloadButton')
@@ -1135,9 +1191,10 @@ export class App {
   }
 
   /**
-   * Create .zip file containing study and simulation configurations and data and upload it to the cloud
+   * Create .zip file containing study and simulation configurations and data and upload it to DB
+   *
+   * @returns {Promise<void>} resolves when complete
    */
-
   async uploadData() {
     const app = this;
     const study = clone(app.getStudyConfig());
@@ -1200,9 +1257,10 @@ export class App {
 
   /**
    * return a promise resolving to a zip file of saved data
-   * @param {Object} zipFile representation compatible with app.study.download
+   *
+   * @param {object} zipFile file representation compatible with DB's StudyFolder.download(zipfile)
+   * @returns {Promise<any>} promise resolving to zip file content
    */
-
   zipPromise(zipFile) {
     const app = this;
     showZipProgress("chosen zip file is:" + JSON.stringify(zipFile));
@@ -1227,9 +1285,12 @@ export class App {
   }
 
   /**
-   * open a .zip file associated with current study folder
+   * handle a request to open a .zip file from the UI list by entry number
+   * load the zip file and update the UI
+   *
+   * @param {number} chosenSavedRun zip file entry number in UI
+   * @returns {Promise<void>} resolves when complete
    */
-
   async openZipFile(chosenSavedRun) {
     const app = this;
     try {
