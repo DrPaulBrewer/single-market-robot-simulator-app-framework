@@ -1,3 +1,4 @@
+/* eslint-env node */
 module.exports = {
     "env": {
         "browser": true,
@@ -5,11 +6,20 @@ module.exports = {
         "es6": true,
         "node": true
     },
-    "extends": "eslint:recommended",
+    "extends": ["eslint:recommended"],
     "parserOptions": {
        "ecmaVersion": 2020,
        "sourceType": "module"
     },
+    "overrides": [
+        {
+            "files": ["src/*.mjs"],
+            "extends": ["eslint:recommended", "plugin:jsdoc/recommended"]
+        }
+    ],
+    "plugins": [
+      "jsdoc"
+    ],
     "rules": {
         "accessor-pairs": "error",
         "array-bracket-spacing": "error",
@@ -31,7 +41,7 @@ module.exports = {
         "comma-dangle": "error",
         "comma-spacing": "off",
         "comma-style": "error",
-        "complexity": "off",
+        "complexity": "error",
         "computed-property-spacing": [
             "error",
             "never"
@@ -86,7 +96,7 @@ module.exports = {
         "no-bitwise": "error",
         "no-caller": "error",
         "no-catch-shadow": "error",
-        "no-confusing-arrow": "error",
+        "no-confusing-arrow": ["error", {"allowParens": true}],
         "no-continue": "error",
         "no-div-regex": "error",
         "no-duplicate-imports": "error",
