@@ -1,6 +1,6 @@
 {
   "name": "single-market-robot-simulator-app-framework",
-  "version": "14.0.0",
+  "version": "14.0.1",
   "description": "specialized reusable app framework for creating robot trading webapps",
   "exports": "./src/index.mjs",
   "scripts": {
